@@ -406,6 +406,8 @@ public class WebSocketWriter extends Handler {
 
       } else {
 
+         // call hook which may be overridden in derived class to process
+         // messages we don't understand in this class
          processAppMessage(msg);
       }
    }
