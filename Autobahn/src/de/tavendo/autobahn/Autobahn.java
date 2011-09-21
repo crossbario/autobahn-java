@@ -180,4 +180,12 @@ public interface Autobahn {
     */
    public void unsubscribe();
 
+   /**
+    * Publish an event to the specified topic.
+    *
+    * @param topicUri      The URI or CURIE of the topic the event is to be published for.
+    * @param event         The event to be published.
+    */
+   public void publish(String topicUri, Object event);
+
 }

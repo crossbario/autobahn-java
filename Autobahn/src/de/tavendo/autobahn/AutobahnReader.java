@@ -32,6 +32,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import android.os.Handler;
 import android.util.Log;
 import de.tavendo.autobahn.AutobahnConnection.CallMeta;
+import de.tavendo.autobahn.AutobahnConnection.SubMeta;
 
 public class AutobahnReader extends WebSocketReader {
 
@@ -41,13 +42,19 @@ public class AutobahnReader extends WebSocketReader {
    private final JsonFactory mJsonFactory;
 
    private final ConcurrentHashMap<String, CallMeta> mCalls;
+   private final ConcurrentHashMap<String, SubMeta> mSubs;
 
-
-   public AutobahnReader(ConcurrentHashMap<String, CallMeta> calls, Handler master, SocketChannel socket, WebSocketOptions options, String threadName) {
+   public AutobahnReader(ConcurrentHashMap<String, CallMeta> calls,
+                         ConcurrentHashMap<String, SubMeta> subs,
+                         Handler master,
+                         SocketChannel socket,
+                         WebSocketOptions options,
+                         String threadName) {
 
       super(master, socket, options, threadName);
 
       mCalls = calls;
+      mSubs = subs;
 
       mJsonMapper = new ObjectMapper();
       mJsonMapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -124,10 +131,25 @@ public class AutobahnReader extends WebSocketReader {
 
                } else if (msgType == AutobahnMessage.MESSAGE_TYPE_EVENT) {
 
-                  //parser.nextToken();
-                  //String topicUri = parser.getText();
+                  // topic URI
+                  parser.nextToken();
+                  String topicUri = parser.getText();
 
-                  // FIXME: read object as ..
+                  // event
+                  parser.nextToken();
+                  Object event = null;
+
+                  if (mSubs.containsKey(topicUri)) {
+
+                     SubMeta meta = mSubs.get(topicUri);
+                     if (meta.mEventClass != null) {
+                        event = parser.readValueAs(meta.mEventClass);
+                     } else if (meta.mEventTypeRef != null) {
+                        event = parser.readValueAs(meta.mEventTypeRef);
+                     } else {
+                     }
+                     notify(new AutobahnMessage.Event(topicUri, event));
+                  }
 
                } else if (msgType == AutobahnMessage.MESSAGE_TYPE_PREFIX) {
 

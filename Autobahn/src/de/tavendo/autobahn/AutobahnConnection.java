@@ -18,7 +18,6 @@
 
 package de.tavendo.autobahn;
 
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -59,33 +58,27 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
    private final ConcurrentHashMap<String, CallMeta> mCalls = new ConcurrentHashMap<String, CallMeta>();
 
-   private static class SubscriptionMeta {
+   public static class SubMeta {
 
-      @SuppressWarnings("unused")
-      SubscriptionMeta(OnEventHandler eventHandler, Class<?> eventType) {
+      SubMeta(OnEventHandler eventHandler, Class<?> eventType) {
          this.mEventHandler = eventHandler;
          this.mEventClass = eventType;
          this.mEventTypeRef = null;
       }
 
-      @SuppressWarnings("unused")
-      SubscriptionMeta(OnEventHandler eventListener, TypeReference<?> eventType) {
+      SubMeta(OnEventHandler eventListener, TypeReference<?> eventType) {
          this.mEventHandler = eventListener;
          this.mEventClass = null;
          this.mEventTypeRef = eventType;
       }
 
-      @SuppressWarnings("unused")
       public OnEventHandler mEventHandler;
-      @SuppressWarnings("unused")
       public Class<?> mEventClass;
-      @SuppressWarnings("unused")
       public TypeReference<?> mEventTypeRef;
 
    }
 
-   @SuppressWarnings("unused")
-   private ConcurrentHashMap<String, List<SubscriptionMeta>> mEventListenerRegistrations = new ConcurrentHashMap<String, List<SubscriptionMeta>>();
+   private final ConcurrentHashMap<String, SubMeta> mSubs = new ConcurrentHashMap<String, SubMeta>();
 
    private Autobahn.OnSession mSessionHandler;
 
@@ -98,7 +91,7 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
 
    protected void createReader() {
-      mReader = new AutobahnReader(mCalls, mMasterHandler, mTransportChannel, mOptions, "AutobahnReader");
+      mReader = new AutobahnReader(mCalls, mSubs, mMasterHandler, mTransportChannel, mOptions, "AutobahnReader");
       mReader.start();
    }
 
@@ -213,10 +206,8 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
       for (int i = 0; i < arguments.length; ++i) {
          call.mArgs[i] = arguments[i];
       }
-
-      mCalls.put(call.mCallId, resultMeta);
-
       mWriter.forward(call);
+      mCalls.put(call.mCallId, resultMeta);
    }
 
 
@@ -232,33 +223,61 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
    }
 
 
-   public void subscribe(String eventId, Class<?> eventType, OnEventHandler eventHandler) {
-      // TODO Auto-generated method stub
+   private void subscribe(String topicUri, SubMeta meta) {
 
+      if (!mSubs.containsKey(topicUri)) {
+
+         AutobahnMessage.Subscribe msg = new AutobahnMessage.Subscribe(topicUri);
+         mWriter.forward(msg);
+      }
+      mSubs.put(topicUri, meta);
    }
 
 
-   public void subscribe(String eventId, TypeReference<?> eventType, OnEventHandler eventHandler) {
-      // TODO Auto-generated method stub
+   public void subscribe(String topicUri, Class<?> eventType, OnEventHandler eventHandler) {
 
+      subscribe(topicUri, new SubMeta(eventHandler, eventType));
    }
 
 
-   public void prefix(String prefix, String uri) {
-      // TODO Auto-generated method stub
+   public void subscribe(String topicUri, TypeReference<?> eventType, OnEventHandler eventHandler) {
 
+      subscribe(topicUri, new SubMeta(eventHandler, eventType));
    }
 
 
    public void unsubscribe(String topicUri) {
-      // TODO Auto-generated method stub
 
+      if (mSubs.containsKey(topicUri)) {
+
+         AutobahnMessage.Unsubscribe msg = new AutobahnMessage.Unsubscribe(topicUri);
+         mWriter.forward(msg);
+      }
    }
 
 
    public void unsubscribe() {
-      // TODO Auto-generated method stub
 
+      for (String topicUri : mSubs.keySet()) {
+
+         AutobahnMessage.Unsubscribe msg = new AutobahnMessage.Unsubscribe(topicUri);
+         mWriter.forward(msg);
+     }
+   }
+
+
+   public void prefix(String prefix, String uri) {
+
+      // FIXME: add mapping to PrefixMap
+      AutobahnMessage.Prefix msg = new AutobahnMessage.Prefix(prefix, uri);
+      mWriter.forward(msg);
+   }
+
+
+   public void publish(String topicUri, Object event) {
+
+      AutobahnMessage.Publish msg = new AutobahnMessage.Publish(topicUri, event);
+      mWriter.forward(msg);
    }
 
 }
