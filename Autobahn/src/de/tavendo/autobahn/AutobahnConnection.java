@@ -165,7 +165,13 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
 
    public void disconnect() {
+      // FIXME
+   }
 
+
+   public boolean isConnected() {
+      // FIXME
+      return true;
    }
 
 
@@ -226,15 +232,31 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
    }
 
 
-   public void subscribe(String eventId, Class<?> eventType,
-         OnEventHandler eventHandler) {
+   public void subscribe(String eventId, Class<?> eventType, OnEventHandler eventHandler) {
       // TODO Auto-generated method stub
 
    }
 
 
-   public void subscribe(String eventId, TypeReference<?> eventType,
-         OnEventHandler eventHandler) {
+   public void subscribe(String eventId, TypeReference<?> eventType, OnEventHandler eventHandler) {
+      // TODO Auto-generated method stub
+
+   }
+
+
+   public void prefix(String prefix, String uri) {
+      // TODO Auto-generated method stub
+
+   }
+
+
+   public void unsubscribe(String topicUri) {
+      // TODO Auto-generated method stub
+
+   }
+
+
+   public void unsubscribe() {
       // TODO Auto-generated method stub
 
    }

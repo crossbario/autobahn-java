@@ -1,0 +1,29 @@
+Autobahn WebSockets for Android
+-------------------------------
+
+Autobahn WebSockets for Android provides a client library implementation
+of the WebSockets protocol:
+
+   * supports protocol draft version 10-14
+   * easy to use API
+   * very good standards conformance
+   * Open-source (Apache 2 license)
+
+RPC/PubSub
+----------
+
+Autobahn WebSockets for Android also includes an implementation of the
+
+   WebSocket Application Messaging Protocol (WAMP)
+   http://www.tavendo.de/autobahn/protocol.html
+
+which can be used to build applications around Remote Procedure Call and
+Publish & Subscribe messaging patterns.
+
+   * provides RPC and PubSub messaging
+   * built on JSON and WebSockets
+   * simple and open protocol
+
+For more information, please visit: http://www.tavendo.de/autobahn
+
+Commercial support and services is available from Tavendo GmbH.
