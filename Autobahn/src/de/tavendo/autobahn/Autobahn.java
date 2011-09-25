@@ -29,27 +29,6 @@ public interface Autobahn {
    public interface OnSession {
 
       /**
-       * Connection was closed normally.
-       */
-      public static final int CLOSE_NORMAL = 1;
-
-      /**
-       * Connection could not be established in the first place.
-       */
-      public static final int CLOSE_CANNOT_CONNECT = 2;
-
-      /**
-       * A previously established connection was lost unexpected.
-       */
-      public static final int CLOSE_CONNECTION_LOST = 3;
-
-      /**
-       * The connection was closed because a protocol violation
-       * occurred.
-       */
-      public static final int CLOSE_PROTOCOL_ERROR = 4;
-
-      /**
        * Fired upon successful establishment of connection to Autobahn server.
        */
       public void onOpen();

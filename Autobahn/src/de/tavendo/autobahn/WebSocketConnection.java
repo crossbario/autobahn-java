@@ -71,7 +71,7 @@ public class WebSocketConnection {
       return mTransportChannel != null && mTransportChannel.isConnected();
    }
 
-   private void failConnection() {
+   private void failConnection(int code, String reason) {
 
       mReader.quit();
       try {
@@ -99,7 +99,7 @@ public class WebSocketConnection {
       }
       mTransportChannel = null;
       if (mWsHandler != null) {
-         mWsHandler.onClose();
+         mWsHandler.onClose(code, reason);
          //mWsHandler = null;
       } else {
          Log.d(TAG, "could not call onClose() .. already NULL");
@@ -219,6 +219,9 @@ public class WebSocketConnection {
 
    }
 
+   public void disconnect() {
+      mWriter.forward(new WebSocketMessage.Close(1000));
+   }
 
    /**
     * Create master message handler.
@@ -298,22 +301,21 @@ public class WebSocketConnection {
 
             } else if (msg.obj instanceof WebSocketMessage.ConnectionLost) {
 
-               //WebSocketMessage.ConnectionLost connnectionLost = (WebSocketMessage.ConnectionLost) msg.obj;
-               Log.d(TAG, "WebSockets Connection Lost");
-               failConnection();
+               @SuppressWarnings("unused")
+               WebSocketMessage.ConnectionLost connnectionLost = (WebSocketMessage.ConnectionLost) msg.obj;
+               failConnection(WebSocketHandler.CLOSE_CONNECTION_LOST, "WebSockets connection lost");
 
 
             } else if (msg.obj instanceof WebSocketMessage.ProtocolViolation) {
 
+               @SuppressWarnings("unused")
                WebSocketMessage.ProtocolViolation protocolViolation = (WebSocketMessage.ProtocolViolation) msg.obj;
-               Log.d(TAG, "WebSockets Protocol Violation (" + protocolViolation.mException.toString() + ")");
-               failConnection();
+               failConnection(WebSocketHandler.CLOSE_PROTOCOL_ERROR, "WebSockets protocol violation");
 
             } else if (msg.obj instanceof WebSocketMessage.Error) {
 
                WebSocketMessage.Error error = (WebSocketMessage.Error) msg.obj;
-               Log.d(TAG, "WebSockets Error (" + error.mException.toString() + ")");
-               failConnection();
+               failConnection(WebSocketHandler.CLOSE_INTERNAL_ERROR, "WebSockets internal error (" + error.mException.toString() + ")");
 
             } else {
 

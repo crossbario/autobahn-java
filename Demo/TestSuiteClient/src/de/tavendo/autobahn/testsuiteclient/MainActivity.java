@@ -59,7 +59,7 @@ public class MainActivity extends Activity {
                      }
 
                      @Override
-                     public void onClose() {
+                     public void onClose(int code, String reason) {
                         mStatusline.setText("Ok, will run " + lastCase + " cases.");
                         currCase += 1;
                         next();
@@ -96,7 +96,7 @@ public class MainActivity extends Activity {
                           }
 
                           @Override
-                          public void onClose() {
+                          public void onClose(int code, String reason) {
                              mStatusline.setText("Test case " + currCase + "/" + lastCase + " finished.");
                              currCase += 1;
                              next();
@@ -112,7 +112,7 @@ public class MainActivity extends Activity {
                            }
 
                            @Override
-                           public void onClose() {
+                           public void onClose(int code, String reason) {
                               mStatusline.setText("Test reports updated. Finished.");
                               mStart.setEnabled(true);
                            }

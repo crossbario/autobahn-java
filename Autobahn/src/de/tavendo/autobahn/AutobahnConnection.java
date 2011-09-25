@@ -129,6 +129,10 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
       mSessionHandler = sessionHandler;
 
+      mCalls.clear();
+      mSubs.clear();
+      mOutgoingPrefixes.clear();
+
       try {
          connect(wsUri, new WebSocketHandler() {
 
@@ -140,9 +144,9 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
             }
 
             @Override
-            public void onClose() {
+            public void onClose(int code, String reason) {
                if (mSessionHandler != null) {
-                  mSessionHandler.onClose(Autobahn.OnSession.CLOSE_NORMAL, "connection closed normally");
+                  mSessionHandler.onClose(code, reason);
                }
             }
 
@@ -152,7 +156,7 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
       } catch (WebSocketException e) {
 
          if (mSessionHandler != null) {
-            mSessionHandler.onClose(Autobahn.OnSession.CLOSE_CANNOT_CONNECT, e.toString());
+            mSessionHandler.onClose(WebSocketHandler.CLOSE_CANNOT_CONNECT, "cannot connect (" + e.toString() + ")");
          }
       }
 

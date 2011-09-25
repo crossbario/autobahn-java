@@ -20,7 +20,11 @@ package de.tavendo.autobahn.simplepubsub;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 import de.tavendo.autobahn.Autobahn;
 import de.tavendo.autobahn.AutobahnConnection;
 
@@ -28,7 +32,15 @@ public class SimplePubSubActivity extends Activity {
 
    static final String TAG = "de.tavendo.autobahn.simplerpc";
 
+   final AutobahnConnection sess = new AutobahnConnection();
+
+   static EditText mHostname;
+   static EditText mPort;
+   static TextView mStatusline;
+   static Button mStart;
+
    static private class Simple {
+
       public int num;
       public String name;
       public String value;
@@ -39,18 +51,22 @@ public class SimplePubSubActivity extends Activity {
       }
    }
 
-   @Override
-   public void onCreate(Bundle savedInstanceState) {
-      super.onCreate(savedInstanceState);
-      setContentView(R.layout.main);
+   private void alert(String message) {
+      Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+   }
 
-      final AutobahnConnection sess = new AutobahnConnection();
+   private void test() {
 
-      sess.connect("ws://192.168.2.35:9000", new Autobahn.OnSession() {
+      final String wsuri = "ws://" + mHostname.getText() + ":" + mPort.getText();
+
+      mStatusline.setText("Connecting to\n" + wsuri + " ..");
+
+      sess.connect(wsuri, new Autobahn.OnSession() {
 
          @Override
          public void onOpen() {
-            Log.d(TAG, "Autobahn session opened");
+
+            mStatusline.setText("Connected to\n" + wsuri);
 
             sess.prefix("event", "http://example.com/event/");
 
@@ -59,16 +75,39 @@ public class SimplePubSubActivity extends Activity {
                @Override
                public void onEvent(String topicUri, Object event) {
                   Simple simple = (Simple) event;
-                  Log.d(TAG, "Received event : " + simple.toString());
+                  alert("Event received : " + simple.toString());
                }
             });
          }
 
          @Override
          public void onClose(int code, String reason) {
-            Log.d(TAG, "Autobahn session closed (" + code + " - " + reason + ")");
+            mStatusline.setText("Connection closed.");
+            alert(reason);
+            mStart.setEnabled(true);
          }
       });
+   }
 
+   @Override
+   public void onCreate(Bundle savedInstanceState) {
+
+      super.onCreate(savedInstanceState);
+      setContentView(R.layout.main);
+
+
+      mHostname = (EditText) findViewById(R.id.hostname);
+      mPort = (EditText) findViewById(R.id.port);
+      mStatusline = (TextView) findViewById(R.id.statusline);
+
+      mStart = (Button) findViewById(R.id.start);
+      mStart.setOnClickListener(new Button.OnClickListener() {
+
+         public void onClick(View v) {
+            mStart.setEnabled(false);
+            test();
+         }
+
+      });
    }
 }

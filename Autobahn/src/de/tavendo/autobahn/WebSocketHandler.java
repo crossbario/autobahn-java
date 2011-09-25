@@ -20,10 +20,36 @@ package de.tavendo.autobahn;
 
 public class WebSocketHandler {
 
+   /**
+    * Connection was closed normally.
+    */
+   public static final int CLOSE_NORMAL = 1;
+
+   /**
+    * Connection could not be established in the first place.
+    */
+   public static final int CLOSE_CANNOT_CONNECT = 2;
+
+   /**
+    * A previously established connection was lost unexpected.
+    */
+   public static final int CLOSE_CONNECTION_LOST = 3;
+
+   /**
+    * The connection was closed because a protocol violation
+    * occurred.
+    */
+   public static final int CLOSE_PROTOCOL_ERROR = 4;
+
+   /**
+    * Internal error.
+    */
+   public static final int CLOSE_INTERNAL_ERROR = 5;
+
    public void onOpen() {
    }
 
-   public void onClose() {
+   public void onClose(int code, String reason) {
    }
 
    public void onTextMessage(String payload) {
