@@ -149,6 +149,7 @@ public class AutobahnReader extends WebSocketReader {
                      } else {
                      }
                      notify(new AutobahnMessage.Event(topicUri, event));
+                  } else {
                   }
 
                } else if (msgType == AutobahnMessage.MESSAGE_TYPE_PREFIX) {

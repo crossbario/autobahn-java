@@ -32,6 +32,8 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
    protected AutobahnWriter mWriterHandler;
 
+   private final PrefixMap mOutgoingPrefixes = new PrefixMap();
+
    private final Random mRng = new Random();
 
    private static final char[] mBase64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
@@ -60,16 +62,16 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
    public static class SubMeta {
 
-      SubMeta(OnEventHandler eventHandler, Class<?> eventType) {
-         this.mEventHandler = eventHandler;
-         this.mEventClass = eventType;
+      SubMeta(OnEventHandler handler, Class<?> resultClass) {
+         this.mEventHandler = handler;
+         this.mEventClass = resultClass;
          this.mEventTypeRef = null;
       }
 
-      SubMeta(OnEventHandler eventListener, TypeReference<?> eventType) {
-         this.mEventHandler = eventListener;
+      SubMeta(OnEventHandler handler, TypeReference<?> resultTypeReference) {
+         this.mEventHandler = handler;
          this.mEventClass = null;
-         this.mEventTypeRef = eventType;
+         this.mEventTypeRef = resultTypeReference;
       }
 
       public OnEventHandler mEventHandler;
@@ -193,6 +195,16 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
             }
             mCalls.remove(callerror.mCallId);
          }
+      } else if (message instanceof AutobahnMessage.Event) {
+
+         AutobahnMessage.Event event = (AutobahnMessage.Event) message;
+
+         if (mSubs.containsKey(event.mTopicUri)) {
+            SubMeta meta = mSubs.get(event.mTopicUri);
+            if (meta != null && meta.mEventHandler != null) {
+               meta.mEventHandler.onEvent(event.mTopicUri, event.mEvent);
+            }
+         }
       } else {
 
          Log.d(TAG, "unknown message in AutobahnConnection.processAppMessage");
@@ -225,12 +237,14 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
    private void subscribe(String topicUri, SubMeta meta) {
 
-      if (!mSubs.containsKey(topicUri)) {
+      String uri = mOutgoingPrefixes.resolveOrPass(topicUri);
 
-         AutobahnMessage.Subscribe msg = new AutobahnMessage.Subscribe(topicUri);
+      if (!mSubs.containsKey(uri)) {
+
+         AutobahnMessage.Subscribe msg = new AutobahnMessage.Subscribe(mOutgoingPrefixes.shrink(topicUri));
          mWriter.forward(msg);
       }
-      mSubs.put(topicUri, meta);
+      mSubs.put(uri, meta);
    }
 
 
@@ -268,15 +282,21 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
    public void prefix(String prefix, String uri) {
 
-      // FIXME: add mapping to PrefixMap
-      AutobahnMessage.Prefix msg = new AutobahnMessage.Prefix(prefix, uri);
-      mWriter.forward(msg);
+      String currUri = mOutgoingPrefixes.get(prefix);
+
+      if (currUri == null || !currUri.equals(uri)) {
+
+         mOutgoingPrefixes.set(prefix, uri);
+
+         AutobahnMessage.Prefix msg = new AutobahnMessage.Prefix(prefix, uri);
+         mWriter.forward(msg);
+      }
    }
 
 
    public void publish(String topicUri, Object event) {
 
-      AutobahnMessage.Publish msg = new AutobahnMessage.Publish(topicUri, event);
+      AutobahnMessage.Publish msg = new AutobahnMessage.Publish(mOutgoingPrefixes.shrink(topicUri), event);
       mWriter.forward(msg);
    }
 

@@ -141,6 +141,7 @@ public class AutobahnMessage {
       public Object mEvent;
 
       public Event(String topicUri, Object event) {
+         mTopicUri = topicUri;
          mEvent = event;
       }
    }

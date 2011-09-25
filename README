@@ -4,10 +4,22 @@ Autobahn WebSockets for Android
 Autobahn WebSockets for Android provides a client library implementation
 of the WebSockets protocol:
 
-   * supports protocol draft version 10-14
-   * easy to use API
-   * very good standards conformance
+   * very good standards conformance [1]
+   * easy to use API [2]
+   * designed to work with Android UI applications [3]
    * Open-source (Apache 2 license)
+
+[1] The implementation suuports the WebSockets protocol draft version 10-14 and
+    passes all tests from the Autobahn WebSockets test suite.
+
+[2] The basic API is modeled after the WebSockets JavaScript API for
+    ease of use and familarity.
+
+[3] The API enables the use of common Android idioms for event handling (using
+    anonymous inner classes) and integrates with Android UI applications (by
+    communicating via messages and message loops between the UI thread and back-
+    ground reader/writer threads).
+
 
 RPC/PubSub
 ----------
