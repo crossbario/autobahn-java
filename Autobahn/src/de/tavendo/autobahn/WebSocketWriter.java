@@ -66,6 +66,7 @@ public class WebSocketWriter extends Handler {
     *                  this object is running.
     * @param master    The message handler of master (foreground thread).
     * @param socket    The socket channel created on foreground thread.
+    * @param options   WebSockets connection options.
     */
    public WebSocketWriter(Looper looper, Handler master, SocketChannel socket, WebSocketOptions options) {
 
@@ -337,8 +338,8 @@ public class WebSocketWriter extends Handler {
 
       if (len > 0) {
          if (mOptions.getMaskClientFrames()) {
-            // FIXME: optimize
-            // FIXME: masking within buffer of output stream
+            /// \todo optimize masking
+            /// \todo masking within buffer of output stream
             for (int i = 0; i < len; ++i) {
                payload[i + offset] ^= mask[i % 4];
             }

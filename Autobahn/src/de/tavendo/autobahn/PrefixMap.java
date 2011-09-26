@@ -21,11 +21,15 @@ package de.tavendo.autobahn;
 import java.util.HashMap;
 
 /**
+ * Mapping between CURIEs and URIs.
  * Provides a two-way mapping between CURIEs (Compact URI Expressions) and
- * full URIs. See http://www.w3.org/TR/curie/.
+ * full URIs.
  *
- * FIXME: Prefixes MUST be NCNames (http://www.w3.org/TR/1999/REC-xml-names-19990114/#NT-NCName)
- * FIXME: Work in the details of http://www.w3.org/TR/curie/ (default prefixes, ..)
+ * \see http://www.w3.org/TR/curie/
+ *
+ * \todo Prefixes MUST be NCNames (http://www.w3.org/TR/1999/REC-xml-names-19990114/#NT-NCName)
+ *
+ * \todo Work in the details of http://www.w3.org/TR/curie/ (default prefixes, ..)
  */
 public class PrefixMap {
 

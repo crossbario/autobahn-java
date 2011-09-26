@@ -263,8 +263,7 @@ public class WebSocketReader extends Thread {
 
       } else {
 
-         // FIXME: refactor this for streaming processing, incl. fail fast
-         // on invalid UTF-8 within frame already
+         /// \todo refactor this for streaming processing, incl. fail fast on invalid UTF-8 within frame already
 
          // within frame
 
@@ -288,7 +287,7 @@ public class WebSocketReader extends Thread {
 
                if (mFrameHeader.mOpcode == 8) {
                   // dispatch WS close
-                  // FIXME: parse close payload
+                  /// \todo parse close payload
                   onClose(1000, null);
 
                } else if (mFrameHeader.mOpcode == 9) {
@@ -478,8 +477,8 @@ public class WebSocketReader extends Thread {
              mFrameBuffer.get(pos+2) == 0x0d &&
              mFrameBuffer.get(pos+3) == 0x0a) {
 
-            // FIXME: process & verify handshake from server
-            // FIXME: forward subprotocol, if any
+            /// \todo process & verify handshake from server
+            /// \todo forward subprotocol, if any
             onHandshake();
 
             int oldPosition = mFrameBuffer.position();

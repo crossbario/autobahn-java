@@ -30,15 +30,22 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
    private static final String TAG = "de.tavendo.autobahn.AutobahnConnection";
 
+   /// The message handler of the background writer.
    protected AutobahnWriter mWriterHandler;
 
+   /// Prefix map for outgoing messages.
    private final PrefixMap mOutgoingPrefixes = new PrefixMap();
 
+   /// RNG for IDs.
    private final Random mRng = new Random();
 
+   /// Set of chars to be used for IDs.
    private static final char[] mBase64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
          .toCharArray();
 
+   /**
+    * RPC metadata.
+    */
    public static class CallMeta {
 
       CallMeta(CallHandler handler, Class<?> resultClass) {
@@ -53,13 +60,22 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
          this.mResultTypeRef = resultTypeReference;
       }
 
+      /// Call handler to be fired on.
       public CallHandler mResultHandler;
+
+      /// Desired call result type or null.
       public Class<?> mResultClass;
+
+      /// Desired call result type or null.
       public TypeReference<?> mResultTypeRef;
    }
 
+   /// Metadata about issued, but not yet returned RPCs.
    private final ConcurrentHashMap<String, CallMeta> mCalls = new ConcurrentHashMap<String, CallMeta>();
 
+   /**
+    * Event subscription metadata.
+    */
    public static class SubMeta {
 
       SubMeta(EventHandler handler, Class<?> resultClass) {
@@ -74,17 +90,26 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
          this.mEventTypeRef = resultTypeReference;
       }
 
+      /// Event handler to be fired on.
       public EventHandler mEventHandler;
-      public Class<?> mEventClass;
-      public TypeReference<?> mEventTypeRef;
 
+      /// Desired event type or null.
+      public Class<?> mEventClass;
+
+      /// Desired event type or null.
+      public TypeReference<?> mEventTypeRef;
    }
 
+   /// Metadata about active event subscriptions.
    private final ConcurrentHashMap<String, SubMeta> mSubs = new ConcurrentHashMap<String, SubMeta>();
 
+   /// The session handler provided to connect().
    private Autobahn.SessionHandler mSessionHandler;
 
 
+   /**
+    * Create the connection transmitting leg writer.
+    */
    protected void createWriter() {
       mWriterThread = new HandlerThread("AutobahnWriter");
       mWriterThread.start();
@@ -92,6 +117,9 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
    }
 
 
+   /**
+    * Create the connection receiving leg reader.
+    */
    protected void createReader() {
       mReader = new AutobahnReader(mCalls, mSubs, mMasterHandler, mTransportChannel, mOptions, "AutobahnReader");
       mReader.start();
@@ -99,8 +127,11 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
 
    /**
-    * Create new random ID, i.e. for use in RPC calls to correlate
+    * Create new random ID. This is used, i.e. for use in RPC calls to correlate
     * call message with result message.
+    *
+    * @param len    Length of ID.
+    * @return       New random ID of given length.
     */
    private String newId(int len) {
       char[] buffer = new char[len];
@@ -113,12 +144,20 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
    /**
     * Create new random ID of default length.
+    *
+    * @return    New random ID of default length.
     */
    private String newId() {
       return newId(8);
    }
 
 
+   /**
+    * Connect to server.
+    *
+    * @param wsUri            WebSockets server URI.
+    * @param sessionHandler   The session handler to fire callbacks on.
+    */
    public void connect(String wsUri, Autobahn.SessionHandler sessionHandler) {
 
       WebSocketOptions options = new WebSocketOptions();
@@ -163,17 +202,26 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
    }
 
 
+   /**
+    * Disconnect when connected.
+    */
    public void disconnect() {
       mWriter.forward(new WebSocketMessage.Close(1000));
    }
 
 
+   /**
+    * Check if connection is establishes / open.
+    */
    public boolean isConnected() {
       // FIXME
       return true;
    }
 
 
+   /**
+    * Process WAMP messages coming from the background reader.
+    */
    protected void processAppMessage(Object message) {
 
       if (message instanceof AutobahnMessage.CallResult) {
@@ -216,6 +264,13 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
    }
 
 
+   /**
+    * Issue a remote procedure call (RPC).
+    *
+    * @param procUri       URI or CURIE of procedure to call.
+    * @param resultMeta    Call result metadata.
+    * @param arguments     Call arguments.
+    */
    private void call(String procUri, CallMeta resultMeta, Object... arguments) {
 
       AutobahnMessage.Call call = new AutobahnMessage.Call(newId(), procUri, arguments.length);
@@ -227,18 +282,42 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
    }
 
 
+   /**
+    * Issue a remote procedure call (RPC). This version should be used with
+    * primitive Java types and simple composite (class) types.
+    *
+    * @param procUri          URI or CURIE of procedure to call.
+    * @param resultType       Type we want the call result to be converted to.
+    * @param resultHandler    Call handler to process call result or error.
+    * @param arguments        Call arguments.
+    */
    public void call(String procUri, Class<?> resultType, CallHandler resultHandler, Object... arguments) {
 
       call(procUri, new CallMeta(resultHandler, resultType), arguments);
    }
 
 
+   /**
+    * Issue a remote procedure call (RPC). This version should be used with
+    * result types which are containers, i.e. List<> or Map<>.
+    *
+    * @param procUri          URI or CURIE of procedure to call.
+    * @param resultType       Type we want the call result to be converted to.
+    * @param resultHandler    Call handler to process call result or error.
+    * @param arguments        Call arguments.
+    */
    public void call(String procUri, TypeReference<?> resultType, CallHandler resultHandler, Object... arguments) {
 
       call(procUri, new CallMeta(resultHandler, resultType), arguments);
    }
 
 
+   /**
+    * Subscribe to topic to receive events for.
+    *
+    * @param topicUri         URI or CURIE of topic to subscribe to.
+    * @param meta             Subscription metadata.
+    */
    private void subscribe(String topicUri, SubMeta meta) {
 
       String uri = mOutgoingPrefixes.resolveOrPass(topicUri);
@@ -252,18 +331,39 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
    }
 
 
+   /**
+    * Subscribe to topic to receive events for. This version should be used with
+    * result types which are containers, i.e. List<> or Map<>.
+    *
+    * @param topicUri         URI or CURIE of topic to subscribe to.
+    * @param eventType        The type we want events to be converted to.
+    * @param eventHandler     The event handler to process received events.
+    */
    public void subscribe(String topicUri, Class<?> eventType, EventHandler eventHandler) {
 
       subscribe(topicUri, new SubMeta(eventHandler, eventType));
    }
 
 
+   /**
+    * Subscribe to topic to receive events for.  This version should be used with
+    * primitive Java types and simple composite (class) types.
+    *
+    * @param topicUri         URI or CURIE of topic to subscribe to.
+    * @param eventType        The type we want events to be converted to.
+    * @param eventHandler     The event handler to process received events.
+    */
    public void subscribe(String topicUri, TypeReference<?> eventType, EventHandler eventHandler) {
 
       subscribe(topicUri, new SubMeta(eventHandler, eventType));
    }
 
 
+   /**
+    * Unsubscribe from topic.
+    *
+    * @param topicUri      URI or CURIE of topic to unsubscribe from.
+    */
    public void unsubscribe(String topicUri) {
 
       if (mSubs.containsKey(topicUri)) {
@@ -274,6 +374,9 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
    }
 
 
+   /**
+    * Unsubscribe from any subscribed topic.
+    */
    public void unsubscribe() {
 
       for (String topicUri : mSubs.keySet()) {
@@ -284,6 +387,12 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
    }
 
 
+   /**
+    * Establish a prefix to be used in CURIEs.
+    *
+    * @param prefix     The prefix to be used in CURIEs.
+    * @param uri        The full URI this prefix shall resolve to.
+    */
    public void prefix(String prefix, String uri) {
 
       String currUri = mOutgoingPrefixes.get(prefix);
@@ -298,10 +407,15 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
    }
 
 
+   /**
+    * Publish an event to a topic.
+    *
+    * @param topicUri   URI or CURIE of topic to publish event on.
+    * @param event      Event to be published.
+    */
    public void publish(String topicUri, Object event) {
 
       AutobahnMessage.Publish msg = new AutobahnMessage.Publish(mOutgoingPrefixes.shrink(topicUri), event);
       mWriter.forward(msg);
    }
-
 }

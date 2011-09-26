@@ -31,6 +31,7 @@ import android.os.Handler;
 import android.os.Looper;
 
 /**
+ * Autobahn WAMP writer, the transmitting leg of a WAMP connection.
  * This writer serializes WAMP messages forwarded from the foreground thread
  * (the master) to this object running on the writer thread. WAMP messages are
  * serialized to JSON, and then sent via WebSockets.

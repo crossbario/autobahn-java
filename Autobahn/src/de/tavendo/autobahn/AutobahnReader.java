@@ -30,20 +30,36 @@ import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import android.os.Handler;
-import android.util.Log;
 import de.tavendo.autobahn.AutobahnConnection.CallMeta;
 import de.tavendo.autobahn.AutobahnConnection.SubMeta;
 
+/**
+ * Autobahn WAMP reader, the receiving leg of a WAMP connection.
+ */
 public class AutobahnReader extends WebSocketReader {
 
-   private static final String TAG = "de.tavendo.autobahn.AutobahnReader";
-
+   /// Jackson JSON-to-object mapper.
    private final ObjectMapper mJsonMapper;
+
+   /// Jackson JSON factory from which we create JSON parsers.
    private final JsonFactory mJsonFactory;
 
+   /// Holds reference to call map created on master.
    private final ConcurrentHashMap<String, CallMeta> mCalls;
+
+   /// Holds reference to event subscription map created on master.
    private final ConcurrentHashMap<String, SubMeta> mSubs;
 
+   /**
+    * A reader object is created in AutobahnConnection.
+    *
+    * @param calls         The call map created on master.
+    * @param subs          The event subscription map created on master.
+    * @param master        Message handler of master (used by us to notify the master).
+    * @param socket        The TCP socket.
+    * @param options       WebSockets connection options.
+    * @param threadName    The thread name we announce.
+    */
    public AutobahnReader(ConcurrentHashMap<String, CallMeta> calls,
                          ConcurrentHashMap<String, SubMeta> subs,
                          Handler master,
@@ -63,16 +79,20 @@ public class AutobahnReader extends WebSocketReader {
 
    protected void onTextMessage(String payload) {
 
-      // FIXME
-      Log.d(TAG, "Error - received non-raw text message");
+      /// \todo make error propagation consistent
+      notify(new WebSocketMessage.Error(new WebSocketException("non-raw receive of text message")));
    }
 
    protected void onBinaryMessage(byte[] payload) {
 
-      // FIXME
-      Log.d(TAG, "Error - received binary message");
+      /// \todo make error propagation consistent
+      notify(new WebSocketMessage.Error(new WebSocketException("received binary message")));
    }
 
+   /**
+    * Unwraps a WAMP message which is a WebSockets text message with JSON
+    * payload conforming to WAMP.
+    */
    protected void onRawTextMessage(byte[] payload) {
 
       try {
