@@ -18,6 +18,7 @@
 
 package de.tavendo.autobahn;
 
+
 /**
  * The master thread and the background reader/writer threads communicate
  * using these messages for Autobahn WAMP connections.
@@ -34,11 +35,16 @@ public class AutobahnMessage {
    public static final int MESSAGE_TYPE_EVENT = 8;
 
 
+   /// Base message class.
+   public static class Message extends WebSocketMessage.Message {
+
+   }
+
    /**
     * RPC request message.
     * Client-to-server message.
     */
-   public static class Call {
+   public static class Call extends Message {
       public String mCallId;
       public String mProcUri;
       public Object[] mArgs;
@@ -54,7 +60,7 @@ public class AutobahnMessage {
     * RPC success response message.
     * Server-to-client message.
     */
-   public static class CallResult {
+   public static class CallResult extends Message {
       public String mCallId;
       public Object mResult;
 
@@ -68,7 +74,7 @@ public class AutobahnMessage {
     * RPC failure response message.
     * Server-to-client message.
     */
-   public static class CallError {
+   public static class CallError extends Message {
       public String mCallId;
       public String mErrorUri;
       public String mErrorDesc;
@@ -84,7 +90,7 @@ public class AutobahnMessage {
     * Define CURIE message.
     * Server-to-client and client-to-server message.
     */
-   public static class Prefix {
+   public static class Prefix extends Message {
       public String mPrefix;
       public String mUri;
 
@@ -98,7 +104,7 @@ public class AutobahnMessage {
     * Publish to topic URI request message.
     * Client-to-server message.
     */
-   public static class Publish {
+   public static class Publish extends Message {
       public String mTopicUri;
       public Object mEvent;
 
@@ -112,7 +118,7 @@ public class AutobahnMessage {
     * Subscribe to topic URI request message.
     * Client-to-server message.
     */
-   public static class Subscribe {
+   public static class Subscribe extends Message {
       public String mTopicUri;
 
       public Subscribe(String topicUri) {
@@ -124,7 +130,7 @@ public class AutobahnMessage {
     * Unsubscribe from topic URI request message.
     * Client-to-server message.
     */
-   public static class Unsubscribe {
+   public static class Unsubscribe extends Message {
       public String mTopicUri;
 
       public Unsubscribe(String topicUri) {
@@ -136,7 +142,7 @@ public class AutobahnMessage {
     * Event on topic URI message.
     * Server-to-client message.
     */
-   public static class Event {
+   public static class Event extends Message {
       public String mTopicUri;
       public Object mEvent;
 

@@ -19,8 +19,9 @@
 package de.tavendo.autobahn;
 
 /**
- * The master thread and the background reader/writer threads communicate
- * using these messages for WebSockets connections.
+ * WebSockets message classes.
+ * The master thread and the background reader/writer threads communicate using these messages
+ * for WebSockets connections.
  */
 public class WebSocketMessage {
 
@@ -78,9 +79,6 @@ public class WebSocketMessage {
       }
    }
 
-   public static class Quit extends Message {
-   }
-
    /// WebSockets text message to send or received.
    public static class TextMessage extends Message {
 
@@ -92,7 +90,7 @@ public class WebSocketMessage {
    }
 
    /// WebSockets raw (UTF-8) text message to send or received.
-   public static class RawTextMessage extends Message{
+   public static class RawTextMessage extends Message {
 
       public byte[] mPayload;
 
@@ -102,7 +100,7 @@ public class WebSocketMessage {
    }
 
    /// WebSockets binary message to send or received.
-   public static class BinaryMessage extends Message{
+   public static class BinaryMessage extends Message {
 
       public byte[] mPayload;
 

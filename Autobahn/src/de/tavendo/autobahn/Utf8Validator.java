@@ -14,13 +14,19 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ *  Implements the algorithm "Flexible and Economical UTF-8 Decoder" by
+ *  Bjoern Hoehrmann (http://bjoern.hoehrmann.de/utf-8/decoder/dfa/).
+ *
  ******************************************************************************/
 
 package de.tavendo.autobahn;
 
 
 /**
- *  Incremental UTF-8 validator with constant memory consumption (minimal state).
+ *  Incremental UTF-8 validator. The validator runs with constant memory
+ *  consumption (minimal state). Purpose is to validate UTF-8, not to
+ *  decode (which could be done easily also, but we rely on Java built in
+ *  facilities for that).
  *
  *  Implements the algorithm "Flexible and Economical UTF-8 Decoder" by
  *  Bjoern Hoehrmann (http://bjoern.hoehrmann.de/utf-8/decoder/dfa/).

@@ -26,8 +26,11 @@ import android.os.Handler;
 import android.os.Message;
 
 /**
- * Transport Reader. This is run on own background thread and posts messages
- * to main thread.
+ * WebSocket reader, the receiving leg of a WebSockets connection.
+ * This runs on it's own background thread and posts messages to master
+ * thread's message queue for there to be consumed by the application.
+ * The only method that needs to be called (from foreground thread) is quit(),
+ * which gracefully shuts down the background receiver thread.
  */
 public class WebSocketReader extends Thread {
 
@@ -96,7 +99,7 @@ public class WebSocketReader extends Thread {
 
 
    /**
-    * Graceful shutdown of background writer (called from master).
+    * Graceful shutdown of background writer thread (called from master).
     */
    public void quit() {
       mStopped = true;
@@ -104,7 +107,8 @@ public class WebSocketReader extends Thread {
 
 
    /**
-    * Notify the master (foreground thread).
+    * Notify the master (foreground thread) of WebSockets message received
+    * and unwrapped.
     *
     * @param message       Message to send to master.
     */
@@ -285,7 +289,7 @@ public class WebSocketReader extends Thread {
                if (mFrameHeader.mOpcode == 8) {
                   // dispatch WS close
                   // FIXME: parse close payload
-                  onClose();
+                  onClose(1000, null);
 
                } else if (mFrameHeader.mOpcode == 9) {
                   // dispatch WS ping
@@ -385,16 +389,26 @@ public class WebSocketReader extends Thread {
 
 
    /**
-    * WS close received. Default notifies master.
+    * WebSockets handshake reply from server received, default notifies master.
     */
-   protected void onClose() {
-
-      notify(new WebSocketMessage.Close());
+   protected void onHandshake() {
+      notify(new WebSocketMessage.ServerHandshake());
    }
 
 
    /**
-    * WS ping received. Default notifies master.
+    * WebSockets close received, default notifies master.
+    */
+   protected void onClose(int code, String reason) {
+
+      notify(new WebSocketMessage.Close(code, reason));
+   }
+
+
+   /**
+    * WebSockets ping received, default notifies master.
+    *
+    * @param payload    Ping payload or null.
     */
    protected void onPing(byte[] payload) {
 
@@ -403,7 +417,9 @@ public class WebSocketReader extends Thread {
 
 
    /**
-    * WS pong received. Default notifies master.
+    * WebSockets pong received, default notifies master.
+    *
+    * @param payload    Pong payload or null.
     */
    protected void onPong(byte[] payload) {
 
@@ -412,7 +428,12 @@ public class WebSocketReader extends Thread {
 
 
    /**
-    * WS text message received. Default notifies master.
+    * WebSockets text message received, default notifies master.
+    * This will only be called when the option receiveTextMessagesRaw
+    * HAS NOT been set.
+    *
+    * @param payload    Text message payload as Java String decoded
+    *                   from raw UTF-8 payload or null (empty payload).
     */
    protected void onTextMessage(String payload) {
 
@@ -421,7 +442,12 @@ public class WebSocketReader extends Thread {
 
 
    /**
-    * WS text message received. Default notifies master.
+    * WebSockets text message received, default notifies master.
+    * This will only be called when the option receiveTextMessagesRaw
+    * HAS been set.
+    *
+    * @param payload    Text message payload as raw UTF-8 octets or
+    *                   null (empty payload).
     */
    protected void onRawTextMessage(byte[] payload) {
 
@@ -430,7 +456,9 @@ public class WebSocketReader extends Thread {
 
 
    /**
-    * WS binary message received. Default notifies master.
+    * WebSockets binary message received, default notifies master.
+    *
+    * @param payload    Binary message payload or null (empty payload).
     */
    protected void onBinaryMessage(byte[] payload) {
 
@@ -439,7 +467,7 @@ public class WebSocketReader extends Thread {
 
 
    /**
-    * Process WS handshake received from server.
+    * Process WebSockets handshake received from server.
     */
    private boolean processHandshake() throws UnsupportedEncodingException {
 
@@ -451,8 +479,8 @@ public class WebSocketReader extends Thread {
              mFrameBuffer.get(pos+3) == 0x0a) {
 
             // FIXME: process & verify handshake from server
-
-            notify(new WebSocketMessage.ServerHandshake());
+            // FIXME: forward subprotocol, if any
+            onHandshake();
 
             int oldPosition = mFrameBuffer.position();
             mFrameBuffer.position(pos + 4);
@@ -496,7 +524,7 @@ public class WebSocketReader extends Thread {
 
 
    /**
-    * Background reader thread loop.
+    * Run the background reader thread loop.
     */
    @Override
    public void run() {

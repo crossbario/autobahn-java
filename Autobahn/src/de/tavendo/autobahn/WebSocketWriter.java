@@ -29,10 +29,12 @@ import android.util.Base64;
 import android.util.Log;
 
 /**
- * WebSocket Writer. This is run on own background thread with own message loop.
+ * WebSocket writer, the sending leg of a WebSockets connection.
+ * This is run on it's background thread with it's own message loop.
  * The only method that needs to be called (from foreground thread) is forward(),
  * which is used to forward a WebSockets message to this object (running on
- * background thread) so that it can be formatted and sent out on socket.
+ * background thread) so that it can be formatted and sent out on the
+ * underlying TCP socket.
  */
 public class WebSocketWriter extends Handler {
 
@@ -78,10 +80,14 @@ public class WebSocketWriter extends Handler {
 
 
    /**
-    * This can be called on foreground thread to send this object
-    * (running on background thread) a WebSocket message to send.
+    * Call this from the foreground (UI) thread to make the writer
+    * (running on background thread) send a WebSocket message on the
+    * underlying TCP.
     *
-    * @param message       Message to send to WebSockets writer.
+    * @param message       Message to send to WebSockets writer. An instance of the message
+    *                      classes inside WebSocketMessage or another type which then needs
+    *                      to be handled within processAppMessage() (in a class derived from
+    *                      this class).
     */
    public void forward(Object message) {
 
@@ -253,7 +259,12 @@ public class WebSocketWriter extends Handler {
 
 
    /**
-    * Send WebSockets frame.
+    * Sends a WebSockets frame. Only need to use this method in derived classes which implement
+    * more message types in processAppMessage(). You need to know what you are doing!
+    *
+    * @param opcode     The WebSocket frame opcode.
+    * @param fin        FIN flag for WebSocket frame.
+    * @param payload    Frame payload or null.
     */
    protected void sendFrame(int opcode, boolean fin, byte[] payload) throws IOException {
       if (payload != null) {
@@ -265,7 +276,14 @@ public class WebSocketWriter extends Handler {
 
 
    /**
-    * Send WebSockets frame.
+    * Sends a WebSockets frame. Only need to use this method in derived classes which implement
+    * more message types in processAppMessage(). You need to know what you are doing!
+    *
+    * @param opcode     The WebSocket frame opcode.
+    * @param fin        FIN flag for WebSocket frame.
+    * @param payload    Frame payload or null.
+    * @param offset     Offset within payload of the chunk to send.
+    * @param length     Length of the chunk within payload to send.
     */
    protected void sendFrame(int opcode, boolean fin, byte[] payload, int offset, int length) throws IOException {
 
@@ -332,7 +350,9 @@ public class WebSocketWriter extends Handler {
 
    /**
     * Process message received from foreground thread. This is called from
-    * the message looper.
+    * the message looper set up for the background thread running this writer.
+    *
+    * @param msg     Message from thread message queue.
     */
    @Override
    public void handleMessage(Message msg) {
@@ -368,6 +388,9 @@ public class WebSocketWriter extends Handler {
     * Process WebSockets or control message from master. Normally,
     * there should be no reason to override this. If you do, you
     * need to know what you are doing.
+    *
+    * @param msg     An instance of the message types within WebSocketMessage
+    *                or a message that is handled in processAppMessage().
     */
    protected void processMessage(Object msg) throws IOException, WebSocketException {
 
@@ -416,6 +439,8 @@ public class WebSocketWriter extends Handler {
    /**
     * Process message other than plain WebSockets or control message.
     * This is intended to be overridden in derived classes.
+    *
+    * @param msg      Message from foreground thread to process.
     */
    protected void processAppMessage(Object msg) throws WebSocketException, IOException {
 
