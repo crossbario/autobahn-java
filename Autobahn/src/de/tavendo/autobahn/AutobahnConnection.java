@@ -41,19 +41,19 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
    public static class CallMeta {
 
-      CallMeta(OnCallResult handler, Class<?> resultClass) {
+      CallMeta(CallHandler handler, Class<?> resultClass) {
          this.mResultHandler = handler;
          this.mResultClass = resultClass;
          this.mResultTypeRef = null;
       }
 
-      CallMeta(OnCallResult handler, TypeReference<?> resultTypeReference) {
+      CallMeta(CallHandler handler, TypeReference<?> resultTypeReference) {
          this.mResultHandler = handler;
          this.mResultClass = null;
          this.mResultTypeRef = resultTypeReference;
       }
 
-      public OnCallResult mResultHandler;
+      public CallHandler mResultHandler;
       public Class<?> mResultClass;
       public TypeReference<?> mResultTypeRef;
    }
@@ -62,19 +62,19 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
    public static class SubMeta {
 
-      SubMeta(OnEventHandler handler, Class<?> resultClass) {
+      SubMeta(EventHandler handler, Class<?> resultClass) {
          this.mEventHandler = handler;
          this.mEventClass = resultClass;
          this.mEventTypeRef = null;
       }
 
-      SubMeta(OnEventHandler handler, TypeReference<?> resultTypeReference) {
+      SubMeta(EventHandler handler, TypeReference<?> resultTypeReference) {
          this.mEventHandler = handler;
          this.mEventClass = null;
          this.mEventTypeRef = resultTypeReference;
       }
 
-      public OnEventHandler mEventHandler;
+      public EventHandler mEventHandler;
       public Class<?> mEventClass;
       public TypeReference<?> mEventTypeRef;
 
@@ -82,7 +82,7 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
    private final ConcurrentHashMap<String, SubMeta> mSubs = new ConcurrentHashMap<String, SubMeta>();
 
-   private Autobahn.OnSession mSessionHandler;
+   private Autobahn.SessionHandler mSessionHandler;
 
 
    protected void createWriter() {
@@ -119,7 +119,7 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
    }
 
 
-   public void connect(String wsUri, Autobahn.OnSession sessionHandler) {
+   public void connect(String wsUri, Autobahn.SessionHandler sessionHandler) {
 
       WebSocketOptions options = new WebSocketOptions();
       options.setReceiveTextMessagesRaw(true);
@@ -164,7 +164,7 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
 
    public void disconnect() {
-      // FIXME
+      mWriter.forward(new WebSocketMessage.Close(1000));
    }
 
 
@@ -227,13 +227,13 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
    }
 
 
-   public void call(String procUri, Class<?> resultType, OnCallResult resultHandler, Object... arguments) {
+   public void call(String procUri, Class<?> resultType, CallHandler resultHandler, Object... arguments) {
 
       call(procUri, new CallMeta(resultHandler, resultType), arguments);
    }
 
 
-   public void call(String procUri, TypeReference<?> resultType, OnCallResult resultHandler, Object... arguments) {
+   public void call(String procUri, TypeReference<?> resultType, CallHandler resultHandler, Object... arguments) {
 
       call(procUri, new CallMeta(resultHandler, resultType), arguments);
    }
@@ -252,13 +252,13 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
    }
 
 
-   public void subscribe(String topicUri, Class<?> eventType, OnEventHandler eventHandler) {
+   public void subscribe(String topicUri, Class<?> eventType, EventHandler eventHandler) {
 
       subscribe(topicUri, new SubMeta(eventHandler, eventType));
    }
 
 
-   public void subscribe(String topicUri, TypeReference<?> eventType, OnEventHandler eventHandler) {
+   public void subscribe(String topicUri, TypeReference<?> eventType, EventHandler eventHandler) {
 
       subscribe(topicUri, new SubMeta(eventHandler, eventType));
    }

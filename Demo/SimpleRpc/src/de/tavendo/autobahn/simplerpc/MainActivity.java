@@ -37,7 +37,7 @@ public class MainActivity extends Activity {
 
       final AutobahnConnection sess = new AutobahnConnection();
 
-      sess.connect("ws://192.168.1.132:9000", new Autobahn.OnSession() {
+      sess.connect("ws://192.168.1.132:9000", new Autobahn.SessionHandler() {
 
          @Override
          public void onOpen() {
@@ -45,7 +45,7 @@ public class MainActivity extends Activity {
 
             ArrayList<Integer> nums = new ArrayList<Integer>();
             for (int i = 0; i < 100; ++i) nums.add(i);
-            sess.call("http://example.com/simple/calc#asum", Integer.class, new Autobahn.OnCallResult() {
+            sess.call("http://example.com/simple/calc#asum", Integer.class, new Autobahn.CallHandler() {
 
                @Override
                public void onResult(Object result) {
@@ -59,7 +59,7 @@ public class MainActivity extends Activity {
                }
             }, nums);
 
-            sess.call("http://example.com/simple/calc#add", Integer.class, new Autobahn.OnCallResult() {
+            sess.call("http://example.com/simple/calc#add", Integer.class, new Autobahn.CallHandler() {
 
                @Override
                public void onResult(Object result) {
