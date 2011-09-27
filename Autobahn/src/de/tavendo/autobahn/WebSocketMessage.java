@@ -27,7 +27,10 @@ public class WebSocketMessage {
 
    /// Base message class.
    public static class Message {
+   }
 
+   /// Quite background thread.
+   public static class Quit extends Message {
    }
 
    /// Initial WebSockets handshake (client request).
@@ -52,7 +55,6 @@ public class WebSocketMessage {
 
    /// Initial WebSockets handshake (server response).
    public static class ServerHandshake extends Message {
-
    }
 
    /// WebSockets connection lost
