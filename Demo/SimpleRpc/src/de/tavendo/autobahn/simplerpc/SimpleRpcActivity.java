@@ -16,9 +16,9 @@
  *
  ******************************************************************************/
 
-package de.tavendo.autobahn.simplepubsub;
+package de.tavendo.autobahn.simplerpc;
 
-import java.util.Date;
+import java.util.ArrayList;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
@@ -31,12 +31,12 @@ import android.widget.Toast;
 import de.tavendo.autobahn.Autobahn;
 import de.tavendo.autobahn.AutobahnConnection;
 
-public class SimplePubSubActivity extends Activity {
+public class SimpleRpcActivity extends Activity {
 
    @SuppressWarnings("unused")
-   private static final String TAG = "de.tavendo.autobahn.simplepubsub";
+   private static final String TAG = "de.tavendo.autobahn.simplerpc";
 
-   private static final String PREFS_NAME = "AutobahnAndroidSimplePubSub";
+   private static final String PREFS_NAME = "AutobahnAndroidSimpleRpc";
 
    private SharedPreferences mSettings;
 
@@ -44,8 +44,6 @@ public class SimplePubSubActivity extends Activity {
    private static EditText mPort;
    private static TextView mStatusline;
    private static Button mStart;
-
-   private final AutobahnConnection mConnection = new AutobahnConnection();
 
    private void alert(String message) {
       Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
@@ -83,27 +81,7 @@ public class SimplePubSubActivity extends Activity {
       });
    }
 
-   /**
-    * We want PubSub events delivered to us in JSON payload to be automatically
-    * converted to this domain POJO. We specify this class later when we subscribe.
-    */
-   private static class MyEvent1 {
-
-      public int num;
-      public String name;
-      public boolean flag;
-      public Date created;
-      public double rand;
-
-      @Override
-      public String toString() {
-         return "{name: " + name +
-                ", created: " + created +
-                ", num: " + num +
-                ", rand: " + rand +
-                ", flag:" + flag + "}";
-      }
-   }
+   private final AutobahnConnection mConnection = new AutobahnConnection();
 
    private void test() {
 
@@ -126,21 +104,9 @@ public class SimplePubSubActivity extends Activity {
             savePrefs();
 
             // We establish a prefix to use for writing URIs using shorthand CURIE notation.
-            mConnection.prefix("event", "http://example.com/event#");
+            mConnection.prefix("calc", "http://example.com/simple/calc#");
 
-            // We subscribe to a topic by giving the topic URI, the type we want events
-            // to be converted to, and the event handler we want to have fired.
-            mConnection.subscribe("event:myevent1", MyEvent1.class, new Autobahn.EventHandler() {
-
-               @Override
-               public void onEvent(String topicUri, Object event) {
-
-                  // when we get an event, we safely can cast to the type we specified previously
-                  MyEvent1 evt = (MyEvent1) event;
-
-                  alert("Event received : " + evt.toString());
-               }
-            });
+            testRpc();
          }
 
          @Override
@@ -153,6 +119,40 @@ public class SimplePubSubActivity extends Activity {
             setButtonConnect();
          }
       });
+   }
+
+   private void testRpc() {
+
+      ArrayList<Integer> nums = new ArrayList<Integer>();
+      for (int i = 0; i < 10; ++i) nums.add(i);
+
+      mConnection.call("calc:asum", Integer.class, new Autobahn.CallHandler() {
+
+         @Override
+         public void onResult(Object result) {
+            int res = (Integer) result;
+            alert("calc:asum result = " + res);
+         }
+
+         @Override
+         public void onError(String errorId, String errorInfo) {
+            alert("calc:asum RPC error - " + errorInfo);
+         }
+      }, nums);
+
+      mConnection.call("calc:add", Integer.class, new Autobahn.CallHandler() {
+
+         @Override
+         public void onResult(Object result) {
+            int res = (Integer) result;
+            alert("calc:add result = " + res);
+         }
+
+         @Override
+         public void onError(String errorId, String errorInfo) {
+            alert("calc:add RPC error - " + errorInfo);
+         }
+      }, 23, 55);
    }
 
    @Override
@@ -170,5 +170,5 @@ public class SimplePubSubActivity extends Activity {
       loadPrefs();
 
       setButtonConnect();
-   }
+  }
 }
