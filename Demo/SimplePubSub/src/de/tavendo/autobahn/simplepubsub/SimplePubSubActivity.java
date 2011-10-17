@@ -34,7 +34,7 @@ import de.tavendo.autobahn.AutobahnConnection;
 public class SimplePubSubActivity extends Activity {
 
    @SuppressWarnings("unused")
-   private static final String TAG = "de.tavendo.autobahn.simplerpc";
+   private static final String TAG = "de.tavendo.autobahn.simplepubsub";
 
    private static final String PREFS_NAME = "AutobahnAndroidSimplePubSub";
 
@@ -85,16 +85,17 @@ public class SimplePubSubActivity extends Activity {
     * We want PubSub events delivered to us in JSON payload to be automatically
     * converted to this domain POJO. We specify this class later when we subscribe.
     */
-   private static class Simple {
+   private static class MyEvent1 {
 
       public int num;
       public String name;
+      public boolean flag;
       public Date created;
       public double rand;
 
       @Override
       public String toString() {
-         return "{name: " + name + ", created: " + created + ", num: " + num + ", rand: " + rand + "}";
+         return "{name: " + name + ", created: " + created + ", num: " + num + ", rand: " + rand + ", flag:" + flag + "}";
       }
    }
 
@@ -121,19 +122,19 @@ public class SimplePubSubActivity extends Activity {
             savePrefs();
 
             // We establish a prefix to use for writing URIs using shorthand CURIE notation.
-            mConnection.prefix("event", "http://example.com/event/");
+            mConnection.prefix("event", "http://example.com/event#");
 
             // We subscribe to a topic by giving the topic URI, the type we want events
             // to be converted to, and the event handler we want to have fired.
-            mConnection.subscribe("event:simple", Simple.class, new Autobahn.EventHandler() {
+            mConnection.subscribe("event:myevent1", MyEvent1.class, new Autobahn.EventHandler() {
 
                @Override
                public void onEvent(String topicUri, Object event) {
 
                   // when we get an event, we safely can cast to the type we specified previously
-                  Simple simple = (Simple) event;
+                  MyEvent1 evt = (MyEvent1) event;
 
-                  alert("Event received : " + simple.toString());
+                  alert("Event received : " + evt.toString());
                }
             });
          }
