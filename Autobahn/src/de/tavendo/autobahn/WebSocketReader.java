@@ -162,7 +162,7 @@ public class WebSocketReader extends Thread {
                if (opcode != 8 && opcode != 9 && opcode != 10) {
                   throw new WebSocketException("control frame using reserved opcode " + opcode);
                }
-               if (opcode == 10 && payload_len1 == 1) {
+               if (opcode == 8 && payload_len1 == 1) {
                   throw new WebSocketException("received close control frame with payload len 1");
                }
             } else {
@@ -286,9 +286,38 @@ public class WebSocketReader extends Thread {
                // control frame
 
                if (mFrameHeader.mOpcode == 8) {
-                  // dispatch WS close
-                  /// \todo parse close payload
-                  onClose(1000, null);
+
+                  int code = 1005; // CLOSE_STATUS_CODE_NULL : no status code received
+                  String reason = null;
+
+                  if (mFrameHeader.mPayloadLen >= 2) {
+
+                     // parse and check close code
+                     code = (framePayload[0] & 0xff) * 256 + (framePayload[1] & 0xff);
+                     if (code < 1000
+                           || (code >= 1000 && code <= 2999 &&
+                               code != 1000 && code != 1001 && code != 1002 && code != 1003 && code != 1007 && code != 1008 && code != 1009 && code != 1010)
+                           || code >= 5000) {
+
+                        throw new WebSocketException("invalid close code " + code);
+                     }
+
+                     // parse and check close reason
+                     if (mFrameHeader.mPayloadLen > 2) {
+
+                        byte[] ra = new byte[mFrameHeader.mPayloadLen - 2];
+                        System.arraycopy(framePayload, 2, ra, 0, mFrameHeader.mPayloadLen - 2);
+
+                        Utf8Validator val = new Utf8Validator();
+                        val.validate(ra);
+                        if (!val.isValid()) {
+                           throw new WebSocketException("invalid close reasons (not UTF-8)");
+                        } else {
+                           reason = new String(ra, "UTF-8");
+                        }
+                     }
+                  }
+                  onClose(code, reason);
 
                } else if (mFrameHeader.mOpcode == 9) {
                   // dispatch WS ping

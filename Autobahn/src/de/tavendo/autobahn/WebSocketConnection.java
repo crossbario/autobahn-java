@@ -203,7 +203,7 @@ public class WebSocketConnection {
             createWriter();
 
             // start WebSockets handshake
-            WebSocketMessage.ClientHandshake hs = new WebSocketMessage.ClientHandshake(mWsHost);
+            WebSocketMessage.ClientHandshake hs = new WebSocketMessage.ClientHandshake(mWsHost + ":" + mWsPort);
             hs.mPath = mWsPath;
             hs.mQuery = mWsQuery;
             mWriter.forward(hs);
@@ -283,10 +283,9 @@ public class WebSocketConnection {
 
             } else if (msg.obj instanceof WebSocketMessage.Close) {
 
-               //WebSocketMessage.Close close = (WebSocketMessage.Close) msg.obj;
-               //Log.d(TAG, "WebSockets Close received");
-               WebSocketMessage.Close close = new WebSocketMessage.Close();
-               mWriter.forward(close);
+               WebSocketMessage.Close close = (WebSocketMessage.Close) msg.obj;
+               Log.d(TAG, "WebSockets Close received (" + close.mCode + " - " + close.mReason + ")");
+               mWriter.forward(new WebSocketMessage.Close(1000));
 
             } else if (msg.obj instanceof WebSocketMessage.ServerHandshake) {
 

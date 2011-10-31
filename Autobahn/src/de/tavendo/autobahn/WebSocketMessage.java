@@ -42,6 +42,7 @@ public class WebSocketMessage {
       public String mOrigin;
 
       ClientHandshake(String host) {
+         mHost = host;
          mPath = "/";
          mOrigin = null;
       }

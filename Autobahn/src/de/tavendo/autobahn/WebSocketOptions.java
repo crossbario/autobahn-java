@@ -37,8 +37,8 @@ public class WebSocketOptions {
     * Construct default options.
     */
    public WebSocketOptions() {
-      mMaxFramePayloadSize = 4 * 1024 * 1024;
-      mMaxMessagePayloadSize = 4 * 1024 * 1024;
+      mMaxFramePayloadSize = 128 * 1024;
+      mMaxMessagePayloadSize = 128 * 1024;
       mReceiveTextMessagesRaw = false;
       mTcpNoDelay = true;
       mSocketReceiveTimeout = 200;
