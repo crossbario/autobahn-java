@@ -25,7 +25,7 @@ import org.codehaus.jackson.type.TypeReference;
 \mainpage
 \section intro_sec Introduction
 
-<a href="http://www.tavendo.de/autobahn">Autobahn WebSockets for Android</a> provides a client library implementing
+<a href="http://www.tavendo.de/autobahn">Autobahn WebSockets for Android</a> provides a Java client library implementing
 the <a href="http://tools.ietf.org/html/draft-ietf-hybi-thewebsocketprotocol">WebSockets protocol</a>.
 
 It features:
@@ -36,8 +36,8 @@ It features:
 \li designed to work with Android UI applications
 \li <a href="https://github.com/oberstet/AutobahnAndroid">Open-source</a> (Apache 2 license)
 
-The implementation supports the WebSockets protocol draft version 10-14 and
-passes all (over 200) tests from the
+The implementation supports the WebSockets protocol (Hybi-10 to -17) and
+passes all (over 280) tests from the
 <a href="http://www.tavendo.de/autobahn/testsuite.html">Autobahn WebSockets Test Suite</a>.
 
 The basic API is modeled after the WebSockets JavaScript API for
