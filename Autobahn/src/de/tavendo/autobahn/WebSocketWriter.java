@@ -119,7 +119,7 @@ public class WebSocketWriter extends Handler {
    private String newHandshakeKey() {
       final byte[] ba = new byte[16];
       mRng.nextBytes(ba);
-      return Base64.encodeToString(ba, Base64.DEFAULT);
+      return Base64.encodeToString(ba, Base64.NO_WRAP);
    }
 
 
