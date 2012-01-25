@@ -173,7 +173,7 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
       mOutgoingPrefixes.clear();
 
       try {
-         connect(wsUri, new WebSocketHandler() {
+         connect(wsUri, new String[] {"wamp"}, new WebSocketHandler() {
 
             @Override
             public void onOpen() {
@@ -257,9 +257,16 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
                meta.mEventHandler.onEvent(event.mTopicUri, event.mEvent);
             }
          }
+      } else if (message instanceof AutobahnMessage.Welcome) {
+
+         AutobahnMessage.Welcome welcome = (AutobahnMessage.Welcome) message;
+
+         // FIXME: safe session ID / fire session opened hook
+         Log.d(TAG, "WAMP session " + welcome.mSessionId + " established");
+
       } else {
 
-         Log.d(TAG, "unknown message in AutobahnConnection.processAppMessage");
+         Log.d(TAG, "unknown WAMP message in AutobahnConnection.processAppMessage");
       }
    }
 

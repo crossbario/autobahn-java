@@ -155,14 +155,27 @@ public class WebSocketWriter extends Handler {
       mBuffer.crlf();
       mBuffer.write("Connection: Upgrade");
       mBuffer.crlf();
+
       mBuffer.write("Sec-WebSocket-Key: " + newHandshakeKey());
       mBuffer.crlf();
+
       if (message.mOrigin != null && !message.mOrigin.equals("")) {
          mBuffer.write("Origin: " + message.mOrigin);
          mBuffer.crlf();
       }
+
+      if (message.mSubprotocols != null && message.mSubprotocols.length > 0) {
+         mBuffer.write("Sec-WebSocket-Protocol: ");
+         for (int i = 0; i < message.mSubprotocols.length; ++i) {
+            mBuffer.write(message.mSubprotocols[i]);
+            mBuffer.write(", ");
+         }
+         mBuffer.crlf();
+      }
+
       mBuffer.write("Sec-WebSocket-Version: 13");
       mBuffer.crlf();
+
       mBuffer.crlf();
    }
 

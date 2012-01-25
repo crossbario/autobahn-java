@@ -25,6 +25,7 @@ package de.tavendo.autobahn;
  */
 public class AutobahnMessage {
 
+   public static final int MESSAGE_TYPE_WELCOME = 0;
    public static final int MESSAGE_TYPE_PREFIX = 1;
    public static final int MESSAGE_TYPE_CALL = 2;
    public static final int MESSAGE_TYPE_CALL_RESULT = 3;
@@ -83,6 +84,18 @@ public class AutobahnMessage {
          mCallId = callId;
          mErrorUri = errorUri;
          mErrorDesc = errorDesc;
+      }
+   }
+
+   /**
+    * Define Welcome message.
+    * Server-to-client message.
+    */
+   public static class Welcome extends Message {
+      public String mSessionId;
+
+      public Welcome(String sessionId) {
+         mSessionId = sessionId;
       }
    }
 

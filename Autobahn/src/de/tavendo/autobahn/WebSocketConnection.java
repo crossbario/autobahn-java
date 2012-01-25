@@ -47,6 +47,7 @@ public class WebSocketConnection {
    private int mWsPort;
    private String mWsPath;
    private String mWsQuery;
+   private String[] mWsSubprotocols;
 
    private WebSocketHandler mWsHandler;
 
@@ -111,11 +112,16 @@ public class WebSocketConnection {
 
 
    public void connect(String wsUri, WebSocketHandler wsHandler) throws WebSocketException {
-      connect(wsUri, wsHandler, new WebSocketOptions());
+      connect(wsUri, null, wsHandler, new WebSocketOptions());
    }
 
 
    public void connect(String wsUri, WebSocketHandler wsHandler, WebSocketOptions options) throws WebSocketException {
+      connect(wsUri, null, wsHandler, options);
+   }
+
+
+   public void connect(String wsUri, String[] wsSubprotocols, WebSocketHandler wsHandler, WebSocketOptions options) throws WebSocketException {
 
       // don't connect if already connected .. user needs to disconnect first
       //
@@ -171,6 +177,8 @@ public class WebSocketConnection {
          throw new WebSocketException("invalid WebSockets URI");
       }
 
+      mWsSubprotocols = wsSubprotocols;
+
       mWsHandler = wsHandler;
 
       // make copy of options!
@@ -206,6 +214,7 @@ public class WebSocketConnection {
             WebSocketMessage.ClientHandshake hs = new WebSocketMessage.ClientHandshake(mWsHost + ":" + mWsPort);
             hs.mPath = mWsPath;
             hs.mQuery = mWsQuery;
+            hs.mSubprotocols = mWsSubprotocols;
             mWriter.forward(hs);
 
          } else {

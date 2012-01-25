@@ -184,6 +184,14 @@ public class AutobahnReader extends WebSocketReader {
 
                   notify(new AutobahnMessage.Prefix(prefix, uri));
 
+               } else if (msgType == AutobahnMessage.MESSAGE_TYPE_WELCOME) {
+
+                  // session ID
+                  parser.nextToken();
+                  String sessionId = parser.getText();
+
+                  notify(new AutobahnMessage.Welcome(sessionId));
+
                } else {
 
                   // FIXME: invalid WAMP message
