@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World, BroadcastClientActivity!</string>
-    <string name="app_name">BroadcastClient</string>
+    <string name="app_name">Autobahn Broadcast Client</string>
 </resources>
