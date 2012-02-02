@@ -22,6 +22,10 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -47,7 +51,9 @@ public class EchoClientActivity extends Activity {
    private SharedPreferences mSettings;
 
    private void alert(String message) {
-      Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+      Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT);
+      toast.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 0);
+      toast.show();
    }
 
    private void loadPrefs() {
@@ -151,5 +157,32 @@ public class EchoClientActivity extends Activity {
             mConnection.sendTextMessage(mMessage.getText().toString());
          }
       });
+   }
+
+   @Override
+   protected void onDestroy() {
+       super.onDestroy();
+       if (mConnection.isConnected()) {
+          mConnection.disconnect();
+       }
+   }
+
+   @Override
+   public boolean onCreateOptionsMenu(Menu menu) {
+       MenuInflater inflater = getMenuInflater();
+       inflater.inflate(R.menu.main_menu, menu);
+       return true;
+   }
+
+   @Override
+   public boolean onOptionsItemSelected(MenuItem item) {
+      switch (item.getItemId()) {
+         case R.id.quit:
+            finish();
+            break;
+         default:
+            return super.onOptionsItemSelected(item);
+      }
+      return true;
    }
 }
