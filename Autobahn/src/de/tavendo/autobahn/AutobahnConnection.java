@@ -162,9 +162,9 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
       WebSocketOptions options = new WebSocketOptions();
       options.setReceiveTextMessagesRaw(true);
-      options.setMaxMessagePayloadSize(4*1024*1024);
-      options.setMaxFramePayloadSize(4*1024*1024);
-      options.setTcpNoDelay(false);
+      options.setMaxMessagePayloadSize(64*1024);
+      options.setMaxFramePayloadSize(64*1024);
+      options.setTcpNoDelay(true);
 
       mSessionHandler = sessionHandler;
 
