@@ -24,6 +24,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.SocketChannel;
 
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
@@ -52,6 +53,66 @@ public class WebSocketConnection {
    private WebSocketHandler mWsHandler;
 
    protected WebSocketOptions mOptions;
+
+   private class AsyncSocketConnector extends AsyncTask<Void, Void, String> {
+
+      @Override
+      protected String doInBackground(Void... params) {
+
+         // connect TCP socket
+         // http://developer.android.com/reference/java/nio/channels/SocketChannel.html
+         //
+         try {
+            mTransportChannel = SocketChannel.open();
+
+            //mTransportChannel.configureBlocking(false);
+
+            // the following will block until connection was established or an error occurred!
+            mTransportChannel.socket().connect(new InetSocketAddress(mWsHost, mWsPort), 1000);
+            //mTransportChannel.connect(new InetSocketAddress(mWsHost, mWsPort));
+
+            mTransportChannel.socket().setSoTimeout(mOptions.getSocketReceiveTimeout());
+            mTransportChannel.socket().setTcpNoDelay(mOptions.getTcpNoDelay());
+
+            return null;
+
+         } catch (IOException e) {
+
+            return new String("could not connect to WebSockets server (" + e.toString() + ")");
+         }
+      }
+
+      @Override
+      protected void onPostExecute(String result) {
+
+         if (result == null && mTransportChannel.isConnected()) {
+
+            //Log.d(TAG, "established TCP connection to " + mWsHost + ":" + mWsPort);
+
+            // create WebSocket master handler
+            createHandler();
+
+            // create & start WebSocket reader
+            createReader();
+
+            // create & start WebSocket writer
+            createWriter();
+
+            // start WebSockets handshake
+            WebSocketMessage.ClientHandshake hs = new WebSocketMessage.ClientHandshake(mWsHost + ":" + mWsPort);
+            hs.mPath = mWsPath;
+            hs.mQuery = mWsQuery;
+            hs.mSubprotocols = mWsSubprotocols;
+            mWriter.forward(hs);
+
+         } else {
+
+            //throw new WebSocketException("could not connect to WebSockets server");
+         }
+      }
+
+  }
+
 
    public WebSocketConnection() {
    }
@@ -184,48 +245,8 @@ public class WebSocketConnection {
       // make copy of options!
       mOptions = new WebSocketOptions(options);
 
-      // connect TCP socket
-      // http://developer.android.com/reference/java/nio/channels/SocketChannel.html
-      //
-      try {
-         mTransportChannel = SocketChannel.open();
-
-         //mTransportChannel.configureBlocking(false);
-         mTransportChannel.socket().connect(new InetSocketAddress(mWsHost, mWsPort), 1000);
-         //mTransportChannel.connect(new InetSocketAddress(mWsHost, mWsPort));
-
-         mTransportChannel.socket().setSoTimeout(mOptions.getSocketReceiveTimeout());
-         mTransportChannel.socket().setTcpNoDelay(mOptions.getTcpNoDelay());
-
-         if (mTransportChannel.isConnected()) {
-
-            //Log.d(TAG, "established TCP connection to " + mWsHost + ":" + mWsPort);
-
-            // create WebSocket master handler
-            createHandler();
-
-            // create & start WebSocket reader
-            createReader();
-
-            // create & start WebSocket writer
-            createWriter();
-
-            // start WebSockets handshake
-            WebSocketMessage.ClientHandshake hs = new WebSocketMessage.ClientHandshake(mWsHost + ":" + mWsPort);
-            hs.mPath = mWsPath;
-            hs.mQuery = mWsQuery;
-            hs.mSubprotocols = mWsSubprotocols;
-            mWriter.forward(hs);
-
-         } else {
-
-            throw new WebSocketException("could not connect to WebSockets server");
-         }
-      } catch (IOException e) {
-
-         throw new WebSocketException("could not connect to WebSockets server (" + e.toString() + ")");
-      }
-
+      // use asynch connector on short-lived background thread
+      new AsyncSocketConnector().execute();
    }
 
    public void disconnect() {
