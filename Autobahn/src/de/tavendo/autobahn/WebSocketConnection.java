@@ -54,10 +54,16 @@ public class WebSocketConnection {
 
    protected WebSocketOptions mOptions;
 
-   private class AsyncSocketConnector extends AsyncTask<Void, Void, String> {
+
+   /**
+    * Asynch socket connector.
+    */
+   private class WebSocketConnector extends AsyncTask<Void, Void, String> {
 
       @Override
       protected String doInBackground(Void... params) {
+
+         Thread.currentThread().setName("WebSocketConnector");
 
          // connect TCP socket
          // http://developer.android.com/reference/java/nio/channels/SocketChannel.html
@@ -65,12 +71,10 @@ public class WebSocketConnection {
          try {
             mTransportChannel = SocketChannel.open();
 
-            //mTransportChannel.configureBlocking(false);
-
             // the following will block until connection was established or an error occurred!
-            mTransportChannel.socket().connect(new InetSocketAddress(mWsHost, mWsPort), 1000);
-            //mTransportChannel.connect(new InetSocketAddress(mWsHost, mWsPort));
+            mTransportChannel.socket().connect(new InetSocketAddress(mWsHost, mWsPort), mOptions.getSocketReceiveTimeout());
 
+            // before doing any data transfer on the socket, set socket options
             mTransportChannel.socket().setSoTimeout(mOptions.getSocketReceiveTimeout());
             mTransportChannel.socket().setTcpNoDelay(mOptions.getTcpNoDelay());
 
@@ -78,60 +82,74 @@ public class WebSocketConnection {
 
          } catch (IOException e) {
 
-            return new String("could not connect to WebSockets server (" + e.toString() + ")");
+            return e.getMessage();
          }
       }
 
       @Override
-      protected void onPostExecute(String result) {
+      protected void onPostExecute(String reason) {
 
-         if (result == null && mTransportChannel.isConnected()) {
+         if (reason != null) {
 
-            //Log.d(TAG, "established TCP connection to " + mWsHost + ":" + mWsPort);
+            mWsHandler.onClose(WebSocketHandler.CLOSE_CANNOT_CONNECT, reason);
 
-            // create WebSocket master handler
-            createHandler();
+         } else if (mTransportChannel.isConnected()) {
 
-            // create & start WebSocket reader
-            createReader();
+            try {
 
-            // create & start WebSocket writer
-            createWriter();
+               // create WebSocket master handler
+               createHandler();
 
-            // start WebSockets handshake
-            WebSocketMessage.ClientHandshake hs = new WebSocketMessage.ClientHandshake(mWsHost + ":" + mWsPort);
-            hs.mPath = mWsPath;
-            hs.mQuery = mWsQuery;
-            hs.mSubprotocols = mWsSubprotocols;
-            mWriter.forward(hs);
+               // create & start WebSocket reader
+               createReader();
+
+               // create & start WebSocket writer
+               createWriter();
+
+               // start WebSockets handshake
+               WebSocketMessage.ClientHandshake hs = new WebSocketMessage.ClientHandshake(mWsHost + ":" + mWsPort);
+               hs.mPath = mWsPath;
+               hs.mQuery = mWsQuery;
+               hs.mSubprotocols = mWsSubprotocols;
+               mWriter.forward(hs);
+
+            } catch (Exception e) {
+
+               mWsHandler.onClose(WebSocketHandler.CLOSE_INTERNAL_ERROR, e.getMessage());
+
+            }
 
          } else {
 
-            //throw new WebSocketException("could not connect to WebSockets server");
+            mWsHandler.onClose(WebSocketHandler.CLOSE_CANNOT_CONNECT, "could not connect to WebSockets server");
          }
       }
-
-  }
+   }
 
 
    public WebSocketConnection() {
    }
 
+
    public void sendTextMessage(String payload) {
       mWriter.forward(new WebSocketMessage.TextMessage(payload));
    }
+
 
    public void sendRawTextMessage(byte[] payload) {
       mWriter.forward(new WebSocketMessage.RawTextMessage(payload));
    }
 
+
    public void sendBinaryMessage(byte[] payload) {
       mWriter.forward(new WebSocketMessage.BinaryMessage(payload));
    }
 
+
    public boolean isConnected() {
       return mTransportChannel != null && mTransportChannel.isConnected();
    }
+
 
    private void failConnection(int code, String reason) {
 
@@ -246,12 +264,16 @@ public class WebSocketConnection {
       mOptions = new WebSocketOptions(options);
 
       // use asynch connector on short-lived background thread
-      new AsyncSocketConnector().execute();
+      new WebSocketConnector().execute();
    }
 
+
    public void disconnect() {
-      mWriter.forward(new WebSocketMessage.Close(1000));
+      if (mWriter != null) {
+         mWriter.forward(new WebSocketMessage.Close(1000));
+      }
    }
+
 
    /**
     * Create master message handler.
@@ -355,8 +377,8 @@ public class WebSocketConnection {
       };
    }
 
-   protected void processAppMessage(Object message) {
 
+   protected void processAppMessage(Object message) {
    }
 
 
@@ -377,5 +399,4 @@ public class WebSocketConnection {
       mReader = new WebSocketReader(mMasterHandler, mTransportChannel, mOptions, "WebSocketReader");
       mReader.start();
    }
-
 }

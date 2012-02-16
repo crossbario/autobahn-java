@@ -203,23 +203,6 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
 
    /**
-    * Disconnect when connected.
-    */
-   public void disconnect() {
-      mWriter.forward(new WebSocketMessage.Close(1000));
-   }
-
-
-   /**
-    * Check if connection is establishes / open.
-    */
-   public boolean isConnected() {
-      // FIXME
-      return true;
-   }
-
-
-   /**
     * Process WAMP messages coming from the background reader.
     */
    protected void processAppMessage(Object message) {

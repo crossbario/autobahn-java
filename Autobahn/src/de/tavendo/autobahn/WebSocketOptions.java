@@ -30,6 +30,7 @@ public class WebSocketOptions {
    private boolean mReceiveTextMessagesRaw;
    private boolean mTcpNoDelay;
    private int mSocketReceiveTimeout;
+   private int mSocketConnectTimeout;
    private boolean mValidateIncomingUtf8;
    private boolean mMaskClientFrames;
 
@@ -42,6 +43,7 @@ public class WebSocketOptions {
       mReceiveTextMessagesRaw = false;
       mTcpNoDelay = true;
       mSocketReceiveTimeout = 200;
+      mSocketConnectTimeout = 3000;
       mValidateIncomingUtf8 = true;
       mMaskClientFrames = true;
    }
@@ -57,6 +59,7 @@ public class WebSocketOptions {
       mReceiveTextMessagesRaw = other.mReceiveTextMessagesRaw;
       mTcpNoDelay = other.mTcpNoDelay;
       mSocketReceiveTimeout = other.mSocketReceiveTimeout;
+      mSocketConnectTimeout = other.mSocketConnectTimeout;
       mValidateIncomingUtf8 = other.mValidateIncomingUtf8;
       mMaskClientFrames = other.mMaskClientFrames;
    }
@@ -178,6 +181,30 @@ public class WebSocketOptions {
     */
    public int getSocketReceiveTimeout() {
       return mSocketReceiveTimeout;
+   }
+
+   /**
+    * Set connect timeout on socket. When a WebSocket connection is
+    * about to be established, the TCP socket connect will timeout
+    * after this period.
+    *
+    * DEFAULT: 3000
+    *
+    * @param timeoutMs  Socket connect timeout in ms.
+    */
+   public void setSocketConnectTimeout(int timeoutMs) {
+      if (timeoutMs >= 0) {
+         mSocketConnectTimeout = timeoutMs;
+      }
+   }
+
+   /**
+    * Get socket connect timeout.
+    *
+    * @return           Socket receive timeout in ms.
+    */
+   public int getSocketConnectTimeout() {
+      return mSocketConnectTimeout;
    }
 
    /**
