@@ -47,7 +47,7 @@ public class WebSocketOptions {
       mReceiveTextMessagesRaw = false;
       mTcpNoDelay = true;
       mSocketReceiveTimeout = 200;
-      mSocketConnectTimeout = 3000;
+      mSocketConnectTimeout = 6000;
       mValidateIncomingUtf8 = true;
       mMaskClientFrames = true;
    }

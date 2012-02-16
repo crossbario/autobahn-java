@@ -73,7 +73,7 @@ public class WebSocketConnection {
             mTransportChannel = SocketChannel.open();
 
             // the following will block until connection was established or an error occurred!
-            mTransportChannel.socket().connect(new InetSocketAddress(mWsHost, mWsPort), mOptions.getSocketReceiveTimeout());
+            mTransportChannel.socket().connect(new InetSocketAddress(mWsHost, mWsPort), mOptions.getSocketConnectTimeout());
 
             // before doing any data transfer on the socket, set socket options
             mTransportChannel.socket().setSoTimeout(mOptions.getSocketReceiveTimeout());
