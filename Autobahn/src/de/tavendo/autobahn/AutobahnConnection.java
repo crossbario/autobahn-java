@@ -28,7 +28,9 @@ import android.util.Log;
 
 public class AutobahnConnection extends WebSocketConnection implements Autobahn {
 
-   private static final String TAG = "de.tavendo.autobahn.AutobahnConnection";
+   private static final boolean DEBUG = true;
+   private static final String TAG = AutobahnConnection.class.getName();
+
 
    /// The message handler of the background writer.
    protected AutobahnWriter mWriterHandler;
@@ -111,9 +113,12 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
     * Create the connection transmitting leg writer.
     */
    protected void createWriter() {
+
       mWriterThread = new HandlerThread("AutobahnWriter");
       mWriterThread.start();
       mWriter = new AutobahnWriter(mWriterThread.getLooper(), mMasterHandler, mTransportChannel, mOptions);
+
+      if (DEBUG) Log.d(TAG, "writer created and started");
    }
 
 
@@ -123,6 +128,8 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
    protected void createReader() {
       mReader = new AutobahnReader(mCalls, mSubs, mMasterHandler, mTransportChannel, mOptions, "AutobahnReader");
       mReader.start();
+
+      if (DEBUG) Log.d(TAG, "reader created and started");
    }
 
 
@@ -152,19 +159,25 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
    }
 
 
+   public void connect(String wsUri, Autobahn.SessionHandler sessionHandler) {
+
+      AutobahnOptions options = new AutobahnOptions();
+      options.setReceiveTextMessagesRaw(true);
+      options.setMaxMessagePayloadSize(64*1024);
+      options.setMaxFramePayloadSize(64*1024);
+      options.setTcpNoDelay(true);
+
+      connect(wsUri, sessionHandler, options);
+   }
+
+
    /**
     * Connect to server.
     *
     * @param wsUri            WebSockets server URI.
     * @param sessionHandler   The session handler to fire callbacks on.
     */
-   public void connect(String wsUri, Autobahn.SessionHandler sessionHandler) {
-
-      WebSocketOptions options = new WebSocketOptions();
-      options.setReceiveTextMessagesRaw(true);
-      options.setMaxMessagePayloadSize(64*1024);
-      options.setMaxFramePayloadSize(64*1024);
-      options.setTcpNoDelay(true);
+   public void connect(String wsUri, Autobahn.SessionHandler sessionHandler, AutobahnOptions options) {
 
       mSessionHandler = sessionHandler;
 
@@ -179,6 +192,8 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
             public void onOpen() {
                if (mSessionHandler != null) {
                   mSessionHandler.onOpen();
+               } else {
+                  if (DEBUG) Log.d(TAG, "could not call onOpen() .. handler already NULL");
                }
             }
 
@@ -186,9 +201,10 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
             public void onClose(int code, String reason) {
                if (mSessionHandler != null) {
                   mSessionHandler.onClose(code, reason);
+               } else {
+                  if (DEBUG) Log.d(TAG, "could not call onClose() .. handler already NULL");
                }
             }
-
 
          }, options);
 
@@ -196,6 +212,8 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
          if (mSessionHandler != null) {
             mSessionHandler.onClose(WebSocketHandler.CLOSE_CANNOT_CONNECT, "cannot connect (" + e.toString() + ")");
+         } else {
+            if (DEBUG) Log.d(TAG, "could not call onClose() .. handler already NULL");
          }
       }
 
@@ -245,11 +263,11 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
          AutobahnMessage.Welcome welcome = (AutobahnMessage.Welcome) message;
 
          // FIXME: safe session ID / fire session opened hook
-         Log.d(TAG, "WAMP session " + welcome.mSessionId + " established");
+         if (DEBUG) Log.d(TAG, "WAMP session " + welcome.mSessionId + " established");
 
       } else {
 
-         Log.d(TAG, "unknown WAMP message in AutobahnConnection.processAppMessage");
+         if (DEBUG) Log.d(TAG, "unknown WAMP message in AutobahnConnection.processAppMessage");
       }
    }
 

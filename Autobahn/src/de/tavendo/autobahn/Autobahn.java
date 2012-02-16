@@ -130,6 +130,16 @@ public interface Autobahn {
 
 
    /**
+    * Connect to Autobahn server.
+    *
+    * @param wsUri            The WebSockets URI of the server.
+    * @param sessionHandler   The handler for the session.
+    * @param options          WebSockets and Autobahn option.s
+    */
+   public void connect(String wsUri, SessionHandler sessionHandler, AutobahnOptions options);
+
+
+   /**
     * Disconnect from Autobahn server.
     */
    public void disconnect();

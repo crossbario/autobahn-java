@@ -30,6 +30,7 @@ import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import android.os.Handler;
+import android.util.Log;
 import de.tavendo.autobahn.AutobahnConnection.CallMeta;
 import de.tavendo.autobahn.AutobahnConnection.SubMeta;
 
@@ -37,6 +38,9 @@ import de.tavendo.autobahn.AutobahnConnection.SubMeta;
  * Autobahn WAMP reader, the receiving leg of a WAMP connection.
  */
 public class AutobahnReader extends WebSocketReader {
+
+   private static final boolean DEBUG = true;
+   private static final String TAG = AutobahnReader.class.getName();
 
    /// Jackson JSON-to-object mapper.
    private final ObjectMapper mJsonMapper;
@@ -75,6 +79,8 @@ public class AutobahnReader extends WebSocketReader {
       mJsonMapper = new ObjectMapper();
       mJsonMapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
       mJsonFactory = mJsonMapper.getJsonFactory();
+
+      if (DEBUG) Log.d(TAG, "created");
    }
 
    protected void onTextMessage(String payload) {
@@ -128,6 +134,10 @@ public class AutobahnReader extends WebSocketReader {
                      } else {
                      }
                      notify(new AutobahnMessage.CallResult(callId, result));
+
+                  } else {
+
+                     if (DEBUG) Log.d(TAG, "WAMP RPC success return for unknown call ID received");
                   }
 
                } else if (msgType == AutobahnMessage.MESSAGE_TYPE_CALL_ERROR) {
@@ -147,6 +157,10 @@ public class AutobahnReader extends WebSocketReader {
                   if (mCalls.containsKey(callId)) {
 
                      notify(new AutobahnMessage.CallError(callId, errorUri, errorDesc));
+
+                  } else {
+
+                     if (DEBUG) Log.d(TAG, "WAMP RPC error return for unknown call ID received");
                   }
 
                } else if (msgType == AutobahnMessage.MESSAGE_TYPE_EVENT) {
@@ -169,7 +183,10 @@ public class AutobahnReader extends WebSocketReader {
                      } else {
                      }
                      notify(new AutobahnMessage.Event(topicUri, event));
+
                   } else {
+
+                     if (DEBUG) Log.d(TAG, "WAMP event for not-subscribed topic received");
                   }
 
                } else if (msgType == AutobahnMessage.MESSAGE_TYPE_PREFIX) {
@@ -195,26 +212,38 @@ public class AutobahnReader extends WebSocketReader {
                } else {
 
                   // FIXME: invalid WAMP message
+                  if (DEBUG) Log.d(TAG, "invalid WAMP message: unrecognized message type");
 
                }
             } else {
-               // error: missing msg type
+
+               if (DEBUG) Log.d(TAG, "invalid WAMP message: missing message type or message type not an integer");
             }
+
             if (parser.nextToken() == JsonToken.END_ARRAY) {
+
+               // nothing to do here
+
             } else {
-               // error: missing array close or invalid additional args
+
+               if (DEBUG) Log.d(TAG, "invalid WAMP message: missing array close or invalid additional args");
             }
 
          } else {
-            // error: no array
+
+            if (DEBUG) Log.d(TAG, "invalid WAMP message: not an array");
          }
          parser.close();
 
 
       } catch (JsonParseException e) {
-         e.printStackTrace();
+
+         if (DEBUG) e.printStackTrace();
+
       } catch (IOException e) {
-         e.printStackTrace();
+
+         if (DEBUG) e.printStackTrace();
+
       }
    }
 }

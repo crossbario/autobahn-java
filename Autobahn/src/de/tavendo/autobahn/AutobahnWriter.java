@@ -29,6 +29,7 @@ import org.codehaus.jackson.map.MappingJsonFactory;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 /**
  * Autobahn WAMP writer, the transmitting leg of a WAMP connection.
@@ -37,6 +38,9 @@ import android.os.Looper;
  * serialized to JSON, and then sent via WebSockets.
  */
 public class AutobahnWriter extends WebSocketWriter {
+
+   private static final boolean DEBUG = true;
+   private static final String TAG = AutobahnWriter.class.getName();
 
    /**
     * This is the Jackson JSON factory we use to create JSON generators.
@@ -58,9 +62,13 @@ public class AutobahnWriter extends WebSocketWriter {
     */
    public AutobahnWriter(Looper looper, Handler master, SocketChannel socket,
          WebSocketOptions options) {
+
       super(looper, master, socket, options);
+
       mJsonFactory = new MappingJsonFactory();
       mPayload = new NoCopyByteArrayOutputStream();
+
+      if (DEBUG) Log.d(TAG, "created");
    }
 
    /**

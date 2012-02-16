@@ -24,6 +24,7 @@ import java.nio.channels.SocketChannel;
 
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
 /**
  * WebSocket reader, the receiving leg of a WebSockets connection.
@@ -34,8 +35,8 @@ import android.os.Message;
  */
 public class WebSocketReader extends Thread {
 
-   @SuppressWarnings("unused")
-   private static final String TAG = "de.tavendo.autobahn.WebSocketReader";
+   private static final boolean DEBUG = true;
+   private static final String TAG = WebSocketReader.class.getName();
 
    private final Handler mMaster;
    private final SocketChannel mSocket;
@@ -95,14 +96,19 @@ public class WebSocketReader extends Thread {
 
       mFrameHeader = null;
       mState = STATE_CONNECTING;
+
+      if (DEBUG) Log.d(TAG, "created");
    }
 
 
    /**
-    * Graceful shutdown of background writer thread (called from master).
+    * Graceful shutdown of background reader thread (called from master).
     */
    public void quit() {
+
       mStopped = true;
+
+      if (DEBUG) Log.d(TAG, "quit");
    }
 
 
@@ -420,6 +426,7 @@ public class WebSocketReader extends Thread {
     * WebSockets handshake reply from server received, default notifies master.
     */
    protected void onHandshake() {
+
       notify(new WebSocketMessage.ServerHandshake());
    }
 
@@ -557,6 +564,8 @@ public class WebSocketReader extends Thread {
    @Override
    public void run() {
 
+      if (DEBUG) Log.d(TAG, "running");
+
       try {
 
          mFrameBuffer.clear();
@@ -587,6 +596,7 @@ public class WebSocketReader extends Thread {
 
          mStopped = true;
       }
-   }
 
+      if (DEBUG) Log.d(TAG, "ended");
+   }
 }

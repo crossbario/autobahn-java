@@ -38,7 +38,8 @@ import android.util.Log;
  */
 public class WebSocketWriter extends Handler {
 
-   private static final String TAG = "de.tavendo.autobahn.WebSocketWriter";
+   private static final boolean DEBUG = true;
+   private static final String TAG = WebSocketWriter.class.getName();
 
    /// Random number generator for handshake key and frame mask generation.
    private final Random mRng = new Random();
@@ -77,6 +78,8 @@ public class WebSocketWriter extends Handler {
       mSocket = socket;
       mOptions = options;
       mBuffer = new ByteBufferOutputStream(options.getMaxFramePayloadSize() + 14, 4*64*1024);
+
+      if (DEBUG) Log.d(TAG, "created");
    }
 
 
@@ -389,8 +392,7 @@ public class WebSocketWriter extends Handler {
 
       } catch (Exception e) {
 
-         Log.d(TAG, e.toString());
-         e.printStackTrace();
+         if (DEBUG) e.printStackTrace();
 
          // wrap the exception and notify master
          notify(new WebSocketMessage.Error(e));
@@ -439,6 +441,9 @@ public class WebSocketWriter extends Handler {
       } else if (msg instanceof WebSocketMessage.Quit) {
 
          mLooper.quit();
+
+         if  (DEBUG) Log.d(TAG, "ended");
+
          return;
 
       } else {

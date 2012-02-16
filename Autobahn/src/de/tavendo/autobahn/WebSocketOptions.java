@@ -18,6 +18,8 @@
 
 package de.tavendo.autobahn;
 
+
+
 /**
  * WebSockets connection options. This can be supplied to WebSocketConnection in connect().
  * Note that the latter copies the options provided to connect(), so any change after
@@ -34,10 +36,12 @@ public class WebSocketOptions {
    private boolean mValidateIncomingUtf8;
    private boolean mMaskClientFrames;
 
+
    /**
     * Construct default options.
     */
    public WebSocketOptions() {
+
       mMaxFramePayloadSize = 128 * 1024;
       mMaxMessagePayloadSize = 128 * 1024;
       mReceiveTextMessagesRaw = false;
@@ -54,6 +58,7 @@ public class WebSocketOptions {
     * @param other      Options to copy.
     */
    public WebSocketOptions(WebSocketOptions other) {
+
       mMaxFramePayloadSize = other.mMaxFramePayloadSize;
       mMaxMessagePayloadSize = other.mMaxMessagePayloadSize;
       mReceiveTextMessagesRaw = other.mReceiveTextMessagesRaw;
