@@ -155,7 +155,7 @@ public class WebSocketConnection {
 
    private void failConnection(int code, String reason) {
 
-      if (DEBUG) Log.d(TAG, "fail connection");
+      if (DEBUG) Log.d(TAG, "fail connection [code = " + code + ", reason = " + reason);
 
       if (mReader != null) {
          mReader.quit();

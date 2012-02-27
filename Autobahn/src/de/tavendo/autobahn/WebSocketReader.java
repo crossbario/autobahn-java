@@ -577,6 +577,9 @@ public class WebSocketReader extends Thread {
                while (consumeData()) {
                }
             } else if (len < 0) {
+
+               if (DEBUG) Log.d(TAG, "run() : ConnectionLost");
+
                notify(new WebSocketMessage.ConnectionLost());
                mStopped = true;
             }
@@ -584,10 +587,14 @@ public class WebSocketReader extends Thread {
 
       } catch (WebSocketException e) {
 
+         if (DEBUG) Log.d(TAG, "run() : WebSocketException (" + e.toString() + ")");
+
          // wrap the exception and notify master
          notify(new WebSocketMessage.ProtocolViolation(e));
 
       } catch (Exception e) {
+
+         if (DEBUG) Log.d(TAG, "run() : Exception (" + e.toString() + ")");
 
          // wrap the exception and notify master
          notify(new WebSocketMessage.Error(e));
