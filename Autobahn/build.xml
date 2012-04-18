@@ -1,0 +1,16 @@
+<?xml version="1.0" standalone='yes'?>
+<project name="Autobahn" default="dist" basedir=".">
+   <description>AutobahnAndroid - WebSocket and WAMP for Android</description>
+  <!-- set global properties for this build -->
+  <property name="src" location="src" />
+  <property name="bin" location="bin" />
+  <target name="jar">
+      <jar destfile="Autobahn.jar" basedir="bin/">
+      <!-- replace 'com' by what ever you are using -->
+      <!-- as first part of the package name -->
+      <!-- e.g. de, org, ... -->
+      <!-- the ** is important to include the directory recursively -->
+         <include name="de/**" />
+      </jar>
+  </target>
+</project>
