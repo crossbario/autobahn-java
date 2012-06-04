@@ -6,5 +6,14 @@
 	<classpathentry kind="lib" path="/Autobahn/lib/jackson-core-asl-1.8.5.jar"/>
 	<classpathentry kind="lib" path="/Autobahn/lib/jackson-mapper-asl-1.8.5.jar"/>
 	<classpathentry kind="src" path="Autobahn_src"/>
-	<classpathentry kind="output" path="bin"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Android/android-sdk/platforms/android-8/android.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Android/android-sdk/docs/reference"/>
+		</attributes>
+		<accessrules>
+			<accessrule kind="nonaccessible" pattern="com/android/internal/**"/>
+		</accessrules>
+	</classpathentry>
+	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

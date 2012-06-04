@@ -6,5 +6,6 @@
 	<classpathentry kind="lib" path="/Autobahn/lib/jackson-core-asl-1.8.5.jar"/>
 	<classpathentry kind="lib" path="/Autobahn/lib/jackson-mapper-asl-1.8.5.jar"/>
 	<classpathentry kind="src" path="Autobahn_src"/>
-	<classpathentry kind="output" path="bin"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
+	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
