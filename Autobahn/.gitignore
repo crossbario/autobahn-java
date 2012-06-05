@@ -1,4 +1,4 @@
 bin/*
 gen/*
-lib/*
+!gen/PLACEHOLDER
 *.jar
