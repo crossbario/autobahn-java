@@ -2,3 +2,4 @@ bin/*
 gen/*
 !gen/PLACEHOLDER
 *.jar
+!libs/*
