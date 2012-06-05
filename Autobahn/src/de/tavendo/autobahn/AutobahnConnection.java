@@ -263,7 +263,7 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
          AutobahnMessage.Welcome welcome = (AutobahnMessage.Welcome) message;
 
          // FIXME: safe session ID / fire session opened hook
-         if (DEBUG) Log.d(TAG, "WAMP session " + welcome.mSessionId + " established");
+         if (DEBUG) Log.d(TAG, "WAMP session " + welcome.mSessionId + " established (protocol version " + welcome.mProtocolVersion + ", server " + welcome.mServerIdent + ")");
 
       } else {
 

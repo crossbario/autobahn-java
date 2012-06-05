@@ -207,7 +207,15 @@ public class AutobahnReader extends WebSocketReader {
                   parser.nextToken();
                   String sessionId = parser.getText();
 
-                  notify(new AutobahnMessage.Welcome(sessionId));
+                  // protocol version
+                  parser.nextToken();
+                  int protocolVersion = parser.getIntValue();
+
+                  // server ident
+                  parser.nextToken();
+                  String serverIdent = parser.getText();
+
+                  notify(new AutobahnMessage.Welcome(sessionId, protocolVersion, serverIdent));
 
                } else {
 

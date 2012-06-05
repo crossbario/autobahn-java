@@ -93,9 +93,13 @@ public class AutobahnMessage {
     */
    public static class Welcome extends Message {
       public String mSessionId;
+      public int mProtocolVersion;
+      public String mServerIdent;
 
-      public Welcome(String sessionId) {
+      public Welcome(String sessionId, int protocolVersion, String serverIdent) {
          mSessionId = sessionId;
+         mProtocolVersion = protocolVersion;
+         mServerIdent = serverIdent;
       }
    }
 
