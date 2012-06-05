@@ -302,7 +302,7 @@ public class WebSocketReader extends Thread {
                      code = (framePayload[0] & 0xff) * 256 + (framePayload[1] & 0xff);
                      if (code < 1000
                            || (code >= 1000 && code <= 2999 &&
-                               code != 1000 && code != 1001 && code != 1002 && code != 1003 && code != 1007 && code != 1008 && code != 1009 && code != 1010)
+                               code != 1000 && code != 1001 && code != 1002 && code != 1003 && code != 1007 && code != 1008 && code != 1009 && code != 1010 && code != 1011)
                            || code >= 5000) {
 
                         throw new WebSocketException("invalid close code " + code);
