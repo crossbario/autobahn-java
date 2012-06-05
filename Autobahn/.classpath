@@ -2,9 +2,9 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="gen"/>
-	<classpathentry kind="lib" path="lib/jackson-core-asl-1.8.5.jar"/>
-	<classpathentry kind="lib" path="lib/jackson-mapper-asl-1.8.5.jar"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
+	<classpathentry kind="lib" path="libs/jackson-core-asl-1.8.5.jar"/>
+	<classpathentry kind="lib" path="libs/jackson-mapper-asl-1.8.5.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
