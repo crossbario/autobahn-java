@@ -32,9 +32,10 @@ import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+import de.tavendo.autobahn.WebSocket;
 import de.tavendo.autobahn.WebSocketConnection;
 import de.tavendo.autobahn.WebSocketException;
-import de.tavendo.autobahn.WebSocketHandler;
+import de.tavendo.autobahn.WebSocketConnectionHandler;
 
 public class BroadcastClientActivity extends Activity {
 
@@ -96,7 +97,7 @@ public class BroadcastClientActivity extends Activity {
      });
   }
 
-  private final WebSocketConnection mConnection = new WebSocketConnection();
+  private final WebSocket mConnection = new WebSocketConnection();
 
   private void start() {
 
@@ -107,7 +108,7 @@ public class BroadcastClientActivity extends Activity {
      setButtonDisconnect();
 
      try {
-        mConnection.connect(wsuri, new WebSocketHandler() {
+        mConnection.connect(wsuri, new WebSocketConnectionHandler() {
            @Override
            public void onOpen() {
               mStatusline.setText("Status: Connected to " + wsuri);

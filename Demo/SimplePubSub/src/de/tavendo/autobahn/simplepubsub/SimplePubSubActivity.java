@@ -45,7 +45,7 @@ public class SimplePubSubActivity extends Activity {
    private static TextView mStatusline;
    private static Button mStart;
 
-   private final WampConnection mConnection = new WampConnection();
+   private final Wamp mConnection = new WampConnection();
 
    private void alert(String message) {
       Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
@@ -115,7 +115,7 @@ public class SimplePubSubActivity extends Activity {
 
       // we establish a connection by giving the WebSockets URL of the server
       // and the handler for open/close events
-      mConnection.connect(wsuri, new Wamp.SessionHandler() {
+      mConnection.connect(wsuri, new Wamp.ConnectionHandler() {
 
          @Override
          public void onOpen() {

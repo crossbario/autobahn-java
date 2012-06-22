@@ -30,7 +30,7 @@ import android.os.HandlerThread;
 import android.os.Message;
 import android.util.Log;
 
-public class WebSocketConnection {
+public class WebSocketConnection implements WebSocket {
 
    private static final boolean DEBUG = true;
    private static final String TAG = WebSocketConnection.class.getName();
@@ -51,7 +51,7 @@ public class WebSocketConnection {
    private String mWsQuery;
    private String[] mWsSubprotocols;
 
-   private WebSocketHandler mWsHandler;
+   private WebSocket.ConnectionHandler mWsHandler;
 
    protected WebSocketOptions mOptions;
 
@@ -92,7 +92,7 @@ public class WebSocketConnection {
 
          if (reason != null) {
 
-            mWsHandler.onClose(WebSocketHandler.CLOSE_CANNOT_CONNECT, reason);
+            mWsHandler.onClose(WebSocketConnectionHandler.CLOSE_CANNOT_CONNECT, reason);
 
          } else if (mTransportChannel.isConnected()) {
 
@@ -116,15 +116,16 @@ public class WebSocketConnection {
 
             } catch (Exception e) {
 
-               mWsHandler.onClose(WebSocketHandler.CLOSE_INTERNAL_ERROR, e.getMessage());
+               mWsHandler.onClose(WebSocketConnectionHandler.CLOSE_INTERNAL_ERROR, e.getMessage());
 
             }
 
          } else {
 
-            mWsHandler.onClose(WebSocketHandler.CLOSE_CANNOT_CONNECT, "could not connect to WebSockets server");
+            mWsHandler.onClose(WebSocketConnectionHandler.CLOSE_CANNOT_CONNECT, "could not connect to WebSockets server");
          }
       }
+
    }
 
 
@@ -208,17 +209,17 @@ public class WebSocketConnection {
    }
 
 
-   public void connect(String wsUri, WebSocketHandler wsHandler) throws WebSocketException {
+   public void connect(String wsUri, WebSocket.ConnectionHandler wsHandler) throws WebSocketException {
       connect(wsUri, null, wsHandler, new WebSocketOptions());
    }
 
 
-   public void connect(String wsUri, WebSocketHandler wsHandler, WebSocketOptions options) throws WebSocketException {
+   public void connect(String wsUri, WebSocket.ConnectionHandler wsHandler, WebSocketOptions options) throws WebSocketException {
       connect(wsUri, null, wsHandler, options);
    }
 
 
-   public void connect(String wsUri, String[] wsSubprotocols, WebSocketHandler wsHandler, WebSocketOptions options) throws WebSocketException {
+   public void connect(String wsUri, String[] wsSubprotocols, WebSocket.ConnectionHandler wsHandler, WebSocketOptions options) throws WebSocketException {
 
       // don't connect if already connected .. user needs to disconnect first
       //
@@ -376,18 +377,18 @@ public class WebSocketConnection {
 
                @SuppressWarnings("unused")
                WebSocketMessage.ConnectionLost connnectionLost = (WebSocketMessage.ConnectionLost) msg.obj;
-               failConnection(WebSocketHandler.CLOSE_CONNECTION_LOST, "WebSockets connection lost");
+               failConnection(WebSocketConnectionHandler.CLOSE_CONNECTION_LOST, "WebSockets connection lost");
 
             } else if (msg.obj instanceof WebSocketMessage.ProtocolViolation) {
 
                @SuppressWarnings("unused")
                WebSocketMessage.ProtocolViolation protocolViolation = (WebSocketMessage.ProtocolViolation) msg.obj;
-               failConnection(WebSocketHandler.CLOSE_PROTOCOL_ERROR, "WebSockets protocol violation");
+               failConnection(WebSocketConnectionHandler.CLOSE_PROTOCOL_ERROR, "WebSockets protocol violation");
 
             } else if (msg.obj instanceof WebSocketMessage.Error) {
 
                WebSocketMessage.Error error = (WebSocketMessage.Error) msg.obj;
-               failConnection(WebSocketHandler.CLOSE_INTERNAL_ERROR, "WebSockets internal error (" + error.mException.toString() + ")");
+               failConnection(WebSocketConnectionHandler.CLOSE_INTERNAL_ERROR, "WebSockets internal error (" + error.mException.toString() + ")");
 
             } else {
 

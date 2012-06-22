@@ -81,7 +81,7 @@ public class SimpleRpcActivity extends Activity {
       });
    }
 
-   private final WampConnection mConnection = new WampConnection();
+   private final Wamp mConnection = new WampConnection();
 
    private void test() {
 
@@ -93,7 +93,7 @@ public class SimpleRpcActivity extends Activity {
 
       // we establish a connection by giving the WebSockets URL of the server
       // and the handler for open/close events
-      mConnection.connect(wsuri, new Wamp.SessionHandler() {
+      mConnection.connect(wsuri, new Wamp.ConnectionHandler() {
 
          @Override
          public void onOpen() {

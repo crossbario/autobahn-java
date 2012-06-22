@@ -22,33 +22,7 @@ package de.tavendo.autobahn;
  * WebSockets event handler. Users will usually provide an instance of a class
  * derived from this to handle WebSockets received messages and open/close events
  */
-public class WebSocketHandler {
-
-   /**
-    * Connection was closed normally.
-    */
-   public static final int CLOSE_NORMAL = 1;
-
-   /**
-    * Connection could not be established in the first place.
-    */
-   public static final int CLOSE_CANNOT_CONNECT = 2;
-
-   /**
-    * A previously established connection was lost unexpected.
-    */
-   public static final int CLOSE_CONNECTION_LOST = 3;
-
-   /**
-    * The connection was closed because a protocol violation
-    * occurred.
-    */
-   public static final int CLOSE_PROTOCOL_ERROR = 4;
-
-   /**
-    * Internal error.
-    */
-   public static final int CLOSE_INTERNAL_ERROR = 5;
+public class WebSocketConnectionHandler implements WebSocket.ConnectionHandler {
 
    /**
     * Fired when the WebSockets connection has been established.

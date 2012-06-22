@@ -106,7 +106,7 @@ public class WampConnection extends WebSocketConnection implements Wamp {
    private final ConcurrentHashMap<String, SubMeta> mSubs = new ConcurrentHashMap<String, SubMeta>();
 
    /// The session handler provided to connect().
-   private Wamp.SessionHandler mSessionHandler;
+   private Wamp.ConnectionHandler mSessionHandler;
 
 
    /**
@@ -159,7 +159,7 @@ public class WampConnection extends WebSocketConnection implements Wamp {
    }
 
 
-   public void connect(String wsUri, Wamp.SessionHandler sessionHandler) {
+   public void connect(String wsUri, Wamp.ConnectionHandler sessionHandler) {
 
       WampOptions options = new WampOptions();
       options.setReceiveTextMessagesRaw(true);
@@ -177,7 +177,7 @@ public class WampConnection extends WebSocketConnection implements Wamp {
     * @param wsUri            WebSockets server URI.
     * @param sessionHandler   The session handler to fire callbacks on.
     */
-   public void connect(String wsUri, Wamp.SessionHandler sessionHandler, WampOptions options) {
+   public void connect(String wsUri, Wamp.ConnectionHandler sessionHandler, WampOptions options) {
 
       mSessionHandler = sessionHandler;
 
@@ -186,7 +186,7 @@ public class WampConnection extends WebSocketConnection implements Wamp {
       mOutgoingPrefixes.clear();
 
       try {
-         connect(wsUri, new String[] {"wamp"}, new WebSocketHandler() {
+         connect(wsUri, new String[] {"wamp"}, new WebSocketConnectionHandler() {
 
             @Override
             public void onOpen() {
@@ -211,7 +211,7 @@ public class WampConnection extends WebSocketConnection implements Wamp {
       } catch (WebSocketException e) {
 
          if (mSessionHandler != null) {
-            mSessionHandler.onClose(WebSocketHandler.CLOSE_CANNOT_CONNECT, "cannot connect (" + e.toString() + ")");
+            mSessionHandler.onClose(WebSocketConnectionHandler.CLOSE_CANNOT_CONNECT, "cannot connect (" + e.toString() + ")");
          } else {
             if (DEBUG) Log.d(TAG, "could not call onClose() .. handler already NULL");
          }

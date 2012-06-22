@@ -25,9 +25,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import de.tavendo.autobahn.WebSocket;
 import de.tavendo.autobahn.WebSocketConnection;
 import de.tavendo.autobahn.WebSocketException;
-import de.tavendo.autobahn.WebSocketHandler;
+import de.tavendo.autobahn.WebSocketConnectionHandler;
 import de.tavendo.autobahn.WebSocketOptions;
 
 public class MainActivity extends Activity {
@@ -43,7 +44,7 @@ public class MainActivity extends Activity {
    int currCase = 0;
    int lastCase = 0;
 
-   WebSocketConnection sess = new WebSocketConnection();
+   private WebSocket sess = new WebSocketConnection();
 
    private void next() {
 
@@ -51,7 +52,7 @@ public class MainActivity extends Activity {
          if (currCase == 0) {
 
             sess.connect("ws://" + mHostname.getText() + ":" + mPort.getText() + "/getCaseCount",
-                  new WebSocketHandler() {
+                  new WebSocketConnectionHandler() {
 
                      @Override
                      public void onTextMessage(String payload) {
@@ -78,7 +79,7 @@ public class MainActivity extends Activity {
                  //options.setTcpNoDelay(false);
 
                  sess.connect("ws://" + mHostname.getText() + ":" + mPort.getText() + "/runCase?case=" + currCase + "&agent=" + mAgent.getText(),
-                       new WebSocketHandler() {
+                       new WebSocketConnectionHandler() {
 
                           @Override
                           public void onRawTextMessage(byte[] payload) {
@@ -104,7 +105,7 @@ public class MainActivity extends Activity {
                  }, options);
             } else {
                   sess.connect("ws://" + mHostname.getText() + ":" + mPort.getText() + "/updateReports?agent=" + mAgent.getText(),
-                        new WebSocketHandler() {
+                        new WebSocketConnectionHandler() {
 
                            @Override
                            public void onOpen() {
