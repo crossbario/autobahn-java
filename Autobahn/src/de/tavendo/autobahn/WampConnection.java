@@ -26,14 +26,14 @@ import org.codehaus.jackson.type.TypeReference;
 import android.os.HandlerThread;
 import android.util.Log;
 
-public class AutobahnConnection extends WebSocketConnection implements Autobahn {
+public class WampConnection extends WebSocketConnection implements Wamp {
 
    private static final boolean DEBUG = true;
-   private static final String TAG = AutobahnConnection.class.getName();
+   private static final String TAG = WampConnection.class.getName();
 
 
    /// The message handler of the background writer.
-   protected AutobahnWriter mWriterHandler;
+   protected WampWriter mWriterHandler;
 
    /// Prefix map for outgoing messages.
    private final PrefixMap mOutgoingPrefixes = new PrefixMap();
@@ -106,7 +106,7 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
    private final ConcurrentHashMap<String, SubMeta> mSubs = new ConcurrentHashMap<String, SubMeta>();
 
    /// The session handler provided to connect().
-   private Autobahn.SessionHandler mSessionHandler;
+   private Wamp.SessionHandler mSessionHandler;
 
 
    /**
@@ -116,7 +116,7 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
       mWriterThread = new HandlerThread("AutobahnWriter");
       mWriterThread.start();
-      mWriter = new AutobahnWriter(mWriterThread.getLooper(), mMasterHandler, mTransportChannel, mOptions);
+      mWriter = new WampWriter(mWriterThread.getLooper(), mMasterHandler, mTransportChannel, mOptions);
 
       if (DEBUG) Log.d(TAG, "writer created and started");
    }
@@ -126,7 +126,7 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
     * Create the connection receiving leg reader.
     */
    protected void createReader() {
-      mReader = new AutobahnReader(mCalls, mSubs, mMasterHandler, mTransportChannel, mOptions, "AutobahnReader");
+      mReader = new WampReader(mCalls, mSubs, mMasterHandler, mTransportChannel, mOptions, "AutobahnReader");
       mReader.start();
 
       if (DEBUG) Log.d(TAG, "reader created and started");
@@ -159,9 +159,9 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
    }
 
 
-   public void connect(String wsUri, Autobahn.SessionHandler sessionHandler) {
+   public void connect(String wsUri, Wamp.SessionHandler sessionHandler) {
 
-      AutobahnOptions options = new AutobahnOptions();
+      WampOptions options = new WampOptions();
       options.setReceiveTextMessagesRaw(true);
       options.setMaxMessagePayloadSize(64*1024);
       options.setMaxFramePayloadSize(64*1024);
@@ -177,7 +177,7 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
     * @param wsUri            WebSockets server URI.
     * @param sessionHandler   The session handler to fire callbacks on.
     */
-   public void connect(String wsUri, Autobahn.SessionHandler sessionHandler, AutobahnOptions options) {
+   public void connect(String wsUri, Wamp.SessionHandler sessionHandler, WampOptions options) {
 
       mSessionHandler = sessionHandler;
 
@@ -225,9 +225,9 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
     */
    protected void processAppMessage(Object message) {
 
-      if (message instanceof AutobahnMessage.CallResult) {
+      if (message instanceof WampMessage.CallResult) {
 
-         AutobahnMessage.CallResult callresult = (AutobahnMessage.CallResult) message;
+         WampMessage.CallResult callresult = (WampMessage.CallResult) message;
 
          if (mCalls.containsKey(callresult.mCallId)) {
             CallMeta meta = mCalls.get(callresult.mCallId);
@@ -237,9 +237,9 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
             mCalls.remove(callresult.mCallId);
          }
 
-      } else if (message instanceof AutobahnMessage.CallError) {
+      } else if (message instanceof WampMessage.CallError) {
 
-         AutobahnMessage.CallError callerror = (AutobahnMessage.CallError) message;
+         WampMessage.CallError callerror = (WampMessage.CallError) message;
 
          if (mCalls.containsKey(callerror.mCallId)) {
             CallMeta meta = mCalls.get(callerror.mCallId);
@@ -248,9 +248,9 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
             }
             mCalls.remove(callerror.mCallId);
          }
-      } else if (message instanceof AutobahnMessage.Event) {
+      } else if (message instanceof WampMessage.Event) {
 
-         AutobahnMessage.Event event = (AutobahnMessage.Event) message;
+         WampMessage.Event event = (WampMessage.Event) message;
 
          if (mSubs.containsKey(event.mTopicUri)) {
             SubMeta meta = mSubs.get(event.mTopicUri);
@@ -258,9 +258,9 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
                meta.mEventHandler.onEvent(event.mTopicUri, event.mEvent);
             }
          }
-      } else if (message instanceof AutobahnMessage.Welcome) {
+      } else if (message instanceof WampMessage.Welcome) {
 
-         AutobahnMessage.Welcome welcome = (AutobahnMessage.Welcome) message;
+         WampMessage.Welcome welcome = (WampMessage.Welcome) message;
 
          // FIXME: safe session ID / fire session opened hook
          if (DEBUG) Log.d(TAG, "WAMP session " + welcome.mSessionId + " established (protocol version " + welcome.mProtocolVersion + ", server " + welcome.mServerIdent + ")");
@@ -281,7 +281,7 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
     */
    private void call(String procUri, CallMeta resultMeta, Object... arguments) {
 
-      AutobahnMessage.Call call = new AutobahnMessage.Call(newId(), procUri, arguments.length);
+      WampMessage.Call call = new WampMessage.Call(newId(), procUri, arguments.length);
       for (int i = 0; i < arguments.length; ++i) {
          call.mArgs[i] = arguments[i];
       }
@@ -332,7 +332,7 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
       if (!mSubs.containsKey(uri)) {
 
-         AutobahnMessage.Subscribe msg = new AutobahnMessage.Subscribe(mOutgoingPrefixes.shrink(topicUri));
+         WampMessage.Subscribe msg = new WampMessage.Subscribe(mOutgoingPrefixes.shrink(topicUri));
          mWriter.forward(msg);
       }
       mSubs.put(uri, meta);
@@ -376,7 +376,7 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
       if (mSubs.containsKey(topicUri)) {
 
-         AutobahnMessage.Unsubscribe msg = new AutobahnMessage.Unsubscribe(topicUri);
+         WampMessage.Unsubscribe msg = new WampMessage.Unsubscribe(topicUri);
          mWriter.forward(msg);
       }
    }
@@ -389,7 +389,7 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
       for (String topicUri : mSubs.keySet()) {
 
-         AutobahnMessage.Unsubscribe msg = new AutobahnMessage.Unsubscribe(topicUri);
+         WampMessage.Unsubscribe msg = new WampMessage.Unsubscribe(topicUri);
          mWriter.forward(msg);
      }
    }
@@ -409,7 +409,7 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
 
          mOutgoingPrefixes.set(prefix, uri);
 
-         AutobahnMessage.Prefix msg = new AutobahnMessage.Prefix(prefix, uri);
+         WampMessage.Prefix msg = new WampMessage.Prefix(prefix, uri);
          mWriter.forward(msg);
       }
    }
@@ -423,7 +423,7 @@ public class AutobahnConnection extends WebSocketConnection implements Autobahn 
     */
    public void publish(String topicUri, Object event) {
 
-      AutobahnMessage.Publish msg = new AutobahnMessage.Publish(mOutgoingPrefixes.shrink(topicUri), event);
+      WampMessage.Publish msg = new WampMessage.Publish(mOutgoingPrefixes.shrink(topicUri), event);
       mWriter.forward(msg);
    }
 }

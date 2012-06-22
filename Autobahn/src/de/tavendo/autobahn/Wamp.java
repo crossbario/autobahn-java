@@ -23,7 +23,7 @@ import org.codehaus.jackson.type.TypeReference;
 
 /*!
 \mainpage
-\section intro_sec Introduction
+\section intro_sec AutobahnAndroid API Reference
 
 <a href="http://autobahn.ws">AutobahnAndroid</a> provides a Java client library implementing
 <a href="http://tools.ietf.org/html/rfc6455">The WebSocket Protocol</a> and
@@ -95,7 +95,7 @@ project.
 
 \section more More Information
 
-For more information, please visit the <a href="http://autobahn.ws/developers">project page</a>,
+For more information, please visit the <a href="http://autobahn.ws/android">project page</a>,
 the <a href="http://groups.google.com/group/autobahnws">forum</a> or the
 <a href="https://github.com/tavendo/AutobahnAndroid">code repository</a>.
 Commercial support and services is available from <a href="http://www.tavendo.de">Tavendo GmbH</a>.
@@ -104,7 +104,7 @@ Commercial support and services is available from <a href="http://www.tavendo.de
 /**
  * Autobahn interface.
  */
-public interface Autobahn {
+public interface Wamp {
 
    /**
     * Session handler for Autobahn sessions.
@@ -143,7 +143,7 @@ public interface Autobahn {
     * @param sessionHandler   The handler for the session.
     * @param options          WebSockets and Autobahn option.s
     */
-   public void connect(String wsUri, SessionHandler sessionHandler, AutobahnOptions options);
+   public void connect(String wsUri, SessionHandler sessionHandler, WampOptions options);
 
 
    /**

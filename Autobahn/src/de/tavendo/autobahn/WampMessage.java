@@ -23,7 +23,7 @@ package de.tavendo.autobahn;
  * The master thread and the background reader/writer threads communicate
  * using these messages for Autobahn WAMP connections.
  */
-public class AutobahnMessage {
+public class WampMessage {
 
    public static final int MESSAGE_TYPE_WELCOME = 0;
    public static final int MESSAGE_TYPE_PREFIX = 1;

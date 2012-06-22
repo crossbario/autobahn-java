@@ -31,16 +31,16 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import android.os.Handler;
 import android.util.Log;
-import de.tavendo.autobahn.AutobahnConnection.CallMeta;
-import de.tavendo.autobahn.AutobahnConnection.SubMeta;
+import de.tavendo.autobahn.WampConnection.CallMeta;
+import de.tavendo.autobahn.WampConnection.SubMeta;
 
 /**
  * Autobahn WAMP reader, the receiving leg of a WAMP connection.
  */
-public class AutobahnReader extends WebSocketReader {
+public class WampReader extends WebSocketReader {
 
    private static final boolean DEBUG = true;
-   private static final String TAG = AutobahnReader.class.getName();
+   private static final String TAG = WampReader.class.getName();
 
    /// Jackson JSON-to-object mapper.
    private final ObjectMapper mJsonMapper;
@@ -64,7 +64,7 @@ public class AutobahnReader extends WebSocketReader {
     * @param options       WebSockets connection options.
     * @param threadName    The thread name we announce.
     */
-   public AutobahnReader(ConcurrentHashMap<String, CallMeta> calls,
+   public WampReader(ConcurrentHashMap<String, CallMeta> calls,
                          ConcurrentHashMap<String, SubMeta> subs,
                          Handler master,
                          SocketChannel socket,
@@ -114,7 +114,7 @@ public class AutobahnReader extends WebSocketReader {
 
                int msgType = parser.getIntValue();
 
-               if (msgType == AutobahnMessage.MESSAGE_TYPE_CALL_RESULT) {
+               if (msgType == WampMessage.MESSAGE_TYPE_CALL_RESULT) {
 
                   // call ID
                   parser.nextToken();
@@ -133,14 +133,14 @@ public class AutobahnReader extends WebSocketReader {
                         result = parser.readValueAs(meta.mResultTypeRef);
                      } else {
                      }
-                     notify(new AutobahnMessage.CallResult(callId, result));
+                     notify(new WampMessage.CallResult(callId, result));
 
                   } else {
 
                      if (DEBUG) Log.d(TAG, "WAMP RPC success return for unknown call ID received");
                   }
 
-               } else if (msgType == AutobahnMessage.MESSAGE_TYPE_CALL_ERROR) {
+               } else if (msgType == WampMessage.MESSAGE_TYPE_CALL_ERROR) {
 
                   // call ID
                   parser.nextToken();
@@ -156,14 +156,14 @@ public class AutobahnReader extends WebSocketReader {
 
                   if (mCalls.containsKey(callId)) {
 
-                     notify(new AutobahnMessage.CallError(callId, errorUri, errorDesc));
+                     notify(new WampMessage.CallError(callId, errorUri, errorDesc));
 
                   } else {
 
                      if (DEBUG) Log.d(TAG, "WAMP RPC error return for unknown call ID received");
                   }
 
-               } else if (msgType == AutobahnMessage.MESSAGE_TYPE_EVENT) {
+               } else if (msgType == WampMessage.MESSAGE_TYPE_EVENT) {
 
                   // topic URI
                   parser.nextToken();
@@ -182,14 +182,14 @@ public class AutobahnReader extends WebSocketReader {
                         event = parser.readValueAs(meta.mEventTypeRef);
                      } else {
                      }
-                     notify(new AutobahnMessage.Event(topicUri, event));
+                     notify(new WampMessage.Event(topicUri, event));
 
                   } else {
 
                      if (DEBUG) Log.d(TAG, "WAMP event for not-subscribed topic received");
                   }
 
-               } else if (msgType == AutobahnMessage.MESSAGE_TYPE_PREFIX) {
+               } else if (msgType == WampMessage.MESSAGE_TYPE_PREFIX) {
 
                   // prefix
                   parser.nextToken();
@@ -199,9 +199,9 @@ public class AutobahnReader extends WebSocketReader {
                   parser.nextToken();
                   String uri = parser.getText();
 
-                  notify(new AutobahnMessage.Prefix(prefix, uri));
+                  notify(new WampMessage.Prefix(prefix, uri));
 
-               } else if (msgType == AutobahnMessage.MESSAGE_TYPE_WELCOME) {
+               } else if (msgType == WampMessage.MESSAGE_TYPE_WELCOME) {
 
                   // session ID
                   parser.nextToken();
@@ -215,7 +215,7 @@ public class AutobahnReader extends WebSocketReader {
                   parser.nextToken();
                   String serverIdent = parser.getText();
 
-                  notify(new AutobahnMessage.Welcome(sessionId, protocolVersion, serverIdent));
+                  notify(new WampMessage.Welcome(sessionId, protocolVersion, serverIdent));
 
                } else {
 

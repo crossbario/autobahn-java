@@ -18,6 +18,6 @@
 
 package de.tavendo.autobahn;
 
-public class AutobahnOptions extends WebSocketOptions {
+public class WampOptions extends WebSocketOptions {
 
 }

@@ -37,10 +37,10 @@ import android.util.Log;
  * (the master) to this object running on the writer thread. WAMP messages are
  * serialized to JSON, and then sent via WebSockets.
  */
-public class AutobahnWriter extends WebSocketWriter {
+public class WampWriter extends WebSocketWriter {
 
    private static final boolean DEBUG = true;
-   private static final String TAG = AutobahnWriter.class.getName();
+   private static final String TAG = WampWriter.class.getName();
 
    /**
     * This is the Jackson JSON factory we use to create JSON generators.
@@ -60,7 +60,7 @@ public class AutobahnWriter extends WebSocketWriter {
     * @param socket     The TCP socket (channel) the WebSocket connection runs over.
     * @param options    WebSockets options for the underlying WebSockets connection.
     */
-   public AutobahnWriter(Looper looper, Handler master, SocketChannel socket,
+   public WampWriter(Looper looper, Handler master, SocketChannel socket,
          WebSocketOptions options) {
 
       super(looper, master, socket, options);
@@ -87,12 +87,12 @@ public class AutobahnWriter extends WebSocketWriter {
          // serialize WAMP messages to JSON: the code here needs to understand
          // any client-to-server WAMP messages forward from the foreground thread
 
-         if (msg instanceof AutobahnMessage.Call) {
+         if (msg instanceof WampMessage.Call) {
 
-            AutobahnMessage.Call call = (AutobahnMessage.Call) msg;
+            WampMessage.Call call = (WampMessage.Call) msg;
 
             generator.writeStartArray();
-            generator.writeNumber(AutobahnMessage.MESSAGE_TYPE_CALL);
+            generator.writeNumber(WampMessage.MESSAGE_TYPE_CALL);
             generator.writeString(call.mCallId);
             generator.writeString(call.mProcUri);
             for (Object arg : call.mArgs) {
@@ -100,40 +100,40 @@ public class AutobahnWriter extends WebSocketWriter {
             }
             generator.writeEndArray();
 
-         } else if (msg instanceof AutobahnMessage.Prefix) {
+         } else if (msg instanceof WampMessage.Prefix) {
 
-            AutobahnMessage.Prefix prefix = (AutobahnMessage.Prefix) msg;
+            WampMessage.Prefix prefix = (WampMessage.Prefix) msg;
 
             generator.writeStartArray();
-            generator.writeNumber(AutobahnMessage.MESSAGE_TYPE_PREFIX);
+            generator.writeNumber(WampMessage.MESSAGE_TYPE_PREFIX);
             generator.writeString(prefix.mPrefix);
             generator.writeString(prefix.mUri);
             generator.writeEndArray();
 
-         } else if (msg instanceof AutobahnMessage.Subscribe) {
+         } else if (msg instanceof WampMessage.Subscribe) {
 
-            AutobahnMessage.Subscribe subscribe = (AutobahnMessage.Subscribe) msg;
+            WampMessage.Subscribe subscribe = (WampMessage.Subscribe) msg;
 
             generator.writeStartArray();
-            generator.writeNumber(AutobahnMessage.MESSAGE_TYPE_SUBSCRIBE);
+            generator.writeNumber(WampMessage.MESSAGE_TYPE_SUBSCRIBE);
             generator.writeString(subscribe.mTopicUri);
             generator.writeEndArray();
 
-         } else if (msg instanceof AutobahnMessage.Unsubscribe) {
+         } else if (msg instanceof WampMessage.Unsubscribe) {
 
-            AutobahnMessage.Unsubscribe unsubscribe = (AutobahnMessage.Unsubscribe) msg;
+            WampMessage.Unsubscribe unsubscribe = (WampMessage.Unsubscribe) msg;
 
             generator.writeStartArray();
-            generator.writeNumber(AutobahnMessage.MESSAGE_TYPE_UNSUBSCRIBE);
+            generator.writeNumber(WampMessage.MESSAGE_TYPE_UNSUBSCRIBE);
             generator.writeString(unsubscribe.mTopicUri);
             generator.writeEndArray();
 
-         } else if (msg instanceof AutobahnMessage.Publish) {
+         } else if (msg instanceof WampMessage.Publish) {
 
-            AutobahnMessage.Publish publish = (AutobahnMessage.Publish) msg;
+            WampMessage.Publish publish = (WampMessage.Publish) msg;
 
             generator.writeStartArray();
-            generator.writeNumber(AutobahnMessage.MESSAGE_TYPE_PUBLISH);
+            generator.writeNumber(WampMessage.MESSAGE_TYPE_PUBLISH);
             generator.writeString(publish.mTopicUri);
             generator.writeObject(publish.mEvent);
             generator.writeEndArray();

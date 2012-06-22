@@ -28,8 +28,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import de.tavendo.autobahn.Autobahn;
-import de.tavendo.autobahn.AutobahnConnection;
+import de.tavendo.autobahn.Wamp;
+import de.tavendo.autobahn.WampConnection;
 
 public class SimpleRpcActivity extends Activity {
 
@@ -81,7 +81,7 @@ public class SimpleRpcActivity extends Activity {
       });
    }
 
-   private final AutobahnConnection mConnection = new AutobahnConnection();
+   private final WampConnection mConnection = new WampConnection();
 
    private void test() {
 
@@ -93,7 +93,7 @@ public class SimpleRpcActivity extends Activity {
 
       // we establish a connection by giving the WebSockets URL of the server
       // and the handler for open/close events
-      mConnection.connect(wsuri, new Autobahn.SessionHandler() {
+      mConnection.connect(wsuri, new Wamp.SessionHandler() {
 
          @Override
          public void onOpen() {
@@ -126,7 +126,7 @@ public class SimpleRpcActivity extends Activity {
       ArrayList<Integer> nums = new ArrayList<Integer>();
       for (int i = 0; i < 10; ++i) nums.add(i);
 
-      mConnection.call("calc:asum", Integer.class, new Autobahn.CallHandler() {
+      mConnection.call("calc:asum", Integer.class, new Wamp.CallHandler() {
 
          @Override
          public void onResult(Object result) {
@@ -140,7 +140,7 @@ public class SimpleRpcActivity extends Activity {
          }
       }, nums);
 
-      mConnection.call("calc:add", Integer.class, new Autobahn.CallHandler() {
+      mConnection.call("calc:add", Integer.class, new Wamp.CallHandler() {
 
          @Override
          public void onResult(Object result) {

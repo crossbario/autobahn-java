@@ -28,8 +28,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import de.tavendo.autobahn.Autobahn;
-import de.tavendo.autobahn.AutobahnConnection;
+import de.tavendo.autobahn.Wamp;
+import de.tavendo.autobahn.WampConnection;
 
 public class SimplePubSubActivity extends Activity {
 
@@ -45,7 +45,7 @@ public class SimplePubSubActivity extends Activity {
    private static TextView mStatusline;
    private static Button mStart;
 
-   private final AutobahnConnection mConnection = new AutobahnConnection();
+   private final WampConnection mConnection = new WampConnection();
 
    private void alert(String message) {
       Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
@@ -115,7 +115,7 @@ public class SimplePubSubActivity extends Activity {
 
       // we establish a connection by giving the WebSockets URL of the server
       // and the handler for open/close events
-      mConnection.connect(wsuri, new Autobahn.SessionHandler() {
+      mConnection.connect(wsuri, new Wamp.SessionHandler() {
 
          @Override
          public void onOpen() {
@@ -130,7 +130,7 @@ public class SimplePubSubActivity extends Activity {
 
             // We subscribe to a topic by giving the topic URI, the type we want events
             // to be converted to, and the event handler we want to have fired.
-            mConnection.subscribe("event:myevent1", MyEvent1.class, new Autobahn.EventHandler() {
+            mConnection.subscribe("event:myevent1", MyEvent1.class, new Wamp.EventHandler() {
 
                @Override
                public void onEvent(String topicUri, Object event) {
