@@ -19,6 +19,7 @@
 package de.tavendo.autobahn;
 
 import java.io.UnsupportedEncodingException;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
@@ -592,6 +593,13 @@ public class WebSocketReader extends Thread {
          // wrap the exception and notify master
          notify(new WebSocketMessage.ProtocolViolation(e));
 
+      } catch (SocketException e) {
+    	  
+    	  if (DEBUG) Log.d(TAG, "run() : SocketException (" + e.toString() + ")");
+    	  
+    	  // wrap the exception and notify master
+    	  notify(new WebSocketMessage.ConnectionLost());;
+    	  
       } catch (Exception e) {
 
          if (DEBUG) Log.d(TAG, "run() : Exception (" + e.toString() + ")");
