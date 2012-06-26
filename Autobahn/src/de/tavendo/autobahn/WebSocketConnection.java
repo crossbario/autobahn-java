@@ -54,6 +54,8 @@ public class WebSocketConnection implements WebSocket {
    private WebSocket.ConnectionHandler mWsHandler;
 
    protected WebSocketOptions mOptions;
+   
+   private boolean mActive;
 
 
    /**
@@ -98,9 +100,6 @@ public class WebSocketConnection implements WebSocket {
 
             try {
 
-               // create WebSocket master handler
-               createHandler();
-
                // create & start WebSocket reader
                createReader();
 
@@ -131,6 +130,9 @@ public class WebSocketConnection implements WebSocket {
 
    public WebSocketConnection() {
       if (DEBUG) Log.d(TAG, "created");
+      
+      // create WebSocket master handler
+      createHandler();
    }
 
 
@@ -157,6 +159,11 @@ public class WebSocketConnection implements WebSocket {
    private void failConnection(int code, String reason) {
 
       if (DEBUG) Log.d(TAG, "fail connection [code = " + code + ", reason = " + reason);
+      
+      // reconnect
+      if (code == WebSocket.ConnectionHandler.CLOSE_CONNECTION_LOST) {
+    	  reconnect();
+      }
 
       if (mReader != null) {
          mReader.quit();
@@ -281,6 +288,9 @@ public class WebSocketConnection implements WebSocket {
 
       // make copy of options!
       mOptions = new WebSocketOptions(options);
+      
+      // set connection active
+      mActive = true;
 
       // use asynch connector on short-lived background thread
       new WebSocketConnector().execute();
@@ -293,6 +303,28 @@ public class WebSocketConnection implements WebSocket {
       } else {
          if (DEBUG) Log.d(TAG, "could not send Close .. writer already NULL");
       }
+      mActive = false;
+   }
+   
+   /**
+    * Perform reconnection
+    * 
+    * @return true if reconnection was scheduled
+    */
+   protected boolean reconnect() {
+	   int interval = mOptions.getReconnectInterval();
+	   boolean need = mActive && (interval > 0);
+	   if (need) {
+		   if (DEBUG) Log.d(TAG, "Reconnection scheduled");
+		   mMasterHandler.postDelayed(new Runnable() {
+			
+			public void run() {
+				if (DEBUG) Log.d(TAG, "Reconnecting...");
+				new WebSocketConnector().execute();
+			}
+		}, interval);
+	   }
+	   return need;
    }
 
 
