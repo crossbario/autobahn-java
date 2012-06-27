@@ -22,6 +22,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.HashMap;
+import java.util.Map;
 
 import android.os.Handler;
 import android.os.Message;
@@ -531,6 +533,26 @@ public class WebSocketReader extends Thread {
          }
       }
       return res;
+   }
+   
+   @SuppressWarnings("unused")
+   private Map<String, String> parseHttpHeaders(byte[] buffer) throws UnsupportedEncodingException {
+	   // TODO: use utf-8 validator?
+	   String s = new String(buffer, "UTF-8");
+	   Map<String, String> headers = new HashMap<String, String>();
+	   
+	   String[] lines = s.split("\r\n");
+	   for (String line : lines) {
+		   if (line.length() > 0) {
+			   String[] h = line.split(": ");
+			   if (h.length == 2) {
+				   headers.put(h[0], h[1]);
+				   Log.w(TAG, String.format("'%s'='%s'", h[0], h[1]));
+			   }
+		   }
+	   }
+	   
+	   return headers;
    }
 
 
