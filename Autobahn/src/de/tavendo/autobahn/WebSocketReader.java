@@ -522,6 +522,20 @@ public class WebSocketReader extends Thread {
             onHandshake();
 
             int oldPosition = mFrameBuffer.position();
+            
+            // Check HTTP status code
+            if (mFrameBuffer.get(0) == 'H' &&
+            	mFrameBuffer.get(1) == 'T' &&
+            	mFrameBuffer.get(2) == 'T' &&
+            	mFrameBuffer.get(3) == 'P') {
+            	
+            	Pair<Integer, String> status = parseHttpStatus();
+            	if (status.first >= 300) {
+            		// Invalid status code for success connection
+            		notify(new WebSocketMessage.ConnectionError(status.first, status.second));
+            	}
+            }
+            
             mFrameBuffer.position(pos + 4);
             mFrameBuffer.limit(oldPosition);
             mFrameBuffer.compact();
