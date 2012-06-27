@@ -56,7 +56,7 @@ public class WebSocketConnection implements WebSocket {
    protected WebSocketOptions mOptions;
    
    private boolean mActive;
-
+   private boolean mPrevConnected;
 
    /**
     * Asynch socket connector.
@@ -94,7 +94,7 @@ public class WebSocketConnection implements WebSocket {
 
          if (reason != null) {
 
-            mWsHandler.onClose(WebSocketConnectionHandler.CLOSE_CANNOT_CONNECT, reason);
+            onClose(WebSocketConnectionHandler.CLOSE_CANNOT_CONNECT, reason);
 
          } else if (mTransportChannel.isConnected()) {
 
@@ -112,16 +112,18 @@ public class WebSocketConnection implements WebSocket {
                hs.mQuery = mWsQuery;
                hs.mSubprotocols = mWsSubprotocols;
                mWriter.forward(hs);
+               
+               mPrevConnected = true;
 
             } catch (Exception e) {
 
-               mWsHandler.onClose(WebSocketConnectionHandler.CLOSE_INTERNAL_ERROR, e.getMessage());
+               onClose(WebSocketConnectionHandler.CLOSE_INTERNAL_ERROR, e.getMessage());
 
             }
 
          } else {
 
-            mWsHandler.onClose(WebSocketConnectionHandler.CLOSE_CANNOT_CONNECT, "could not connect to WebSockets server");
+            onClose(WebSocketConnectionHandler.CLOSE_CANNOT_CONNECT, "could not connect to WebSockets server");
          }
       }
 
@@ -133,6 +135,10 @@ public class WebSocketConnection implements WebSocket {
       
       // create WebSocket master handler
       createHandler();
+      
+      // set initial values
+      mActive = false;
+      mPrevConnected = false;
    }
 
 
@@ -159,11 +165,6 @@ public class WebSocketConnection implements WebSocket {
    private void failConnection(int code, String reason) {
 
       if (DEBUG) Log.d(TAG, "fail connection [code = " + code + ", reason = " + reason);
-      
-      // reconnect
-      if (code == WebSocket.ConnectionHandler.CLOSE_CONNECTION_LOST) {
-    	  reconnect();
-      }
 
       if (mReader != null) {
          mReader.quit();
@@ -201,16 +202,7 @@ public class WebSocketConnection implements WebSocket {
          if (DEBUG) Log.d(TAG, "mTransportChannel already NULL");
       }
 
-      if (mWsHandler != null) {
-         try {
-            mWsHandler.onClose(code, reason);
-         } catch (Exception e) {
-            if (DEBUG) e.printStackTrace();
-         }
-         //mWsHandler = null;
-      } else {
-         if (DEBUG) Log.d(TAG, "mWsHandler already NULL");
-      }
+      onClose(code, reason);
 
       if (DEBUG) Log.d(TAG, "worker threads stopped");
    }
@@ -304,6 +296,7 @@ public class WebSocketConnection implements WebSocket {
          if (DEBUG) Log.d(TAG, "could not send Close .. writer already NULL");
       }
       mActive = false;
+      mPrevConnected = false;
    }
    
    /**
@@ -312,8 +305,14 @@ public class WebSocketConnection implements WebSocket {
     * @return true if reconnection was scheduled
     */
    protected boolean reconnect() {
+	   /**
+	    * Reconnect only if:
+	    *  - connection active (connected but not disconnected)
+	    *  - has previous success connections
+	    *  - reconnect interval is set
+	    */
 	   int interval = mOptions.getReconnectInterval();
-	   boolean need = mActive && (interval > 0);
+	   boolean need = mActive && mPrevConnected && (interval > 0);
 	   if (need) {
 		   if (DEBUG) Log.d(TAG, "Reconnection scheduled");
 		   mMasterHandler.postDelayed(new Runnable() {
@@ -325,6 +324,37 @@ public class WebSocketConnection implements WebSocket {
 		}, interval);
 	   }
 	   return need;
+   }
+   
+   /**
+    * Common close handler
+    * 
+    * @param code       Close code.
+	* @param reason     Close reason (human-readable).
+    */
+   private void onClose(int code, String reason) {
+	   boolean reconnecting = false;
+	   
+	   if ((code == WebSocket.ConnectionHandler.CLOSE_CANNOT_CONNECT) ||
+			   (code == WebSocket.ConnectionHandler.CLOSE_CONNECTION_LOST)) {
+		   reconnecting = reconnect();
+	   }
+	   
+	   
+	   if (mWsHandler != null) {
+		   try {
+			   if (reconnecting) {
+				   mWsHandler.onReconnect(code, reason);
+			   } else {
+				   mWsHandler.onClose(code, reason);
+			   }
+		   } catch (Exception e) {
+			   if (DEBUG) e.printStackTrace();
+		   }
+		   //mWsHandler = null;
+	   } else {
+		   if (DEBUG) Log.d(TAG, "mWsHandler already NULL");
+	   }
    }
 
 
