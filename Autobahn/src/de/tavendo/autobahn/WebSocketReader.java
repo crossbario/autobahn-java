@@ -28,6 +28,7 @@ import java.util.Map;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.util.Pair;
 
 /**
  * WebSocket reader, the receiving leg of a WebSockets connection.
@@ -553,6 +554,39 @@ public class WebSocketReader extends Thread {
 	   }
 	   
 	   return headers;
+   }
+   
+   private Pair<Integer, String> parseHttpStatus() throws UnsupportedEncodingException {
+	   int beg, end;
+		// Find first space
+		for (beg = 4; beg < mFrameBuffer.position(); ++beg) {
+			if (mFrameBuffer.get(beg) == ' ') break;
+		}
+		// Find second space
+		for (end = beg + 1; end < mFrameBuffer.position(); ++end) {
+			if (mFrameBuffer.get(end) == ' ') break;
+		}
+		// Parse status code between them
+		++beg;
+		int statusCode = 0;
+		for (int i = 0; beg + i < end; ++i) {
+			int digit = (mFrameBuffer.get(beg + i) - 0x30);
+			statusCode *= 10;
+			statusCode += digit;
+		}
+		// Find end of line to extract error message
+		++end;
+		int eol;
+		for (eol = end; eol < mFrameBuffer.position(); ++eol) {
+			if (mFrameBuffer.get(eol) == 0x0d) break;
+		}
+		int statusMessageLength = eol - end;
+		byte[] statusBuf = new byte[statusMessageLength];
+		mFrameBuffer.position(end);
+		mFrameBuffer.get(statusBuf, 0, statusMessageLength);
+		String statusMessage = new String(statusBuf, "UTF-8");
+		if (DEBUG) Log.w(TAG, String.format("Status: %d (%s)", statusCode, statusMessage));
+		return new Pair<Integer, String>(statusCode, statusMessage);
    }
 
 
