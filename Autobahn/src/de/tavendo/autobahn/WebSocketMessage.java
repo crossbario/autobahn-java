@@ -71,6 +71,17 @@ public class WebSocketMessage {
    /// WebSockets connection lost
    public static class ConnectionLost extends Message {
    }
+   
+   public static class ConnectionError extends Message {
+	   public int mStatusCode;
+	   public String mStatusMessage;
+	   
+	   public ConnectionError(int statusCode, String statusMessage) {
+		   mStatusCode = statusCode;
+		   mStatusMessage = statusMessage;
+	   }
+	   
+   }
 
    /// WebSockets reader detected WS protocol violation.
    public static class ProtocolViolation extends Message {
