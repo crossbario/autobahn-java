@@ -72,11 +72,11 @@ public class WebSocketMessage {
    public static class ConnectionLost extends Message {
    }
    
-   public static class ConnectionError extends Message {
+   public static class ServerError extends Message {
 	   public int mStatusCode;
 	   public String mStatusMessage;
 	   
-	   public ConnectionError(int statusCode, String statusMessage) {
+	   public ServerError(int statusCode, String statusMessage) {
 		   mStatusCode = statusCode;
 		   mStatusMessage = statusMessage;
 	   }

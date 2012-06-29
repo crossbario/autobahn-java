@@ -532,7 +532,7 @@ public class WebSocketReader extends Thread {
             	Pair<Integer, String> status = parseHttpStatus();
             	if (status.first >= 300) {
             		// Invalid status code for success connection
-            		notify(new WebSocketMessage.ConnectionError(status.first, status.second));
+            		notify(new WebSocketMessage.ServerError(status.first, status.second));
             	}
             }
             
