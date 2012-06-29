@@ -451,6 +451,11 @@ public class WebSocketConnection implements WebSocket {
 
                WebSocketMessage.Error error = (WebSocketMessage.Error) msg.obj;
                failConnection(WebSocketConnectionHandler.CLOSE_INTERNAL_ERROR, "WebSockets internal error (" + error.mException.toString() + ")");
+               
+            } else if (msg.obj instanceof WebSocketMessage.ServerError) {
+            	
+            	WebSocketMessage.ServerError error = (WebSocketMessage.ServerError) msg.obj;
+            	failConnection(WebSocketConnectionHandler.CLOSE_SERVER_ERROR, "Server error " + error.mStatusCode + " (" + error.mStatusMessage + ")");
 
             } else {
 
