@@ -428,11 +428,13 @@ public class WebSocketConnection implements WebSocket {
                WebSocketMessage.ServerHandshake serverHandshake = (WebSocketMessage.ServerHandshake) msg.obj;
 
                if (DEBUG) Log.d(TAG, "opening handshake received");
-
-               if (mWsHandler != null) {
-                  mWsHandler.onOpen();
-               } else {
-                  if (DEBUG) Log.d(TAG, "could not call onOpen() .. handler already NULL");
+               
+               if (serverHandshake.mSuccess) {
+            	   if (mWsHandler != null) {
+                       mWsHandler.onOpen();
+                    } else {
+                       if (DEBUG) Log.d(TAG, "could not call onOpen() .. handler already NULL");
+                    }
                }
 
             } else if (msg.obj instanceof WebSocketMessage.ConnectionLost) {

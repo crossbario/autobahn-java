@@ -428,10 +428,12 @@ public class WebSocketReader extends Thread {
 
    /**
     * WebSockets handshake reply from server received, default notifies master.
+    * 
+    * @param success	Success handshake flag
     */
-   protected void onHandshake() {
+   protected void onHandshake(boolean success) {
 
-      notify(new WebSocketMessage.ServerHandshake());
+      notify(new WebSocketMessage.ServerHandshake(success));
    }
 
 
@@ -519,7 +521,6 @@ public class WebSocketReader extends Thread {
 
             /// \todo process & verify handshake from server
             /// \todo forward subprotocol, if any
-            onHandshake();
 
             int oldPosition = mFrameBuffer.position();
             
@@ -552,6 +553,8 @@ public class WebSocketReader extends Thread {
             	mState = STATE_CLOSED;
             	mStopped = true;
             }
+            
+            onHandshake(!serverError);
             break;
          }
       }

@@ -66,6 +66,11 @@ public class WebSocketMessage {
 
    /// Initial WebSockets handshake (server response).
    public static class ServerHandshake extends Message {
+	   public boolean mSuccess;
+	   
+	   public ServerHandshake(boolean success) {
+		   mSuccess = success;
+	   }
    }
 
    /// WebSockets connection lost
