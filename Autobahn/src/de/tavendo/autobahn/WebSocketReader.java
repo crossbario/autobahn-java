@@ -524,6 +524,7 @@ public class WebSocketReader extends Thread {
             int oldPosition = mFrameBuffer.position();
             
             // Check HTTP status code
+            boolean serverError = false;
             if (mFrameBuffer.get(0) == 'H' &&
             	mFrameBuffer.get(1) == 'T' &&
             	mFrameBuffer.get(2) == 'T' &&
@@ -533,6 +534,7 @@ public class WebSocketReader extends Thread {
             	if (status.first >= 300) {
             		// Invalid status code for success connection
             		notify(new WebSocketMessage.ServerError(status.first, status.second));
+            		serverError = true;
             	}
             }
             
@@ -540,10 +542,16 @@ public class WebSocketReader extends Thread {
             mFrameBuffer.limit(oldPosition);
             mFrameBuffer.compact();
 
-            // process further when data after HTTP headers left in buffer
-            res = mFrameBuffer.position() > 0;
+            if (!serverError) {
+            	// process further when data after HTTP headers left in buffer
+                res = mFrameBuffer.position() > 0;
 
-            mState = STATE_OPEN;
+                mState = STATE_OPEN;
+            } else {
+            	res = true;
+            	mState = STATE_CLOSED;
+            	mStopped = true;
+            }
             break;
          }
       }
