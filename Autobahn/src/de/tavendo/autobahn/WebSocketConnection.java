@@ -300,11 +300,23 @@ public class WebSocketConnection implements WebSocket {
    }
    
    /**
+    * Reconnect to the server with the latest options 
+    * @return true if reconnection performed
+    */
+   public boolean reconnect() {
+	   if (!isConnected() && (mWsUri != null)) {
+		   new WebSocketConnector().execute();
+		   return true;
+	   }
+	   return false;
+   }
+   
+   /**
     * Perform reconnection
     * 
     * @return true if reconnection was scheduled
     */
-   protected boolean reconnect() {
+   protected boolean scheduleReconnect() {
 	   /**
 	    * Reconnect only if:
 	    *  - connection active (connected but not disconnected)
@@ -319,7 +331,7 @@ public class WebSocketConnection implements WebSocket {
 			
 			public void run() {
 				if (DEBUG) Log.d(TAG, "Reconnecting...");
-				new WebSocketConnector().execute();
+				reconnect();
 			}
 		}, interval);
 	   }
@@ -337,7 +349,7 @@ public class WebSocketConnection implements WebSocket {
 	   
 	   if ((code == WebSocket.ConnectionHandler.CLOSE_CANNOT_CONNECT) ||
 			   (code == WebSocket.ConnectionHandler.CLOSE_CONNECTION_LOST)) {
-		   reconnecting = reconnect();
+		   reconnecting = scheduleReconnect();
 	   }
 	   
 	   
