@@ -18,6 +18,12 @@ You can use AutobahnAndroid to create native Android apps talking to WebSocket s
 Using WAMP you can build applications around **asynchronous RPC and PubSub** messaging patterns.
 
 
+TODO
+----
+
+Conform unit tests & test it with fuzzy server.
+
+
 Where to go
 -----------
 
