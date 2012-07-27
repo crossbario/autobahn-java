@@ -19,6 +19,7 @@
 package de.tavendo.autobahn;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.nio.channels.SocketChannel;
 import java.util.Random;
 
@@ -51,7 +52,7 @@ public class WebSocketWriter extends Handler {
    private final Looper mLooper;
 
    /// The NIO socket channel created on foreground thread.
-   private final SocketChannel mSocket;
+   private final Socket mSocket;
 
    /// WebSockets options.
    private final WebSocketOptions mOptions;
@@ -66,16 +67,16 @@ public class WebSocketWriter extends Handler {
     * @param looper    The message looper of the background thread on which
     *                  this object is running.
     * @param master    The message handler of master (foreground thread).
-    * @param socket    The socket channel created on foreground thread.
+    * @param mTransportChannel    The socket channel created on foreground thread.
     * @param options   WebSockets connection options.
     */
-   public WebSocketWriter(Looper looper, Handler master, SocketChannel socket, WebSocketOptions options) {
+   public WebSocketWriter(Looper looper, Handler master, Socket mTransportChannel, WebSocketOptions options) {
 
       super(looper);
 
       mLooper = looper;
       mMaster = master;
-      mSocket = socket;
+      mSocket = mTransportChannel;
       mOptions = options;
       mBuffer = new ByteBufferOutputStream(options.getMaxFramePayloadSize() + 14, 4*64*1024);
 
@@ -375,6 +376,8 @@ public class WebSocketWriter extends Handler {
    public void handleMessage(Message msg) {
 
       try {
+    	 
+    	 
 
          // clear send buffer
          mBuffer.clear();
@@ -384,10 +387,11 @@ public class WebSocketWriter extends Handler {
 
          // send out buffered data
          mBuffer.flip();
-         while (mBuffer.remaining() > 0) {
-            // this can block on socket write
-            @SuppressWarnings("unused")
-            int written = mSocket.write(mBuffer.getBuffer());
+         if (mBuffer.remaining() > 0) {
+        	byte arr[] = new byte[mBuffer.remaining()];
+        	mBuffer.getBuffer().get(arr);
+        	// this can block on socket write
+            mSocket.getOutputStream().write(arr);
          }
 
       } catch (Exception e) {

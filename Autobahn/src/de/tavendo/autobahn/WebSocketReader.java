@@ -19,6 +19,7 @@
 package de.tavendo.autobahn;
 
 import java.io.UnsupportedEncodingException;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
@@ -39,7 +40,7 @@ public class WebSocketReader extends Thread {
    private static final String TAG = WebSocketReader.class.getName();
 
    private final Handler mMaster;
-   private final SocketChannel mSocket;
+   private final Socket mSocket;
    private final WebSocketOptions mOptions;
 
    private final ByteBuffer mFrameBuffer;
@@ -81,14 +82,14 @@ public class WebSocketReader extends Thread {
     * Create new WebSockets background reader.
     *
     * @param master    The message handler of master (foreground thread).
-    * @param socket    The socket channel created on foreground thread.
+    * @param mTransportChannel    The socket channel created on foreground thread.
     */
-   public WebSocketReader(Handler master, SocketChannel socket, WebSocketOptions options, String threadName) {
+   public WebSocketReader(Handler master, Socket mTransportChannel, WebSocketOptions options, String threadName) {
 
       super(threadName);
 
       mMaster = master;
-      mSocket = socket;
+      mSocket = mTransportChannel;
       mOptions = options;
 
       mFrameBuffer = ByteBuffer.allocateDirect(options.getMaxFramePayloadSize() + 14);
@@ -564,22 +565,25 @@ public class WebSocketReader extends Thread {
    @Override
    public void run() {
 
-      if (DEBUG) Log.d(TAG, "running");
+      if (DEBUG) Log.d(TAG, "running - connection: " + mSocket.isConnected());
 
       try {
 
          mFrameBuffer.clear();
+         byte readbuff[] = new byte[mFrameBuffer.capacity()];
+         
          do {
-            // blocking read on socket
-            int len = mSocket.read(mFrameBuffer);
+        	// blocking read on socket
+            int len = mSocket.getInputStream().read(readbuff, 0, readbuff.length);
             if (len > 0) {
+               mFrameBuffer.put(readbuff, 0, len);
                // process buffered data
                while (consumeData()) {
                }
             } else if (len < 0) {
 
-               if (DEBUG) Log.d(TAG, "run() : ConnectionLost");
-
+               if (DEBUG) Log.d(TAG, "run() : ConnectionLost - " + mSocket.isConnected());
+               
                notify(new WebSocketMessage.ConnectionLost());
                mStopped = true;
             }
@@ -587,14 +591,14 @@ public class WebSocketReader extends Thread {
 
       } catch (WebSocketException e) {
 
-         if (DEBUG) Log.d(TAG, "run() : WebSocketException (" + e.toString() + ")");
+         if (DEBUG) Log.d(TAG, "run() : WebSocketException (" + e.toString() + ")", e);
 
          // wrap the exception and notify master
          notify(new WebSocketMessage.ProtocolViolation(e));
 
       } catch (Exception e) {
 
-         if (DEBUG) Log.d(TAG, "run() : Exception (" + e.toString() + ")");
+         if (DEBUG) Log.d(TAG, "run() : Exception (" + e.toString() + ")", e);
 
          // wrap the exception and notify master
          notify(new WebSocketMessage.Error(e));

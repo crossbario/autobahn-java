@@ -19,6 +19,7 @@
 package de.tavendo.autobahn;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -67,7 +68,7 @@ public class WampReader extends WebSocketReader {
    public WampReader(ConcurrentHashMap<String, CallMeta> calls,
                          ConcurrentHashMap<String, SubMeta> subs,
                          Handler master,
-                         SocketChannel socket,
+                         Socket socket,
                          WebSocketOptions options,
                          String threadName) {
 
