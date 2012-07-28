@@ -20,8 +20,6 @@ package de.tavendo.autobahn;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.nio.channels.SocketChannel;
-
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;

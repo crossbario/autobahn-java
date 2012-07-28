@@ -20,7 +20,6 @@ package de.tavendo.autobahn;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.nio.channels.SocketChannel;
 import java.util.Random;
 
 import android.os.Handler;
@@ -329,18 +328,18 @@ public class WebSocketWriter extends Handler {
          b1 |= (byte) (126 & 0xff);
          mBuffer.write(b1);
          mBuffer.write(new byte[] {(byte)((len >> 8) & 0xff),
-                                   (byte)(len & 0xff)});
+               (byte)(len & 0xff)});
       } else {
          b1 |= (byte) (127 & 0xff);
          mBuffer.write(b1);
          mBuffer.write(new byte[] {(byte)((len >> 56) & 0xff),
-                                   (byte)((len >> 48) & 0xff),
-                                   (byte)((len >> 40) & 0xff),
-                                   (byte)((len >> 32) & 0xff),
-                                   (byte)((len >> 24) & 0xff),
-                                   (byte)((len >> 16) & 0xff),
-                                   (byte)((len >> 8)  & 0xff),
-                                   (byte)(len         & 0xff)});
+               (byte)((len >> 48) & 0xff),
+               (byte)((len >> 40) & 0xff),
+               (byte)((len >> 32) & 0xff),
+               (byte)((len >> 24) & 0xff),
+               (byte)((len >> 16) & 0xff),
+               (byte)((len >> 8)  & 0xff),
+               (byte)(len         & 0xff)});
       }
 
       byte mask[] = null;
@@ -376,8 +375,8 @@ public class WebSocketWriter extends Handler {
    public void handleMessage(Message msg) {
 
       try {
-    	 
-    	 
+
+
 
          // clear send buffer
          mBuffer.clear();
@@ -388,9 +387,9 @@ public class WebSocketWriter extends Handler {
          // send out buffered data
          mBuffer.flip();
          if (mBuffer.remaining() > 0) {
-        	byte arr[] = new byte[mBuffer.remaining()];
-        	mBuffer.getBuffer().get(arr);
-        	// this can block on socket write
+            byte arr[] = new byte[mBuffer.remaining()];
+            mBuffer.getBuffer().get(arr);
+            // this can block on socket write
             mSocket.getOutputStream().write(arr);
          }
 

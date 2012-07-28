@@ -20,7 +20,6 @@ package de.tavendo.autobahn;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.nio.channels.SocketChannel;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.JsonFactory;

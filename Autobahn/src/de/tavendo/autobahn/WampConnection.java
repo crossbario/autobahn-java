@@ -391,7 +391,7 @@ public class WampConnection extends WebSocketConnection implements Wamp {
 
          WampMessage.Unsubscribe msg = new WampMessage.Unsubscribe(topicUri);
          mWriter.forward(msg);
-     }
+      }
    }
 
 
