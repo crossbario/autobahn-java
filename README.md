@@ -4,10 +4,9 @@ AutobahnAndroid
 AutobahnAndroid implements **[The WebSocket Protocol](http://tools.ietf.org/html/rfc6455)** and **[The WebSocket Application Messaging Protocol (WAMP)](http://wamp.ws/)**:
 
 * library for WebSocket and WAMP clients
-* implements WebSocket RFC6455, Draft Hybi-10+ and WAMP v1
+* implements WebSocket RFC6455, Draft Hybi-10+ and WAMP v1 with TLS support
 * works on Android 2.2+
 * very good standards conformance
-* high-performance asynchronous design
 * easy to use API
 * seamless integration in Android UI apps
 * no (really none) network activity on UI thread
