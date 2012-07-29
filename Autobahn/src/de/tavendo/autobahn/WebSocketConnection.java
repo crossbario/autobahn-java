@@ -436,7 +436,6 @@ public class WebSocketConnection implements WebSocket {
 
             } else if (msg.obj instanceof WebSocketMessage.ServerHandshake) {
 
-               @SuppressWarnings("unused")
                WebSocketMessage.ServerHandshake serverHandshake = (WebSocketMessage.ServerHandshake) msg.obj;
 
                if (DEBUG) Log.d(TAG, "opening handshake received");
