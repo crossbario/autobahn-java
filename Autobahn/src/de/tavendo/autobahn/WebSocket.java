@@ -37,6 +37,11 @@ public interface WebSocket {
 	    * Server returned error while connecting
 	    */
 	   public static final int CLOSE_SERVER_ERROR = 6;
+	   
+	   /**
+	    * Server connection lost, scheduled reconnect
+	    */
+	   public static final int CLOSE_RECONNECT = 7;
 
 	   /**
 	    * Fired when the WebSockets connection has been established.
@@ -52,15 +57,6 @@ public interface WebSocket {
 	    * @param reason     Close reason (human-readable).
 	    */
 	   public void onClose(int code, String reason);
-	   
-	   /**
-	    * Fired when the WebSocket connection has lost (instead of
-	    * onClose method)
-	    * 
-	    * @param code       Close code.
-	    * @param reason     Close reason (human-readable).
-	    */
-	   public void onReconnect(int code, String reason);
 
 	   /**
 	    * Fired when a text message has been received (and text

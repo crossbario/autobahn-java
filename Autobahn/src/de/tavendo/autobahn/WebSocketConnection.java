@@ -356,7 +356,7 @@ public class WebSocketConnection implements WebSocket {
 	   if (mWsHandler != null) {
 		   try {
 			   if (reconnecting) {
-				   mWsHandler.onReconnect(code, reason);
+				   mWsHandler.onClose(WebSocket.ConnectionHandler.CLOSE_RECONNECT, reason);
 			   } else {
 				   mWsHandler.onClose(code, reason);
 			   }

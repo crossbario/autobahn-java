@@ -40,17 +40,6 @@ public class WebSocketConnectionHandler implements WebSocket.ConnectionHandler {
     */
    public void onClose(int code, String reason) {
    }
-   
-   /**
-    * Fired when the WebSocket connection has lost (instead of
-    * onClose method)
-    * 
-    * @param code       Close code.
-    * @param reason     Close reason (human-readable).
-    */
-   public void onReconnect(int code, String reason) {
-	   
-   }
 
    /**
     * Fired when a text message has been received (and text
