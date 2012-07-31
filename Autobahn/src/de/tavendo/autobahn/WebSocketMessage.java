@@ -66,10 +66,26 @@ public class WebSocketMessage {
 
    /// Initial WebSockets handshake (server response).
    public static class ServerHandshake extends Message {
+	   public boolean mSuccess;
+	   
+	   public ServerHandshake(boolean success) {
+		   mSuccess = success;
+	   }
    }
 
    /// WebSockets connection lost
    public static class ConnectionLost extends Message {
+   }
+   
+   public static class ServerError extends Message {
+	   public int mStatusCode;
+	   public String mStatusMessage;
+	   
+	   public ServerError(int statusCode, String statusMessage) {
+		   mStatusCode = statusCode;
+		   mStatusMessage = statusMessage;
+	   }
+	   
    }
 
    /// WebSockets reader detected WS protocol violation.

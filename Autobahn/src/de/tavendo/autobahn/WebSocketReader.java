@@ -19,12 +19,16 @@
 package de.tavendo.autobahn;
 
 import java.io.UnsupportedEncodingException;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.HashMap;
+import java.util.Map;
 
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.util.Pair;
 
 /**
  * WebSocket reader, the receiving leg of a WebSockets connection.
@@ -424,10 +428,12 @@ public class WebSocketReader extends Thread {
 
    /**
     * WebSockets handshake reply from server received, default notifies master.
+    * 
+    * @param success	Success handshake flag
     */
-   protected void onHandshake() {
+   protected void onHandshake(boolean success) {
 
-      notify(new WebSocketMessage.ServerHandshake());
+      notify(new WebSocketMessage.ServerHandshake(success));
    }
 
 
@@ -515,21 +521,97 @@ public class WebSocketReader extends Thread {
 
             /// \todo process & verify handshake from server
             /// \todo forward subprotocol, if any
-            onHandshake();
 
             int oldPosition = mFrameBuffer.position();
+            
+            // Check HTTP status code
+            boolean serverError = false;
+            if (mFrameBuffer.get(0) == 'H' &&
+            	mFrameBuffer.get(1) == 'T' &&
+            	mFrameBuffer.get(2) == 'T' &&
+            	mFrameBuffer.get(3) == 'P') {
+            	
+            	Pair<Integer, String> status = parseHttpStatus();
+            	if (status.first >= 300) {
+            		// Invalid status code for success connection
+            		notify(new WebSocketMessage.ServerError(status.first, status.second));
+            		serverError = true;
+            	}
+            }
+            
             mFrameBuffer.position(pos + 4);
             mFrameBuffer.limit(oldPosition);
             mFrameBuffer.compact();
 
-            // process further when data after HTTP headers left in buffer
-            res = mFrameBuffer.position() > 0;
+            if (!serverError) {
+            	// process further when data after HTTP headers left in buffer
+                res = mFrameBuffer.position() > 0;
 
-            mState = STATE_OPEN;
+                mState = STATE_OPEN;
+            } else {
+            	res = true;
+            	mState = STATE_CLOSED;
+            	mStopped = true;
+            }
+            
+            onHandshake(!serverError);
             break;
          }
       }
       return res;
+   }
+   
+   @SuppressWarnings("unused")
+   private Map<String, String> parseHttpHeaders(byte[] buffer) throws UnsupportedEncodingException {
+	   // TODO: use utf-8 validator?
+	   String s = new String(buffer, "UTF-8");
+	   Map<String, String> headers = new HashMap<String, String>();
+	   
+	   String[] lines = s.split("\r\n");
+	   for (String line : lines) {
+		   if (line.length() > 0) {
+			   String[] h = line.split(": ");
+			   if (h.length == 2) {
+				   headers.put(h[0], h[1]);
+				   Log.w(TAG, String.format("'%s'='%s'", h[0], h[1]));
+			   }
+		   }
+	   }
+	   
+	   return headers;
+   }
+   
+   private Pair<Integer, String> parseHttpStatus() throws UnsupportedEncodingException {
+	   int beg, end;
+		// Find first space
+		for (beg = 4; beg < mFrameBuffer.position(); ++beg) {
+			if (mFrameBuffer.get(beg) == ' ') break;
+		}
+		// Find second space
+		for (end = beg + 1; end < mFrameBuffer.position(); ++end) {
+			if (mFrameBuffer.get(end) == ' ') break;
+		}
+		// Parse status code between them
+		++beg;
+		int statusCode = 0;
+		for (int i = 0; beg + i < end; ++i) {
+			int digit = (mFrameBuffer.get(beg + i) - 0x30);
+			statusCode *= 10;
+			statusCode += digit;
+		}
+		// Find end of line to extract error message
+		++end;
+		int eol;
+		for (eol = end; eol < mFrameBuffer.position(); ++eol) {
+			if (mFrameBuffer.get(eol) == 0x0d) break;
+		}
+		int statusMessageLength = eol - end;
+		byte[] statusBuf = new byte[statusMessageLength];
+		mFrameBuffer.position(end);
+		mFrameBuffer.get(statusBuf, 0, statusMessageLength);
+		String statusMessage = new String(statusBuf, "UTF-8");
+		if (DEBUG) Log.w(TAG, String.format("Status: %d (%s)", statusCode, statusMessage));
+		return new Pair<Integer, String>(statusCode, statusMessage);
    }
 
 
@@ -592,6 +674,13 @@ public class WebSocketReader extends Thread {
          // wrap the exception and notify master
          notify(new WebSocketMessage.ProtocolViolation(e));
 
+      } catch (SocketException e) {
+    	  
+    	  if (DEBUG) Log.d(TAG, "run() : SocketException (" + e.toString() + ")");
+    	  
+    	  // wrap the exception and notify master
+    	  notify(new WebSocketMessage.ConnectionLost());;
+    	  
       } catch (Exception e) {
 
          if (DEBUG) Log.d(TAG, "run() : Exception (" + e.toString() + ")");

@@ -32,6 +32,16 @@ public interface WebSocket {
 	    * Internal error.
 	    */
 	   public static final int CLOSE_INTERNAL_ERROR = 5;
+	   
+	   /**
+	    * Server returned error while connecting
+	    */
+	   public static final int CLOSE_SERVER_ERROR = 6;
+	   
+	   /**
+	    * Server connection lost, scheduled reconnect
+	    */
+	   public static final int CLOSE_RECONNECT = 7;
 
 	   /**
 	    * Fired when the WebSockets connection has been established.
