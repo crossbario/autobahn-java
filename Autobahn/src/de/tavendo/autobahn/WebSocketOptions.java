@@ -35,6 +35,7 @@ public class WebSocketOptions {
    private int mSocketConnectTimeout;
    private boolean mValidateIncomingUtf8;
    private boolean mMaskClientFrames;
+   private int mReconnectInterval;
 
 
    /**
@@ -50,6 +51,7 @@ public class WebSocketOptions {
       mSocketConnectTimeout = 6000;
       mValidateIncomingUtf8 = true;
       mMaskClientFrames = true;
+      mReconnectInterval = 0;  // no reconnection by default
    }
 
    /**
@@ -67,6 +69,7 @@ public class WebSocketOptions {
       mSocketConnectTimeout = other.mSocketConnectTimeout;
       mValidateIncomingUtf8 = other.mValidateIncomingUtf8;
       mMaskClientFrames = other.mMaskClientFrames;
+      mReconnectInterval = other.mReconnectInterval;
    }
 
    /**
@@ -253,5 +256,18 @@ public class WebSocketOptions {
     */
    public boolean getMaskClientFrames() {
       return mMaskClientFrames;
+   }
+   
+   /**
+    * Set reconnect interval
+    * 
+    * @param reconnectInterval	Interval in ms, 0 - no reconnection
+    */
+   public void setReconnectInterval(int reconnectInterval) {
+	   mReconnectInterval = reconnectInterval;
+   }
+   
+   public int getReconnectInterval() {
+	   return mReconnectInterval;
    }
 }

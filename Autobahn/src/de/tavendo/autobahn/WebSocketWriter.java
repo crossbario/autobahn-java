@@ -19,6 +19,7 @@
 package de.tavendo.autobahn;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.nio.channels.SocketChannel;
 import java.util.Random;
 
@@ -390,6 +391,12 @@ public class WebSocketWriter extends Handler {
             int written = mSocket.write(mBuffer.getBuffer());
          }
 
+      } catch (SocketException e) {
+    	  
+    	  if (DEBUG) Log.d(TAG, "run() : SocketException (" + e.toString() + ")");
+    	  
+    	  // wrap the exception and notify master
+    	  notify(new WebSocketMessage.ConnectionLost());
       } catch (Exception e) {
 
          if (DEBUG) e.printStackTrace();
