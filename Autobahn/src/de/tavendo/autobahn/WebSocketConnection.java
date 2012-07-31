@@ -19,10 +19,14 @@
 package de.tavendo.autobahn;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.channels.SocketChannel;
+
+import javax.net.ssl.HandshakeCompletedEvent;
+import javax.net.ssl.HandshakeCompletedListener;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -41,7 +45,7 @@ public class WebSocketConnection implements WebSocket {
    protected WebSocketWriter mWriter;
    protected HandlerThread mWriterThread;
 
-   protected SocketChannel mTransportChannel;
+   protected Socket mTransportChannel;
 
    private URI mWsUri;
    private String mWsScheme;
@@ -61,23 +65,39 @@ public class WebSocketConnection implements WebSocket {
     */
    private class WebSocketConnector extends AsyncTask<Void, Void, String> {
 
+      protected Socket createSocket() throws IOException {
+         Socket soc;
+
+         if (mWsScheme.equals("wss")) {
+
+            SSLSocketFactory fctry = (SSLSocketFactory)SSLSocketFactory.getDefault();
+
+            SSLSocket secSoc = (SSLSocket)fctry.createSocket(mWsHost, mWsPort);
+            secSoc.setUseClientMode(true);
+            secSoc.addHandshakeCompletedListener(new HandshakeCompletedListener() {
+               public void handshakeCompleted(HandshakeCompletedEvent event) {
+                  Log.d(TAG, "ssl handshake completed");
+               }
+            });
+
+            soc = secSoc;
+
+         } else {
+            // connect TCP socket
+            // http://developer.android.com/reference/java/net/Socket.html
+            //
+            soc = new Socket(mWsHost, mWsPort);
+         }
+         return soc;
+      }
+
       @Override
       protected String doInBackground(Void... params) {
 
          Thread.currentThread().setName("WebSocketConnector");
 
-         // connect TCP socket
-         // http://developer.android.com/reference/java/nio/channels/SocketChannel.html
-         //
          try {
-            mTransportChannel = SocketChannel.open();
-
-            // the following will block until connection was established or an error occurred!
-            mTransportChannel.socket().connect(new InetSocketAddress(mWsHost, mWsPort), mOptions.getSocketConnectTimeout());
-
-            // before doing any data transfer on the socket, set socket options
-            mTransportChannel.socket().setSoTimeout(mOptions.getSocketReceiveTimeout());
-            mTransportChannel.socket().setTcpNoDelay(mOptions.getTcpNoDelay());
+            mTransportChannel = createSocket();
 
             return null;
 
@@ -94,7 +114,7 @@ public class WebSocketConnection implements WebSocket {
 
             mWsHandler.onClose(WebSocketConnectionHandler.CLOSE_CANNOT_CONNECT, reason);
 
-         } else if (mTransportChannel.isConnected()) {
+         } else if (isConnected()) {
 
             try {
 
@@ -148,9 +168,12 @@ public class WebSocketConnection implements WebSocket {
       mWriter.forward(new WebSocketMessage.BinaryMessage(payload));
    }
 
-
+   /**
+    * Java's old socket API({@link java.net.Socket#isConnected()}) always returns true after its connected to a server, regardless of current connection
+    * status. This isn't a problem with SocketChannel.
+    */
    public boolean isConnected() {
-      return mTransportChannel != null && mTransportChannel.isConnected();
+      return mTransportChannel != null && mTransportChannel.isConnected() && !mTransportChannel.isClosed();
    }
 
 
@@ -161,9 +184,11 @@ public class WebSocketConnection implements WebSocket {
       if (mReader != null) {
          mReader.quit();
          try {
+            if (DEBUG) Log.d(TAG, "waiting for reader to finish");
             mReader.join();
+            if (DEBUG) Log.d(TAG, "readr thread done");
          } catch (InterruptedException e) {
-            if (DEBUG) e.printStackTrace();
+            if (DEBUG) Log.wtf(TAG, e);
          }
          //mReader = null;
       } else {
@@ -172,11 +197,14 @@ public class WebSocketConnection implements WebSocket {
 
       if (mWriter != null) {
          //mWriterThread.getLooper().quit();
+         if (DEBUG) Log.d(TAG, "sending close message over socket");
          mWriter.forward(new WebSocketMessage.Quit());
          try {
+            if (DEBUG) Log.d(TAG, "waiting for writer to finish");
             mWriterThread.join();
+            if (DEBUG) Log.d(TAG, "writer thread done");
          } catch (InterruptedException e) {
-            if (DEBUG) e.printStackTrace();
+            if (DEBUG) Log.wtf(TAG, e);
          }
          //mWriterThread = null;
       } else {
@@ -187,7 +215,7 @@ public class WebSocketConnection implements WebSocket {
          try {
             mTransportChannel.close();
          } catch (IOException e) {
-            if (DEBUG) e.printStackTrace();
+            if (DEBUG) Log.wtf(TAG, e);
          }
          //mTransportChannel = null;
       } else {
@@ -198,7 +226,7 @@ public class WebSocketConnection implements WebSocket {
          try {
             mWsHandler.onClose(code, reason);
          } catch (Exception e) {
-            if (DEBUG) e.printStackTrace();
+            if (DEBUG) Log.wtf(TAG, e);
          }
          //mWsHandler = null;
       } else {
@@ -223,7 +251,7 @@ public class WebSocketConnection implements WebSocket {
 
       // don't connect if already connected .. user needs to disconnect first
       //
-      if (mTransportChannel != null && mTransportChannel.isConnected()) {
+      if (isConnected()) {
          throw new WebSocketException("already connected");
       }
 
@@ -234,10 +262,6 @@ public class WebSocketConnection implements WebSocket {
 
          if (!mWsUri.getScheme().equals("ws") && !mWsUri.getScheme().equals("wss")) {
             throw new WebSocketException("unsupported scheme for WebSockets URI");
-         }
-
-         if (mWsUri.getScheme().equals("wss")) {
-            throw new WebSocketException("secure WebSockets not implemented");
          }
 
          mWsScheme = mWsUri.getScheme();

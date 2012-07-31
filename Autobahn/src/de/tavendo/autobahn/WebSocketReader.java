@@ -19,9 +19,8 @@
 package de.tavendo.autobahn;
 
 import java.io.UnsupportedEncodingException;
+import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
-
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -39,7 +38,7 @@ public class WebSocketReader extends Thread {
    private static final String TAG = WebSocketReader.class.getName();
 
    private final Handler mMaster;
-   private final SocketChannel mSocket;
+   private final Socket mSocket;
    private final WebSocketOptions mOptions;
 
    private final ByteBuffer mFrameBuffer;
@@ -81,9 +80,9 @@ public class WebSocketReader extends Thread {
     * Create new WebSockets background reader.
     *
     * @param master    The message handler of master (foreground thread).
-    * @param socket    The socket channel created on foreground thread.
+    * @param socket    The socket created on foreground thread.
     */
-   public WebSocketReader(Handler master, SocketChannel socket, WebSocketOptions options, String threadName) {
+   public WebSocketReader(Handler master, Socket socket, WebSocketOptions options, String threadName) {
 
       super(threadName);
 
@@ -569,10 +568,13 @@ public class WebSocketReader extends Thread {
       try {
 
          mFrameBuffer.clear();
+         byte readbuff[] = new byte[mFrameBuffer.capacity()];
+
          do {
             // blocking read on socket
-            int len = mSocket.read(mFrameBuffer);
+            int len = mSocket.getInputStream().read(readbuff, 0, readbuff.length);
             if (len > 0) {
+               mFrameBuffer.put(readbuff, 0, len);
                // process buffered data
                while (consumeData()) {
                }
@@ -587,14 +589,14 @@ public class WebSocketReader extends Thread {
 
       } catch (WebSocketException e) {
 
-         if (DEBUG) Log.d(TAG, "run() : WebSocketException (" + e.toString() + ")");
+         if (DEBUG) Log.wtf(TAG, "run() : WebSocketException (" + e.toString() + ")", e);
 
          // wrap the exception and notify master
          notify(new WebSocketMessage.ProtocolViolation(e));
 
       } catch (Exception e) {
 
-         if (DEBUG) Log.d(TAG, "run() : Exception (" + e.toString() + ")");
+         if (DEBUG) Log.wtf(TAG, "run() : Exception (" + e.toString() + ")", e);
 
          // wrap the exception and notify master
          notify(new WebSocketMessage.Error(e));

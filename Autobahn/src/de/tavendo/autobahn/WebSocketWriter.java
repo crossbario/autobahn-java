@@ -19,7 +19,7 @@
 package de.tavendo.autobahn;
 
 import java.io.IOException;
-import java.nio.channels.SocketChannel;
+import java.net.Socket;
 import java.util.Random;
 
 import android.os.Handler;
@@ -51,7 +51,7 @@ public class WebSocketWriter extends Handler {
    private final Looper mLooper;
 
    /// The NIO socket channel created on foreground thread.
-   private final SocketChannel mSocket;
+   private final Socket mSocket;
 
    /// WebSockets options.
    private final WebSocketOptions mOptions;
@@ -66,16 +66,16 @@ public class WebSocketWriter extends Handler {
     * @param looper    The message looper of the background thread on which
     *                  this object is running.
     * @param master    The message handler of master (foreground thread).
-    * @param socket    The socket channel created on foreground thread.
+    * @param mTransportChannel    The socket channel created on foreground thread.
     * @param options   WebSockets connection options.
     */
-   public WebSocketWriter(Looper looper, Handler master, SocketChannel socket, WebSocketOptions options) {
+   public WebSocketWriter(Looper looper, Handler master, Socket mTransportChannel, WebSocketOptions options) {
 
       super(looper);
 
       mLooper = looper;
       mMaster = master;
-      mSocket = socket;
+      mSocket = mTransportChannel;
       mOptions = options;
       mBuffer = new ByteBufferOutputStream(options.getMaxFramePayloadSize() + 14, 4*64*1024);
 
@@ -328,18 +328,18 @@ public class WebSocketWriter extends Handler {
          b1 |= (byte) (126 & 0xff);
          mBuffer.write(b1);
          mBuffer.write(new byte[] {(byte)((len >> 8) & 0xff),
-                                   (byte)(len & 0xff)});
+               (byte)(len & 0xff)});
       } else {
          b1 |= (byte) (127 & 0xff);
          mBuffer.write(b1);
          mBuffer.write(new byte[] {(byte)((len >> 56) & 0xff),
-                                   (byte)((len >> 48) & 0xff),
-                                   (byte)((len >> 40) & 0xff),
-                                   (byte)((len >> 32) & 0xff),
-                                   (byte)((len >> 24) & 0xff),
-                                   (byte)((len >> 16) & 0xff),
-                                   (byte)((len >> 8)  & 0xff),
-                                   (byte)(len         & 0xff)});
+               (byte)((len >> 48) & 0xff),
+               (byte)((len >> 40) & 0xff),
+               (byte)((len >> 32) & 0xff),
+               (byte)((len >> 24) & 0xff),
+               (byte)((len >> 16) & 0xff),
+               (byte)((len >> 8)  & 0xff),
+               (byte)(len         & 0xff)});
       }
 
       byte mask[] = null;
@@ -376,6 +376,8 @@ public class WebSocketWriter extends Handler {
 
       try {
 
+
+
          // clear send buffer
          mBuffer.clear();
 
@@ -384,10 +386,11 @@ public class WebSocketWriter extends Handler {
 
          // send out buffered data
          mBuffer.flip();
-         while (mBuffer.remaining() > 0) {
+         if (mBuffer.remaining() > 0) {
+            byte arr[] = new byte[mBuffer.remaining()];
+            mBuffer.getBuffer().get(arr);
             // this can block on socket write
-            @SuppressWarnings("unused")
-            int written = mSocket.write(mBuffer.getBuffer());
+            mSocket.getOutputStream().write(arr);
          }
 
       } catch (Exception e) {
