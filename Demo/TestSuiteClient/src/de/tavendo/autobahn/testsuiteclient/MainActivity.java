@@ -23,6 +23,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import de.tavendo.autobahn.WebSocket;
@@ -40,18 +41,28 @@ public class MainActivity extends Activity {
    static EditText mAgent;
    static TextView mStatusline;
    static Button mStart;
+   static CheckBox mTLS;
 
    int currCase = 0;
    int lastCase = 0;
 
    private WebSocket sess = new WebSocketConnection();
+   
+   private String getBaseUrl() {
+	   String scheme = "ws";
+	   if (mTLS.isChecked()) {
+		   scheme = "wss";
+	   }
+		   
+	   return scheme + "://" + mHostname.getText() + ":" + mPort.getText();
+   }
 
    private void next() {
 
       try {
          if (currCase == 0) {
 
-            sess.connect("ws://" + mHostname.getText() + ":" + mPort.getText() + "/getCaseCount",
+            sess.connect(getBaseUrl() + "/getCaseCount",
                   new WebSocketConnectionHandler() {
 
                      @Override
@@ -77,8 +88,9 @@ public class MainActivity extends Activity {
                  //options.setMaxMessagePayloadSize(1*1024*1024);
                  //options.setMaxFramePayloadSize(1*1024*1024);
                  //options.setTcpNoDelay(false);
+                 
 
-                 sess.connect("ws://" + mHostname.getText() + ":" + mPort.getText() + "/runCase?case=" + currCase + "&agent=" + mAgent.getText(),
+                 sess.connect(getBaseUrl() + "/runCase?case=" + currCase + "&agent=" + mAgent.getText(),
                        new WebSocketConnectionHandler() {
 
                           @Override
@@ -104,7 +116,7 @@ public class MainActivity extends Activity {
                           }
                  }, options);
             } else {
-                  sess.connect("ws://" + mHostname.getText() + ":" + mPort.getText() + "/updateReports?agent=" + mAgent.getText(),
+                  sess.connect(getBaseUrl() + "/updateReports?agent=" + mAgent.getText(),
                         new WebSocketConnectionHandler() {
 
                            @Override
@@ -139,6 +151,9 @@ public class MainActivity extends Activity {
       mStatusline = (TextView) findViewById(R.id.statusline);
 
       mStart = (Button) findViewById(R.id.start);
+      
+      mTLS = (CheckBox) findViewById(R.id.tls);
+      
       mStart.setOnClickListener(new Button.OnClickListener() {
 
          public void onClick(View v) {

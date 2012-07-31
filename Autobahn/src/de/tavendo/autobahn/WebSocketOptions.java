@@ -18,6 +18,8 @@
 
 package de.tavendo.autobahn;
 
+import android.os.Build;
+
 
 
 /**
@@ -35,6 +37,7 @@ public class WebSocketOptions {
    private int mSocketConnectTimeout;
    private boolean mValidateIncomingUtf8;
    private boolean mMaskClientFrames;
+   private boolean mVerifyCertificateAuthority;
 
 
    /**
@@ -50,6 +53,13 @@ public class WebSocketOptions {
       mSocketConnectTimeout = 6000;
       mValidateIncomingUtf8 = true;
       mMaskClientFrames = true;
+      //trusting everything run from a emulator
+      
+      if (Build.PRODUCT.contains("sdk")) {
+         mVerifyCertificateAuthority = false;
+      } else {
+         mVerifyCertificateAuthority = true;
+      }
    }
 
    /**
@@ -67,6 +77,7 @@ public class WebSocketOptions {
       mSocketConnectTimeout = other.mSocketConnectTimeout;
       mValidateIncomingUtf8 = other.mValidateIncomingUtf8;
       mMaskClientFrames = other.mMaskClientFrames;
+      mVerifyCertificateAuthority = other.mVerifyCertificateAuthority;
    }
 
    /**
@@ -254,4 +265,21 @@ public class WebSocketOptions {
    public boolean getMaskClientFrames() {
       return mMaskClientFrames;
    }
+   /**
+    * Get Verify CA option
+    * @return        True, iff CA has to be verified.
+    */
+   public boolean getVerifyCertificateAuthority() {
+      return mVerifyCertificateAuthority;
+   }
+   /**
+    * Controls whether trust SSL certificates issued by anyone or to verify and then proceed.
+    * For using self signed certificate set this to False.
+    * Default: true (in a device), false (in a emulator) 
+    * @param verify  Set False to allow use of self signed certificate;
+    */
+   public void setVerifyCertificateAuthority(boolean verify) {
+      mVerifyCertificateAuthority = verify;
+   }
+   
 }

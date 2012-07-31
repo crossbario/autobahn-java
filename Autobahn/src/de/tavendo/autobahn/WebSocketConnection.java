@@ -28,6 +28,15 @@ import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+
+
+import android.bluetooth.BluetoothClass.Device;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -64,13 +73,44 @@ public class WebSocketConnection implements WebSocket {
     * Asynch socket connector.
     */
    private class WebSocketConnector extends AsyncTask<Void, Void, String> {
+      
+      protected SSLSocketFactory getSSLSocketFactory() {
+         SSLSocketFactory fctry = null;
+         if (!mOptions.getVerifyCertificateAuthority()) {
+            try {
+               // Create a trust manager that does not validate certificate chains
+               TrustManager tm = new X509TrustManager()  {
+                  public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                  }
+   
+                  public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                  }
+   
+                  public X509Certificate[] getAcceptedIssuers() {
+                      return null;
+                  }
+              };
+              SSLContext ctxt = SSLContext.getInstance("TLS");
+              ctxt.init(null, new TrustManager[] {tm}, null);
+              fctry = (SSLSocketFactory) ctxt.getSocketFactory();
+              
+              Log.d(TAG, "trusting all certificates");
+           } catch (Exception ex) {
+              Log.wtf(TAG, ex);
+           }
+         } else {
+            fctry = (SSLSocketFactory) SSLSocketFactory.getDefault();
+         }
+         
+         return fctry;
+      }
 
       protected Socket createSocket() throws IOException {
          Socket soc;
 
          if (mWsScheme.equals("wss")) {
 
-            SSLSocketFactory fctry = (SSLSocketFactory)SSLSocketFactory.getDefault();
+            SSLSocketFactory fctry = getSSLSocketFactory();
 
             SSLSocket secSoc = (SSLSocket)fctry.createSocket(mWsHost, mWsPort);
             secSoc.setUseClientMode(true);
