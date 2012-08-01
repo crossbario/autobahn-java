@@ -21,6 +21,8 @@ package de.tavendo.autobahn;
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
 
+import javax.net.ssl.SSLEngine;
+
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
@@ -61,9 +63,9 @@ public class WampWriter extends WebSocketWriter {
     * @param options    WebSockets options for the underlying WebSockets connection.
     */
    public WampWriter(Looper looper, Handler master, SocketChannel socket,
-         WebSocketOptions options) {
+         WebSocketOptions options, SSLEngine sslengine) {
 
-      super(looper, master, socket, options);
+      super(looper, master, socket, options, sslengine);
 
       mJsonFactory = new MappingJsonFactory();
       mPayload = new NoCopyByteArrayOutputStream();

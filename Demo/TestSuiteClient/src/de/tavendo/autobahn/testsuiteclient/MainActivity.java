@@ -65,6 +65,9 @@ public class MainActivity extends Activity {
 
    private void next() {
 
+      WebSocketOptions options = new WebSocketOptions();
+      options.setVerifyCertificateAuthority(false);
+      
       try {
          if (currCase == 0) {
 
@@ -87,17 +90,16 @@ public class MainActivity extends Activity {
                         currCase += 1;
                         next();
                      }
-            });
+            }, options);
 
          } else {
             if (currCase <= lastCase) {
 
-                 WebSocketOptions options = new WebSocketOptions();
                  options.setReceiveTextMessagesRaw(true);
                  //options.setValidateIncomingUtf8(false);
                  //options.setMaskClientFrames(false);
-                 options.setMaxMessagePayloadSize(4*1024*1024);
-                 options.setMaxFramePayloadSize(4*1024*1024);
+                 options.setMaxMessagePayloadSize(1*1024*1024);
+                 options.setMaxFramePayloadSize(1*1024*1024);
                  //options.setTcpNoDelay(false);
 
                  sess.connect(mWsUri.getText() + "/runCase?case=" + currCase + "&agent=" + mAgent.getText(),
@@ -139,7 +141,7 @@ public class MainActivity extends Activity {
                               mStatusline.setText("Test reports updated. Finished.");
                               mStart.setEnabled(true);
                            }
-                  });
+                  }, options);
             }
          }
       } catch (WebSocketException e) {

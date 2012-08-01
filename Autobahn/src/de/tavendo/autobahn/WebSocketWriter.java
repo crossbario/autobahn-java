@@ -23,6 +23,10 @@ import java.net.SocketException;
 import java.nio.channels.SocketChannel;
 import java.util.Random;
 
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLEngineResult;
+import javax.net.ssl.SSLEngineResult.HandshakeStatus;
+
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -59,6 +63,11 @@ public class WebSocketWriter extends Handler {
 
    /// The send buffer that holds data to send on socket.
    private final ByteBufferOutputStream mBuffer;
+   
+   /// The send buffer that holds data to send on socket.
+   private final ByteBufferOutputStream mBufferEnc;
+
+   private final SSLEngine mSSLEngine;
 
 
    /**
@@ -69,8 +78,9 @@ public class WebSocketWriter extends Handler {
     * @param master    The message handler of master (foreground thread).
     * @param socket    The socket channel created on foreground thread.
     * @param options   WebSockets connection options.
+    * @param sslengine 
     */
-   public WebSocketWriter(Looper looper, Handler master, SocketChannel socket, WebSocketOptions options) {
+   public WebSocketWriter(Looper looper, Handler master, SocketChannel socket, WebSocketOptions options, SSLEngine sslengine) {
 
       super(looper);
 
@@ -78,9 +88,21 @@ public class WebSocketWriter extends Handler {
       mMaster = master;
       mSocket = socket;
       mOptions = options;
-      mBuffer = new ByteBufferOutputStream(options.getMaxFramePayloadSize() + 14, 4*64*1024);
+      mSSLEngine = sslengine;
 
-      if (DEBUG) Log.d(TAG, "created");
+      if (mSSLEngine != null) {
+         mBufferEnc = new ByteBufferOutputStream(options.getMaxFramePayloadSize() + 14 + 100, 4*64*1024, true);;
+         mBuffer = new ByteBufferOutputStream(options.getMaxFramePayloadSize() + 14, 4*64*1024, false);
+      } else {
+         mBufferEnc = null;
+         mBuffer = new ByteBufferOutputStream(options.getMaxFramePayloadSize() + 14, 4*64*1024, true);
+      }
+      
+      if (mSSLEngine != null) {
+         if (DEBUG) Log.d(TAG, "WS writer created [WSS]");         
+      } else {
+         if (DEBUG) Log.d(TAG, "WS writer created [WS]");         
+      }
    }
 
 
@@ -365,7 +387,23 @@ public class WebSocketWriter extends Handler {
       }
    }
 
+   private void runDelegatedTasks(SSLEngineResult result) throws Exception {
+      
+      if (DEBUG) Log.d(TAG, "SSL result: " + result.toString());
 
+      if (result.getHandshakeStatus() == HandshakeStatus.NEED_TASK) {
+         Runnable runnable;
+         while ((runnable = mSSLEngine.getDelegatedTask()) != null) {
+            if (DEBUG) Log.d(TAG, "running SSL delegated task");
+            runnable.run();
+         }
+         HandshakeStatus hsStatus = mSSLEngine.getHandshakeStatus();
+         if (hsStatus == HandshakeStatus.NEED_TASK) {
+            throw new Exception("handshake shouldn't need additional tasks");
+         }
+      }
+   }
+   
    /**
     * Process message received from foreground thread. This is called from
     * the message looper set up for the background thread running this writer.
@@ -376,6 +414,8 @@ public class WebSocketWriter extends Handler {
    public void handleMessage(Message msg) {
 
       try {
+         
+         int written = 0;
 
          // clear send buffer
          mBuffer.clear();
@@ -385,10 +425,28 @@ public class WebSocketWriter extends Handler {
 
          // send out buffered data
          mBuffer.flip();
+         
          while (mBuffer.remaining() > 0) {
-            // this can block on socket write
-            @SuppressWarnings("unused")
-            int written = mSocket.write(mBuffer.getBuffer());
+            if (mSSLEngine != null) {
+               mBufferEnc.clear();
+               
+               SSLEngineResult res = mSSLEngine.wrap(mBuffer.getBuffer(), mBufferEnc.getBuffer());
+               runDelegatedTasks(res);
+               
+               if (res.getStatus() == SSLEngineResult.Status.CLOSED) break;
+               
+               mBufferEnc.flip();
+               
+               while (mBufferEnc.remaining() > 0) {
+                  // this can block on socket write
+                  written = mSocket.write(mBufferEnc.getBuffer());
+                  if (DEBUG) Log.d(TAG, "WRITTEN (WSS): " + written);
+               }
+            } else {
+               // this can block on socket write
+               written = mSocket.write(mBuffer.getBuffer());
+               if (DEBUG) Log.d(TAG, "WRITTEN (WS): " + written);
+            }
          }
 
       } catch (SocketException e) {
@@ -397,6 +455,7 @@ public class WebSocketWriter extends Handler {
     	  
     	  // wrap the exception and notify master
     	  notify(new WebSocketMessage.ConnectionLost());
+    	  
       } catch (Exception e) {
 
          if (DEBUG) e.printStackTrace();
@@ -471,5 +530,12 @@ public class WebSocketWriter extends Handler {
    protected void processAppMessage(Object msg) throws WebSocketException, IOException {
 
       throw new WebSocketException("unknown message received by WebSocketWriter");
+   }
+
+
+   public void maybeStartSSL() {
+      if (mSSLEngine != null) {
+         
+      }      
    }
 }

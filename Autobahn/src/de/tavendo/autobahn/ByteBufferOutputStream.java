@@ -38,24 +38,35 @@ public class ByteBufferOutputStream extends OutputStream {
 
    /// Internal ByteBuffer wrapped.
    private ByteBuffer mBuffer;
+   
+   private final boolean mAllocateDirect;
 
    /**
     * Create a direct allocated ByteBuffer wrapped as OutputStream.
     */
    public ByteBufferOutputStream() {
-      this(2 * 65536, 65536);
+      this(2 * 65536, 65536, true);
    }
 
+   public ByteBufferOutputStream(int initialSize, int growSize) {
+      this(initialSize, growSize, true);
+   }
+   
    /**
     * Create a direct allocated ByteBuffer wrapped as OutputStream.
     *
     * @param initialSize   Initial size of ByteBuffer.
     * @param growSize      When buffer needs to grow, enlarge by this amount.
     */
-   public ByteBufferOutputStream(int initialSize, int growSize) {
+   public ByteBufferOutputStream(int initialSize, int growSize, boolean allocateDirect) {
       mInitialSize = initialSize;
       mGrowSize = growSize;
-      mBuffer = ByteBuffer.allocateDirect(mInitialSize);
+      mAllocateDirect = allocateDirect;
+      if (mAllocateDirect) {
+         mBuffer = ByteBuffer.allocateDirect(mInitialSize);
+      } else {
+         mBuffer = ByteBuffer.allocate(mInitialSize);
+      }
       mBuffer.clear();
    }
 
@@ -101,7 +112,11 @@ public class ByteBufferOutputStream extends OutputStream {
          ByteBuffer oldBuffer = mBuffer;
          int oldPosition = mBuffer.position();
          int newCapacity = ((requestSize / mGrowSize) + 1) * mGrowSize;
-         mBuffer = ByteBuffer.allocateDirect(newCapacity);
+         if (mAllocateDirect) {
+            mBuffer = ByteBuffer.allocateDirect(newCapacity);
+         } else {
+            mBuffer = ByteBuffer.allocate(newCapacity);
+         }
          oldBuffer.clear();
          mBuffer.clear();
          mBuffer.put(oldBuffer);
@@ -172,5 +187,4 @@ public class ByteBufferOutputStream extends OutputStream {
       write(0x0d);
       write(0x0a);
    }
-
 }

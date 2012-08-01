@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.net.ssl.SSLEngine;
+
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
@@ -69,9 +71,10 @@ public class WampReader extends WebSocketReader {
                          Handler master,
                          SocketChannel socket,
                          WebSocketOptions options,
-                         String threadName) {
+                         String threadName,
+                         SSLEngine sslengine) {
 
-      super(master, socket, options, threadName);
+      super(master, socket, options, threadName, sslengine);
 
       mCalls = calls;
       mSubs = subs;

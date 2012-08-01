@@ -18,6 +18,8 @@
 
 package de.tavendo.autobahn;
 
+import android.os.Build;
+
 
 
 /**
@@ -36,6 +38,7 @@ public class WebSocketOptions {
    private boolean mValidateIncomingUtf8;
    private boolean mMaskClientFrames;
    private int mReconnectInterval;
+   private boolean mVerifyCertificateAuthority;
 
 
    /**
@@ -52,6 +55,13 @@ public class WebSocketOptions {
       mValidateIncomingUtf8 = true;
       mMaskClientFrames = true;
       mReconnectInterval = 0;  // no reconnection by default
+
+      // trusting everything run from a emulator      
+      if (Build.PRODUCT.contains("sdk")) {
+         mVerifyCertificateAuthority = false;
+      } else {
+         mVerifyCertificateAuthority = true;
+      }
    }
 
    /**
@@ -70,6 +80,7 @@ public class WebSocketOptions {
       mValidateIncomingUtf8 = other.mValidateIncomingUtf8;
       mMaskClientFrames = other.mMaskClientFrames;
       mReconnectInterval = other.mReconnectInterval;
+      mVerifyCertificateAuthority = other.mVerifyCertificateAuthority;
    }
 
    /**
@@ -259,15 +270,40 @@ public class WebSocketOptions {
    }
    
    /**
-    * Set reconnect interval
-    * 
-    * @param reconnectInterval	Interval in ms, 0 - no reconnection
+    * Set interval for automatic reconnect.
+    *
+    * @param reconnectInterval      Interval in ms, 0 - no automatic reconnect.
     */
    public void setReconnectInterval(int reconnectInterval) {
-	   mReconnectInterval = reconnectInterval;
+      mReconnectInterval = reconnectInterval;
    }
    
+   /**
+    * Get interval for automatic reconnect.
+    *
+    * @return     Interval in ms, 0 - no automatic reconnect.
+    */
    public int getReconnectInterval() {
-	   return mReconnectInterval;
+      return mReconnectInterval;
    }
+
+   /**
+    * Get Verify CA option
+    *
+    * @return     True, iff CA has to be verified.
+    */
+   public boolean getVerifyCertificateAuthority() {
+      return mVerifyCertificateAuthority;
+   }
+   
+   /**
+    * Controls whether trust SSL certificates issued by anyone or to verify and then proceed.
+    * For using self signed certificate set this to False.
+    * Default: true (in a device), false (in a emulator)
+    * 
+    * @param verify     Set False to allow use of self signed certificate;
+    */
+   public void setVerifyCertificateAuthority(boolean verify) {
+      mVerifyCertificateAuthority = verify;
+   }  
 }

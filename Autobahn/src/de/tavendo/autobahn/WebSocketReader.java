@@ -25,6 +25,10 @@ import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLEngineResult;
+import javax.net.ssl.SSLEngineResult.HandshakeStatus;
+
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -45,8 +49,10 @@ public class WebSocketReader extends Thread {
    private final Handler mMaster;
    private final SocketChannel mSocket;
    private final WebSocketOptions mOptions;
+   private final SSLEngine mSSLEngine;
 
-   private final ByteBuffer mFrameBuffer;
+   private final ByteBuffer mBuffer;
+   private final ByteBuffer mBufferEnc;
    private NoCopyByteArrayOutputStream mMessagePayload;
 
    private final static int STATE_CLOSED = 0;
@@ -86,16 +92,25 @@ public class WebSocketReader extends Thread {
     *
     * @param master    The message handler of master (foreground thread).
     * @param socket    The socket channel created on foreground thread.
+    * @param mSSLEngine 
     */
-   public WebSocketReader(Handler master, SocketChannel socket, WebSocketOptions options, String threadName) {
+   public WebSocketReader(Handler master, SocketChannel socket, WebSocketOptions options, String threadName, SSLEngine sslengine) {
 
       super(threadName);
 
       mMaster = master;
       mSocket = socket;
       mOptions = options;
+      mSSLEngine = sslengine;
 
-      mFrameBuffer = ByteBuffer.allocateDirect(options.getMaxFramePayloadSize() + 14);
+      if (mSSLEngine != null) {
+         mBufferEnc = ByteBuffer.allocateDirect(options.getMaxFramePayloadSize() + 14 + 100);
+         mBuffer = ByteBuffer.allocate(options.getMaxFramePayloadSize() + 14);
+      } else {
+         mBufferEnc = null;
+         mBuffer = ByteBuffer.allocateDirect(options.getMaxFramePayloadSize() + 14);
+      }
+
       mMessagePayload = new NoCopyByteArrayOutputStream(options.getMaxMessagePayloadSize());
 
       mFrameHeader = null;
@@ -139,14 +154,14 @@ public class WebSocketReader extends Thread {
       if (mFrameHeader == null) {
 
          // need at least 2 bytes from WS frame header to start processing
-         if (mFrameBuffer.position() >= 2) {
+         if (mBuffer.position() >= 2) {
 
-            byte b0 = mFrameBuffer.get(0);
+            byte b0 = mBuffer.get(0);
             boolean fin = (b0 & 0x80) != 0;
             int rsv = (b0 & 0x70) >> 4;
             int opcode = b0 & 0x0f;
 
-            byte b1 = mFrameBuffer.get(1);
+            byte b1 = mBuffer.get(1);
             boolean masked = (b1 & 0x80) != 0;
             int payload_len1 = b1 & 0x7f;
 
@@ -203,29 +218,29 @@ public class WebSocketReader extends Thread {
             }
 
             // continue when complete frame header is available
-            if (mFrameBuffer.position() >= header_len) {
+            if (mBuffer.position() >= header_len) {
 
                // determine frame payload length
                int i = 2;
                long payload_len = 0;
                if (payload_len1 == 126) {
-                  payload_len = ((0xff & mFrameBuffer.get(i)) << 8) | (0xff & mFrameBuffer.get(i+1));
+                  payload_len = ((0xff & mBuffer.get(i)) << 8) | (0xff & mBuffer.get(i+1));
                   if (payload_len < 126) {
                      throw new WebSocketException("invalid data frame length (not using minimal length encoding)");
                   }
                   i += 2;
                } else if (payload_len1 == 127) {
-                  if ((0x80 & mFrameBuffer.get(i+0)) != 0) {
+                  if ((0x80 & mBuffer.get(i+0)) != 0) {
                      throw new WebSocketException("invalid data frame length (> 2^63)");
                   }
-                  payload_len = ((0xff & mFrameBuffer.get(i+0)) << 56) |
-                                ((0xff & mFrameBuffer.get(i+1)) << 48) |
-                                ((0xff & mFrameBuffer.get(i+2)) << 40) |
-                                ((0xff & mFrameBuffer.get(i+3)) << 32) |
-                                ((0xff & mFrameBuffer.get(i+4)) << 24) |
-                                ((0xff & mFrameBuffer.get(i+5)) << 16) |
-                                ((0xff & mFrameBuffer.get(i+6)) <<  8) |
-                                ((0xff & mFrameBuffer.get(i+7))      );
+                  payload_len = ((0xff & mBuffer.get(i+0)) << 56) |
+                                ((0xff & mBuffer.get(i+1)) << 48) |
+                                ((0xff & mBuffer.get(i+2)) << 40) |
+                                ((0xff & mBuffer.get(i+3)) << 32) |
+                                ((0xff & mBuffer.get(i+4)) << 24) |
+                                ((0xff & mBuffer.get(i+5)) << 16) |
+                                ((0xff & mBuffer.get(i+6)) <<  8) |
+                                ((0xff & mBuffer.get(i+7))      );
                   if (payload_len < 65536) {
                      throw new WebSocketException("invalid data frame length (not using minimal length encoding)");
                   }
@@ -250,7 +265,7 @@ public class WebSocketReader extends Thread {
                if (masked) {
                   mFrameHeader.mMask = new byte[4];
                   for (int j = 0; j < 4; ++j) {
-                     mFrameHeader.mMask[i] = (byte) (0xff & mFrameBuffer.get(i + j));
+                     mFrameHeader.mMask[i] = (byte) (0xff & mBuffer.get(i + j));
                   }
                   i += 4;
                } else {
@@ -258,7 +273,7 @@ public class WebSocketReader extends Thread {
                }
 
                // continue processing when payload empty or completely buffered
-               return mFrameHeader.mPayloadLen == 0 || mFrameBuffer.position() >= mFrameHeader.mTotalLen;
+               return mFrameHeader.mPayloadLen == 0 || mBuffer.position() >= mFrameHeader.mTotalLen;
 
             } else {
 
@@ -278,19 +293,19 @@ public class WebSocketReader extends Thread {
          // within frame
 
          // see if we buffered complete frame
-         if (mFrameBuffer.position() >= mFrameHeader.mTotalLen) {
+         if (mBuffer.position() >= mFrameHeader.mTotalLen) {
 
             // cut out frame payload
             byte[] framePayload = null;
-            int oldPosition = mFrameBuffer.position();
+            int oldPosition = mBuffer.position();
             if (mFrameHeader.mPayloadLen > 0) {
                framePayload = new byte[mFrameHeader.mPayloadLen];
-               mFrameBuffer.position(mFrameHeader.mHeaderLen);
-               mFrameBuffer.get(framePayload, 0, (int) mFrameHeader.mPayloadLen);
+               mBuffer.position(mFrameHeader.mHeaderLen);
+               mBuffer.get(framePayload, 0, (int) mFrameHeader.mPayloadLen);
             }
-            mFrameBuffer.position(mFrameHeader.mTotalLen);
-            mFrameBuffer.limit(oldPosition);
-            mFrameBuffer.compact();
+            mBuffer.position(mFrameHeader.mTotalLen);
+            mBuffer.limit(oldPosition);
+            mBuffer.compact();
 
             if (mFrameHeader.mOpcode > 7) {
                // control frame
@@ -415,7 +430,7 @@ public class WebSocketReader extends Thread {
             mFrameHeader = null;
 
             // reprocess if more data left
-            return mFrameBuffer.position() > 0;
+            return mBuffer.position() > 0;
 
          } else {
 
@@ -513,23 +528,23 @@ public class WebSocketReader extends Thread {
    private boolean processHandshake() throws UnsupportedEncodingException {
 
       boolean res = false;
-      for (int pos = mFrameBuffer.position() - 4; pos >= 0; --pos) {
-         if (mFrameBuffer.get(pos+0) == 0x0d &&
-             mFrameBuffer.get(pos+1) == 0x0a &&
-             mFrameBuffer.get(pos+2) == 0x0d &&
-             mFrameBuffer.get(pos+3) == 0x0a) {
+      for (int pos = mBuffer.position() - 4; pos >= 0; --pos) {
+         if (mBuffer.get(pos+0) == 0x0d &&
+             mBuffer.get(pos+1) == 0x0a &&
+             mBuffer.get(pos+2) == 0x0d &&
+             mBuffer.get(pos+3) == 0x0a) {
 
             /// \todo process & verify handshake from server
             /// \todo forward subprotocol, if any
 
-            int oldPosition = mFrameBuffer.position();
+            int oldPosition = mBuffer.position();
             
             // Check HTTP status code
             boolean serverError = false;
-            if (mFrameBuffer.get(0) == 'H' &&
-            	mFrameBuffer.get(1) == 'T' &&
-            	mFrameBuffer.get(2) == 'T' &&
-            	mFrameBuffer.get(3) == 'P') {
+            if (mBuffer.get(0) == 'H' &&
+            	mBuffer.get(1) == 'T' &&
+            	mBuffer.get(2) == 'T' &&
+            	mBuffer.get(3) == 'P') {
             	
             	Pair<Integer, String> status = parseHttpStatus();
             	if (status.first >= 300) {
@@ -539,13 +554,13 @@ public class WebSocketReader extends Thread {
             	}
             }
             
-            mFrameBuffer.position(pos + 4);
-            mFrameBuffer.limit(oldPosition);
-            mFrameBuffer.compact();
+            mBuffer.position(pos + 4);
+            mBuffer.limit(oldPosition);
+            mBuffer.compact();
 
             if (!serverError) {
             	// process further when data after HTTP headers left in buffer
-                res = mFrameBuffer.position() > 0;
+                res = mBuffer.position() > 0;
 
                 mState = STATE_OPEN;
             } else {
@@ -584,31 +599,31 @@ public class WebSocketReader extends Thread {
    private Pair<Integer, String> parseHttpStatus() throws UnsupportedEncodingException {
 	   int beg, end;
 		// Find first space
-		for (beg = 4; beg < mFrameBuffer.position(); ++beg) {
-			if (mFrameBuffer.get(beg) == ' ') break;
+		for (beg = 4; beg < mBuffer.position(); ++beg) {
+			if (mBuffer.get(beg) == ' ') break;
 		}
 		// Find second space
-		for (end = beg + 1; end < mFrameBuffer.position(); ++end) {
-			if (mFrameBuffer.get(end) == ' ') break;
+		for (end = beg + 1; end < mBuffer.position(); ++end) {
+			if (mBuffer.get(end) == ' ') break;
 		}
 		// Parse status code between them
 		++beg;
 		int statusCode = 0;
 		for (int i = 0; beg + i < end; ++i) {
-			int digit = (mFrameBuffer.get(beg + i) - 0x30);
+			int digit = (mBuffer.get(beg + i) - 0x30);
 			statusCode *= 10;
 			statusCode += digit;
 		}
 		// Find end of line to extract error message
 		++end;
 		int eol;
-		for (eol = end; eol < mFrameBuffer.position(); ++eol) {
-			if (mFrameBuffer.get(eol) == 0x0d) break;
+		for (eol = end; eol < mBuffer.position(); ++eol) {
+			if (mBuffer.get(eol) == 0x0d) break;
 		}
 		int statusMessageLength = eol - end;
 		byte[] statusBuf = new byte[statusMessageLength];
-		mFrameBuffer.position(end);
-		mFrameBuffer.get(statusBuf, 0, statusMessageLength);
+		mBuffer.position(end);
+		mBuffer.get(statusBuf, 0, statusMessageLength);
 		String statusMessage = new String(statusBuf, "UTF-8");
 		if (DEBUG) Log.w(TAG, String.format("Status: %d (%s)", statusCode, statusMessage));
 		return new Pair<Integer, String>(statusCode, statusMessage);
@@ -639,7 +654,23 @@ public class WebSocketReader extends Thread {
 
    }
 
+   private void runDelegatedTasks(SSLEngineResult result) throws Exception {
+      
+      if (DEBUG) Log.d(TAG, "SSL result: " + result.toString());
 
+      if (result.getHandshakeStatus() == HandshakeStatus.NEED_TASK) {
+         Runnable runnable;
+         while ((runnable = mSSLEngine.getDelegatedTask()) != null) {
+            if (DEBUG) Log.d(TAG, "running SSL delegated task");
+            runnable.run();
+         }
+         HandshakeStatus hsStatus = mSSLEngine.getHandshakeStatus();
+         if (hsStatus == HandshakeStatus.NEED_TASK) {
+            throw new Exception("handshake shouldn't need additional tasks");
+         }
+      }
+   }
+   
    /**
     * Run the background reader thread loop.
     */
@@ -650,21 +681,40 @@ public class WebSocketReader extends Thread {
 
       try {
 
-         mFrameBuffer.clear();
+         mBuffer.clear();
          do {
+            int len = 0;
+            
             // blocking read on socket
-            int len = mSocket.read(mFrameBuffer);
+            if (mSSLEngine != null) {
+               mBufferEnc.clear();
+               len = mSocket.read(mBufferEnc);
+               if (DEBUG) Log.d(TAG, "READ (WSS): " + len);
+            } else {
+               len = mSocket.read(mBuffer);               
+               if (DEBUG) Log.d(TAG, "READ (WS): " + len);
+            }
+            
             if (len > 0) {
+               // decrypt data
+               if (mSSLEngine != null) {
+                  mBufferEnc.flip();
+                  SSLEngineResult res = mSSLEngine.unwrap(mBufferEnc, mBuffer);                  
+               }
+               
                // process buffered data
                while (consumeData()) {
+                  // consume further until all processed
                }
             } else if (len < 0) {
-
+               // shit happened
                if (DEBUG) Log.d(TAG, "run() : ConnectionLost");
-
                notify(new WebSocketMessage.ConnectionLost());
                mStopped = true;
+            } else {
+               // len == 0: nothing to do, but continue
             }
+            
          } while (!mStopped);
 
       } catch (WebSocketException e) {

@@ -24,6 +24,16 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.SocketChannel;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -57,7 +67,38 @@ public class WebSocketConnection implements WebSocket {
    
    private boolean mActive;
    private boolean mPrevConnected;
+   
+   protected SSLEngine mSSLEngine;
 
+
+   protected SSLContext getSSLContext() throws KeyManagementException, NoSuchAlgorithmException {
+      if (!mOptions.getVerifyCertificateAuthority()) {
+         // Create a trust manager that does not validate certificate chains
+         TrustManager tm = new X509TrustManager() {
+            public void checkClientTrusted(X509Certificate[] chain,
+                  String authType) throws CertificateException {
+            }
+
+            public void checkServerTrusted(X509Certificate[] chain,
+                  String authType) throws CertificateException {
+            }
+
+            public X509Certificate[] getAcceptedIssuers() {
+               return null;
+            }
+         };
+         SSLContext ctxt = SSLContext.getInstance("TLS");
+         ctxt.init(null, new TrustManager[] { tm }, null);
+
+         Log.d(TAG, "trusting all certificates");
+         return ctxt;
+
+      } else {
+         Log.d(TAG, "NOT trusting all certificates");
+         return SSLContext.getDefault();
+      }
+   }
+   
    /**
     * Asynch socket connector.
     */
@@ -99,6 +140,18 @@ public class WebSocketConnection implements WebSocket {
          } else if (mTransportChannel.isConnected()) {
 
             try {
+               
+               if (DEBUG) Log.d(TAG, "WS Scheme: " + mWsScheme);
+               
+               if (mWsScheme.equals("wss")) {
+                  SSLContext ctxt = getSSLContext();
+                  //mSSLEngine = ctxt.createSSLEngine(mWsHost, mWsPort);
+                  mSSLEngine = ctxt.createSSLEngine();
+                  mSSLEngine.setUseClientMode(true);
+                  if (DEBUG) Log.d(TAG, "SSLEngine created");
+               } else {
+                  mSSLEngine = null;
+               }
 
                // create & start WebSocket reader
                createReader();
@@ -118,7 +171,6 @@ public class WebSocketConnection implements WebSocket {
             } catch (Exception e) {
 
                onClose(WebSocketConnectionHandler.CLOSE_INTERNAL_ERROR, e.getMessage());
-
             }
 
          } else {
@@ -126,7 +178,6 @@ public class WebSocketConnection implements WebSocket {
             onClose(WebSocketConnectionHandler.CLOSE_CANNOT_CONNECT, "could not connect to WebSockets server");
          }
       }
-
    }
 
 
@@ -233,10 +284,6 @@ public class WebSocketConnection implements WebSocket {
 
          if (!mWsUri.getScheme().equals("ws") && !mWsUri.getScheme().equals("wss")) {
             throw new WebSocketException("unsupported scheme for WebSockets URI");
-         }
-
-         if (mWsUri.getScheme().equals("wss")) {
-            throw new WebSocketException("secure WebSockets not implemented");
          }
 
          mWsScheme = mWsUri.getScheme();
@@ -491,7 +538,8 @@ public class WebSocketConnection implements WebSocket {
 
       mWriterThread = new HandlerThread("WebSocketWriter");
       mWriterThread.start();
-      mWriter = new WebSocketWriter(mWriterThread.getLooper(), mMasterHandler, mTransportChannel, mOptions);
+      mWriter = new WebSocketWriter(mWriterThread.getLooper(), mMasterHandler, mTransportChannel, mOptions, mSSLEngine);
+      mWriter.maybeStartSSL();
 
       if (DEBUG) Log.d(TAG, "WS writer created and started");
    }
@@ -502,7 +550,7 @@ public class WebSocketConnection implements WebSocket {
     */
    protected void createReader() {
 
-      mReader = new WebSocketReader(mMasterHandler, mTransportChannel, mOptions, "WebSocketReader");
+      mReader = new WebSocketReader(mMasterHandler, mTransportChannel, mOptions, "WebSocketReader", mSSLEngine);
       mReader.start();
 
       if (DEBUG) Log.d(TAG, "WS reader created and started");
