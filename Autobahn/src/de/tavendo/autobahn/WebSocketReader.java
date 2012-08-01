@@ -689,7 +689,7 @@ public class WebSocketReader extends Thread {
             if (mSSLEngine != null) {
                mBufferEnc.clear();
                len = mSocket.read(mBufferEnc);
-               if (DEBUG) Log.d(TAG, "READ (WSS): " + len);
+               if (DEBUG) Log.d(TAG, "READ (WSS): " + len + " - " + mBufferEnc.remaining() + " - " + mSocket.isBlocking());
             } else {
                len = mSocket.read(mBuffer);               
                if (DEBUG) Log.d(TAG, "READ (WS): " + len);
@@ -699,7 +699,11 @@ public class WebSocketReader extends Thread {
                // decrypt data
                if (mSSLEngine != null) {
                   mBufferEnc.flip();
-                  SSLEngineResult res = mSSLEngine.unwrap(mBufferEnc, mBuffer);                  
+                  SSLEngineResult res;
+                  do {
+                     res = mSSLEngine.unwrap(mBufferEnc, mBuffer);
+                     runDelegatedTasks(res);
+                  } while (res.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_UNWRAP);
                }
                
                // process buffered data

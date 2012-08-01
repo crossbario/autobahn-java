@@ -432,9 +432,7 @@ public class WebSocketWriter extends Handler {
                
                SSLEngineResult res = mSSLEngine.wrap(mBuffer.getBuffer(), mBufferEnc.getBuffer());
                runDelegatedTasks(res);
-               
-               if (res.getStatus() == SSLEngineResult.Status.CLOSED) break;
-               
+                              
                mBufferEnc.flip();
                
                while (mBufferEnc.remaining() > 0) {
@@ -442,6 +440,9 @@ public class WebSocketWriter extends Handler {
                   written = mSocket.write(mBufferEnc.getBuffer());
                   if (DEBUG) Log.d(TAG, "WRITTEN (WSS): " + written);
                }
+               
+//               if (res.getStatus() == SSLEngineResult.Status.CLOSED || res.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_UNWRAP) break;
+
             } else {
                // this can block on socket write
                written = mSocket.write(mBuffer.getBuffer());

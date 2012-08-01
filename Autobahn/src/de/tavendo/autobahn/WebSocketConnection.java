@@ -114,13 +114,14 @@ public class WebSocketConnection implements WebSocket {
          //
          try {
             mTransportChannel = SocketChannel.open();
+            //mTransportChannel.configureBlocking(true);
 
             // the following will block until connection was established or an error occurred!
             mTransportChannel.socket().connect(new InetSocketAddress(mWsHost, mWsPort), mOptions.getSocketConnectTimeout());
 
             // before doing any data transfer on the socket, set socket options
-            mTransportChannel.socket().setSoTimeout(mOptions.getSocketReceiveTimeout());
-            mTransportChannel.socket().setTcpNoDelay(mOptions.getTcpNoDelay());
+            //mTransportChannel.socket().setSoTimeout(mOptions.getSocketReceiveTimeout());
+            //mTransportChannel.socket().setTcpNoDelay(mOptions.getTcpNoDelay());
 
             return null;
 

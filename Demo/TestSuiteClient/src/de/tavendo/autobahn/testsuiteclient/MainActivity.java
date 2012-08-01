@@ -67,6 +67,7 @@ public class MainActivity extends Activity {
 
       WebSocketOptions options = new WebSocketOptions();
       options.setVerifyCertificateAuthority(false);
+      //options.setSocketReceiveTimeout(1000);
       
       try {
          if (currCase == 0) {
