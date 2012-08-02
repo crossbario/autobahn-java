@@ -699,11 +699,16 @@ public class WebSocketReader extends Thread {
                // decrypt data
                if (mSSLEngine != null) {
                   mBufferEnc.flip();
+                  //mBuffer.clear();
                   SSLEngineResult res;
                   do {
+                     if (DEBUG) Log.d(TAG, "before UNWRAP: " + mBuffer.position() + " - " + mBuffer.limit() + " - " + mBuffer.remaining() + " - " + mBuffer.mark() + " - " + mBuffer.capacity());
                      res = mSSLEngine.unwrap(mBufferEnc, mBuffer);
                      runDelegatedTasks(res);
-                  } while (res.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_UNWRAP);
+                     if (DEBUG) Log.d(TAG, "after  UNWRAP: " + mBuffer.position() + " - " + mBuffer.limit() + " - " + mBuffer.remaining() + " - " + mBuffer.mark() + " - " + mBuffer.capacity());
+                  //} while (res.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_UNWRAP);
+                  } while (mBufferEnc.hasRemaining());
+                  //mBuffer.flip();
                }
                
                // process buffered data

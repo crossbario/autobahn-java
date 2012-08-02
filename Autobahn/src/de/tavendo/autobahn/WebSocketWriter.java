@@ -441,7 +441,7 @@ public class WebSocketWriter extends Handler {
                   if (DEBUG) Log.d(TAG, "WRITTEN (WSS): " + written);
                }
                
-//               if (res.getStatus() == SSLEngineResult.Status.CLOSED || res.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_UNWRAP) break;
+               //if (res.getStatus() == SSLEngineResult.Status.CLOSED || res.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_UNWRAP) break;
 
             } else {
                // this can block on socket write
