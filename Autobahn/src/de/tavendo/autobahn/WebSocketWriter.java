@@ -27,6 +27,8 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 
+import de.tavendo.autobahn.WebSocketConnection.MasterHandler;
+
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -50,7 +52,7 @@ public class WebSocketWriter extends Handler {
    private final Random mRng = new Random();
 
    /// Connection master.
-   private final Handler mMaster;
+   private final MasterHandler mMaster;
 
    /// Message looper this object is running on.
    private final Looper mLooper;
@@ -80,7 +82,7 @@ public class WebSocketWriter extends Handler {
     * @param options   WebSockets connection options.
     * @param sslengine 
     */
-   public WebSocketWriter(Looper looper, Handler master, SocketChannel socket, WebSocketOptions options, SSLEngine sslengine) {
+   public WebSocketWriter(Looper looper, MasterHandler master, SocketChannel socket, WebSocketOptions options, SSLEngine sslengine) {
 
       super(looper);
 
@@ -414,17 +416,18 @@ public class WebSocketWriter extends Handler {
    public void handleMessage(Message msg) {
 
       try {
-         
+         // bytes written to socket
          int written = 0;
+         
+         // trigger sending even when no (new) application data arrived
          boolean trigger = false;
          
          if (msg.obj instanceof WebSocketMessage.TriggerWrite) {
             
-            // nothing
+            // This message is only sent from WebSocketReader for TLS
+            // after a TLS handshake has been finished
             trigger = true;
             
-            if (DEBUG) Log.d(TAG, "TriggerWrite received");
-
          } else {
             
             // clear send buffer
@@ -438,7 +441,9 @@ public class WebSocketWriter extends Handler {
          }
          
          while (mBuffer.remaining() > 0 || trigger) {
+            
             if (mSSLEngine != null) {
+               
                mBufferEnc.clear();
                
                SSLEngineResult res = mSSLEngine.wrap(mBuffer.getBuffer(), mBufferEnc.getBuffer());
@@ -460,7 +465,11 @@ public class WebSocketWriter extends Handler {
                //trigger = (res.getStatus() != SSLEngineResult.Status.CLOSED && res.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_WRAP);
                trigger = mSSLEngine.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_WRAP;
                if (DEBUG) Log.d(TAG, "Retrigger: " + trigger);
-               if (!trigger) break;
+               
+               
+               if (!trigger) {
+                  break;
+               }
                //if (res.getStatus() == SSLEngineResult.Status.CLOSED || res.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_UNWRAP) break;
 
             } else {
@@ -484,6 +493,14 @@ public class WebSocketWriter extends Handler {
          // wrap the exception and notify master
          notify(new WebSocketMessage.Error(e));
       }
+
+      // Set whether we have still application data to send.
+      // We have a loop above that tries to send all application data,
+      // however there are 2 situations where the loop might still leave
+      // data unsent: socket errors or TLS (where we might need to wait
+      // for an handshake response before we can continue sending
+      // application data)
+      mMaster.setWriterHasData(mBuffer.remaining() > 0);
    }
 
 

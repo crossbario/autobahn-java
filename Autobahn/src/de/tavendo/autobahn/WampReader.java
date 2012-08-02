@@ -31,10 +31,10 @@ import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import android.os.Handler;
 import android.util.Log;
 import de.tavendo.autobahn.WampConnection.CallMeta;
 import de.tavendo.autobahn.WampConnection.SubMeta;
+import de.tavendo.autobahn.WebSocketConnection.MasterHandler;
 
 /**
  * Autobahn WAMP reader, the receiving leg of a WAMP connection.
@@ -68,7 +68,7 @@ public class WampReader extends WebSocketReader {
     */
    public WampReader(ConcurrentHashMap<String, CallMeta> calls,
                          ConcurrentHashMap<String, SubMeta> subs,
-                         Handler master,
+                         MasterHandler master,
                          SocketChannel socket,
                          WebSocketOptions options,
                          String threadName,

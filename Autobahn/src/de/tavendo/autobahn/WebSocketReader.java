@@ -29,7 +29,8 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 
-import android.os.Handler;
+import de.tavendo.autobahn.WebSocketConnection.MasterHandler;
+
 import android.os.Message;
 import android.util.Log;
 import android.util.Pair;
@@ -46,7 +47,7 @@ public class WebSocketReader extends Thread {
    private static final boolean DEBUG = true;
    private static final String TAG = WebSocketReader.class.getName();
 
-   private final Handler mMaster;
+   private final MasterHandler mMaster;
    private final SocketChannel mSocket;
    private final WebSocketOptions mOptions;
    private final SSLEngine mSSLEngine;
@@ -94,7 +95,7 @@ public class WebSocketReader extends Thread {
     * @param socket    The socket channel created on foreground thread.
     * @param mSSLEngine 
     */
-   public WebSocketReader(Handler master, SocketChannel socket, WebSocketOptions options, String threadName, SSLEngine sslengine) {
+   public WebSocketReader(MasterHandler master, SocketChannel socket, WebSocketOptions options, String threadName, SSLEngine sslengine) {
 
       super(threadName);
 
@@ -732,7 +733,7 @@ public class WebSocketReader extends Thread {
                   if (DEBUG) Log.d(TAG, "res HS Status " + res.getHandshakeStatus());
                   if (DEBUG) Log.d(TAG, "HS Status " + mSSLEngine.getHandshakeStatus());
                   
-                  if (true || mSSLEngine.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_WRAP) {
+                  if (mSSLEngine.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_WRAP || mMaster.getWriterHasData()) {
                      if (DEBUG) Log.d(TAG, "NEED_WRAP => trigger");
                      notify(new WebSocketMessage.TriggerWrite());
                   } else {

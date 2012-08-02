@@ -40,12 +40,33 @@ import android.os.HandlerThread;
 import android.os.Message;
 import android.util.Log;
 
+/*
+ * SSL docs:
+ * http://docs.oracle.com/javase/1.5.0/docs/api/javax/net/ssl/SSLEngine.html
+ * http://docs.oracle.com/javase/1.5.0/docs/guide/security/jsse/samples/sslengine/SSLEngineSimpleDemo.java
+ */
+
 public class WebSocketConnection implements WebSocket {
+   
+   public static class MasterHandler extends Handler {
+      public boolean mWriterHasData = false;
+
+      public void setWriterHasData(boolean hasWriterData) {
+        synchronized (this) {
+          mWriterHasData = hasWriterData;
+        }
+      }
+      public boolean getWriterHasData() {
+        synchronized (this) {
+          return mWriterHasData;
+        }
+      }
+   }
 
    private static final boolean DEBUG = true;
    private static final String TAG = WebSocketConnection.class.getName();
 
-   protected Handler mMasterHandler;
+   protected MasterHandler mMasterHandler;
 
    protected WebSocketReader mReader;
    protected WebSocketWriter mWriter;
@@ -423,7 +444,7 @@ public class WebSocketConnection implements WebSocket {
     */
    protected void createHandler() {
 
-      mMasterHandler = new Handler() {
+      mMasterHandler = new MasterHandler() {
 
          public void handleMessage(Message msg) {
 

@@ -29,7 +29,8 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.MappingJsonFactory;
 
-import android.os.Handler;
+import de.tavendo.autobahn.WebSocketConnection.MasterHandler;
+
 import android.os.Looper;
 import android.util.Log;
 
@@ -62,7 +63,7 @@ public class WampWriter extends WebSocketWriter {
     * @param socket     The TCP socket (channel) the WebSocket connection runs over.
     * @param options    WebSockets options for the underlying WebSockets connection.
     */
-   public WampWriter(Looper looper, Handler master, SocketChannel socket,
+   public WampWriter(Looper looper, MasterHandler master, SocketChannel socket,
          WebSocketOptions options, SSLEngine sslengine) {
 
       super(looper, master, socket, options, sslengine);
