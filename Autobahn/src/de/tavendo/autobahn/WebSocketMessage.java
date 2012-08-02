@@ -29,6 +29,10 @@ public class WebSocketMessage {
    public static class Message {
    }
 
+   /// Trigger a Write
+   public static class TriggerWrite extends Message {
+   }
+
    /// Quite background thread.
    public static class Quit extends Message {
    }

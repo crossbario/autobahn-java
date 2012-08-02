@@ -416,21 +416,37 @@ public class WebSocketWriter extends Handler {
       try {
          
          int written = 0;
-
-         // clear send buffer
-         mBuffer.clear();
-
-         // process message from master
-         processMessage(msg.obj);
-
-         // send out buffered data
-         mBuffer.flip();
+         boolean trigger = false;
          
-         while (mBuffer.remaining() > 0) {
+         if (msg.obj instanceof WebSocketMessage.TriggerWrite) {
+            
+            // nothing
+            trigger = true;
+            
+            if (DEBUG) Log.d(TAG, "TriggerWrite received");
+
+         } else {
+            
+            // clear send buffer
+            mBuffer.clear();
+
+            // process message from master
+            processMessage(msg.obj);
+
+            // send out buffered data
+            mBuffer.flip();
+         }
+         
+         while (mBuffer.remaining() > 0 || trigger) {
             if (mSSLEngine != null) {
                mBufferEnc.clear();
                
                SSLEngineResult res = mSSLEngine.wrap(mBuffer.getBuffer(), mBufferEnc.getBuffer());
+               
+               if (DEBUG) Log.d(TAG, "res Status " + res.getStatus());
+               if (DEBUG) Log.d(TAG, "res HS Status " + res.getHandshakeStatus());
+               if (DEBUG) Log.d(TAG, "HS Status " + mSSLEngine.getHandshakeStatus());
+
                runDelegatedTasks(res);
                               
                mBufferEnc.flip();
@@ -441,6 +457,10 @@ public class WebSocketWriter extends Handler {
                   if (DEBUG) Log.d(TAG, "WRITTEN (WSS): " + written);
                }
                
+               //trigger = (res.getStatus() != SSLEngineResult.Status.CLOSED && res.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_WRAP);
+               trigger = mSSLEngine.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_WRAP;
+               if (DEBUG) Log.d(TAG, "Retrigger: " + trigger);
+               if (!trigger) break;
                //if (res.getStatus() == SSLEngineResult.Status.CLOSED || res.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_UNWRAP) break;
 
             } else {
