@@ -66,5 +66,14 @@ public class WebSocketConnectionHandler implements WebSocket.ConnectionHandler {
     */
    public void onBinaryMessage(byte[] payload) {
    }
+   
+   /**
+    * Fired when a message were sent to the server
+    * @param messageId	Message track id
+    * @param success 	Sending result
+    */
+   public void onMessageSent(int messageId, boolean success) {
+	   
+   }
 
 }

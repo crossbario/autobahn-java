@@ -80,13 +80,20 @@ public interface WebSocket {
 	    * @param payload    Binar message payload or null (empty payload).
 	    */
 	   public void onBinaryMessage(byte[] payload);
+	   
+	   /**
+	    * Fired when a message were sent to the server
+	    * @param messageId	Message track id
+	    * @param success 	Sending result
+	    */
+	   public void onMessageSent(int messageId, boolean success);
    }
 
    public void connect(String wsUri, ConnectionHandler wsHandler) throws WebSocketException;
    public void connect(String wsUri, ConnectionHandler wsHandler, WebSocketOptions options) throws WebSocketException;
    public void disconnect();
    public boolean isConnected();
-   public void sendBinaryMessage(byte[] payload);
-   public void sendRawTextMessage(byte[] payload);
-   public void sendTextMessage(String payload);
+   public int sendBinaryMessage(byte[] payload);
+   public int sendRawTextMessage(byte[] payload);
+   public int sendTextMessage(String payload);
 }

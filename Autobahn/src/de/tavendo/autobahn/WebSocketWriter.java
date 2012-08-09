@@ -41,6 +41,9 @@ public class WebSocketWriter extends Handler {
 
    private static final boolean DEBUG = true;
    private static final String TAG = WebSocketWriter.class.getName();
+   
+   private static final int MIN_MESSAGE_ID = 1;
+   private static final int MAX_MESSAGE_ID = 32768;
 
    /// Random number generator for handshake key and frame mask generation.
    private final Random mRng = new Random();
@@ -59,6 +62,9 @@ public class WebSocketWriter extends Handler {
 
    /// The send buffer that holds data to send on socket.
    private final ByteBufferOutputStream mBuffer;
+   
+   /// Current message id for generation
+   private int mCurrentMessageId;
 
 
    /**
@@ -79,6 +85,7 @@ public class WebSocketWriter extends Handler {
       mSocket = socket;
       mOptions = options;
       mBuffer = new ByteBufferOutputStream(options.getMaxFramePayloadSize() + 14, 4*64*1024);
+      mCurrentMessageId = MIN_MESSAGE_ID;
 
       if (DEBUG) Log.d(TAG, "created");
    }
@@ -93,12 +100,22 @@ public class WebSocketWriter extends Handler {
     *                      classes inside WebSocketMessage or another type which then needs
     *                      to be handled within processAppMessage() (in a class derived from
     *                      this class).
+    * @return			   Message id to track via onMessageSent() handler
     */
-   public void forward(Object message) {
+   public int forward(Object message) {
 
       Message msg = obtainMessage();
+      msg.arg1 = generateMessageId();
       msg.obj = message;
       sendMessage(msg);
+      return msg.arg1;
+   }
+   
+   private int generateMessageId() {
+	   if (mCurrentMessageId >= MAX_MESSAGE_ID) {
+		   mCurrentMessageId = MIN_MESSAGE_ID;
+	   }
+	   return mCurrentMessageId++;
    }
 
 
@@ -390,16 +407,25 @@ public class WebSocketWriter extends Handler {
             @SuppressWarnings("unused")
             int written = mSocket.write(mBuffer.getBuffer());
          }
+         
+         // sending successful
+         notify(new WebSocketMessage.SendResult(msg.arg1, true));
 
       } catch (SocketException e) {
     	  
     	  if (DEBUG) Log.d(TAG, "run() : SocketException (" + e.toString() + ")");
+    	  
+    	  // sending failed 
+    	  notify(new WebSocketMessage.SendResult(msg.arg1, false));
     	  
     	  // wrap the exception and notify master
     	  notify(new WebSocketMessage.ConnectionLost());
       } catch (Exception e) {
 
          if (DEBUG) e.printStackTrace();
+         
+         // sending failed
+         notify(new WebSocketMessage.SendResult(msg.arg1, false));
 
          // wrap the exception and notify master
          notify(new WebSocketMessage.Error(e));
