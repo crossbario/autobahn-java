@@ -187,5 +187,22 @@ public class WebSocketMessage {
          mPayload = payload;
       }
    }
+   
+   public static class SendResult extends Message {
+	   
+	   public int mMessageId;
+	   public boolean mSuccess;
+	   
+	   SendResult() {
+		   mMessageId = 0;
+		   mSuccess = false;
+	   }
+	   
+	   SendResult(int messageId, boolean success) {
+		   mMessageId = messageId;
+		   mSuccess = success;
+	   }
+	   
+   }
 
 }

@@ -142,18 +142,18 @@ public class WebSocketConnection implements WebSocket {
    }
 
 
-   public void sendTextMessage(String payload) {
-      mWriter.forward(new WebSocketMessage.TextMessage(payload));
+   public int sendTextMessage(String payload) {
+      return mWriter.forward(new WebSocketMessage.TextMessage(payload));
    }
 
 
-   public void sendRawTextMessage(byte[] payload) {
-      mWriter.forward(new WebSocketMessage.RawTextMessage(payload));
+   public int sendRawTextMessage(byte[] payload) {
+      return mWriter.forward(new WebSocketMessage.RawTextMessage(payload));
    }
 
 
-   public void sendBinaryMessage(byte[] payload) {
-      mWriter.forward(new WebSocketMessage.BinaryMessage(payload));
+   public int sendBinaryMessage(byte[] payload) {
+      return mWriter.forward(new WebSocketMessage.BinaryMessage(payload));
    }
 
 
@@ -470,6 +470,15 @@ public class WebSocketConnection implements WebSocket {
             	WebSocketMessage.ServerError error = (WebSocketMessage.ServerError) msg.obj;
             	failConnection(WebSocketConnectionHandler.CLOSE_SERVER_ERROR, "Server error " + error.mStatusCode + " (" + error.mStatusMessage + ")");
 
+            } else if (msg.obj instanceof WebSocketMessage.SendResult) {
+            	
+            	WebSocketMessage.SendResult result = (WebSocketMessage.SendResult) msg.obj;
+            	if (mWsHandler != null) {
+                    mWsHandler.onMessageSent(result.mMessageId, result.mSuccess);
+                 } else {
+                    if (DEBUG) Log.d(TAG, "could not call onMessageSent() .. handler already NULL");
+                 }
+            	
             } else {
 
                processAppMessage(msg.obj);
