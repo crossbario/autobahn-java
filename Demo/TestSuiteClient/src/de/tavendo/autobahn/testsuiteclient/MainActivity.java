@@ -47,7 +47,7 @@ public class MainActivity extends Activity {
    static Button mStart;
 
    private void loadPrefs() {
-      mWsUri.setText(mSettings.getString("wsuri", "wss://192.168.1.128:9001"));
+      mWsUri.setText(mSettings.getString("wsuri", "ws://192.168.1.141:9001"));
       mAgent.setText(mSettings.getString("agent", "AutobahnAndroid"));
    }
 
@@ -99,8 +99,8 @@ public class MainActivity extends Activity {
                  options.setReceiveTextMessagesRaw(true);
                  //options.setValidateIncomingUtf8(false);
                  //options.setMaskClientFrames(false);
-                 options.setMaxMessagePayloadSize(1*1024*1024);
-                 options.setMaxFramePayloadSize(1*1024*1024);
+                 options.setMaxMessagePayloadSize(4*1024*1024);
+                 options.setMaxFramePayloadSize(4*1024*1024);
                  //options.setTcpNoDelay(false);
 
                  sess.connect(mWsUri.getText() + "/runCase?case=" + currCase + "&agent=" + mAgent.getText(),
