@@ -17,7 +17,6 @@ public class WampCraConnection extends WampConnection implements WampCra {
         call(Wamp.URI_WAMP_PROCEDURE + "authreq", String.class, new CallHandler(){
 
             public void onResult(Object challenge) {
-                // challenge time
                 
                 String sig = null;
                 try {

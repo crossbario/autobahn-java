@@ -1,6 +1,5 @@
 package de.tavendo.autobahn;
 
-import de.tavendo.autobahn.Wamp.CallHandler;
 
 public interface WampCra extends Wamp {
     
@@ -27,12 +26,12 @@ public interface WampCra extends Wamp {
     
     
     /**
-     * Call a remote procedure (RPC).
+     * Authenticate the WAMP Session.
      *
-     * @param authKey       The URI or CURIE of the remote procedure to call.
-     * @param authSecret    The type the call result gets transformed into.
-     * @param callHandler   The handler to be invoked upon call completion.
-     * @param arguments     Zero, one or more arguments for the call.
+     * @param authHandler   The handler to be invoked upon authentication completion.
+     * @param authKey       The user Key for authentication.
+     * @param authSecret    The user Secret for authentication.
+     * @param authExtra     Zero, one or more extra arguments for the authentication.
      */
     public void authenticate(AuthHandler authHandler, String authKey, String authSecret, Object... authExtra);
     
