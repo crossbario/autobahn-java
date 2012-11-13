@@ -26,6 +26,20 @@ import org.codehaus.jackson.type.TypeReference;
  */
 public interface Wamp {
 
+    public static final String URI_WAMP_BASE = "http://api.wamp.ws/";
+
+    public static final String URI_WAMP_ERROR = URI_WAMP_BASE + "error#";
+
+    public static final String URI_WAMP_PROCEDURE = URI_WAMP_BASE + "procedure#";
+
+    public static final String URI_WAMP_TOPIC = URI_WAMP_BASE + "topic#";
+
+    public static final String URI_WAMP_ERROR_GENERIC = URI_WAMP_ERROR + "generic";
+
+    public static final String DESC_WAMP_ERROR_GENERIC = "generic error";
+
+    public static final String URI_WAMP_ERROR_INTERNAL = URI_WAMP_ERROR + "internal";
+
    /**
     * Session handler for WAMP sessions.
     */
