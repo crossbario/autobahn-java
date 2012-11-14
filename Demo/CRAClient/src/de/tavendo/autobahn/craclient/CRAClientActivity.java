@@ -3,7 +3,6 @@ package de.tavendo.autobahn.craclient;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -22,6 +21,7 @@ public class CRAClientActivity extends Activity {
 
     private static EditText mHostname;
     private static EditText mPort;
+    private static EditText mPath;
     private static TextView mStatusline;
     private static Button mStart;
 
@@ -33,6 +33,7 @@ public class CRAClientActivity extends Activity {
 
         mHostname.setText(mSettings.getString("hostname", "10.0.2.2"));
         mPort.setText(mSettings.getString("port", "9000"));
+        mPath.setText(mSettings.getString("path", ""));
     }
 
     private void savePrefs() {
@@ -40,6 +41,7 @@ public class CRAClientActivity extends Activity {
         SharedPreferences.Editor editor = mSettings.edit();
         editor.putString("hostname", mHostname.getText().toString());
         editor.putString("port", mPort.getText().toString());
+        editor.putString("path", mPath.getText().toString());
         editor.commit();
     }
 
@@ -65,7 +67,7 @@ public class CRAClientActivity extends Activity {
 
     private void test() {
 
-        final String wsuri = "ws://" + mHostname.getText() + ":" + mPort.getText();
+        final String wsuri = "ws://" + mHostname.getText() + ":" + mPort.getText() + "/" + mPath.getText();
 
         mStatusline.setText("Connecting to\n" + wsuri + " ..");
 
@@ -119,18 +121,21 @@ public class CRAClientActivity extends Activity {
     }
 
     private void testRpc() {
+       
+       final String echoUri = "http://example.com/procedures/hello";
+       //final String echoUri = "http://api.wamp.ws/procedure#echo";
 
-        mConnection.call("http://example.com/procedures/hello", String.class, new WampCra.CallHandler() {
+        mConnection.call(echoUri, String.class, new WampCra.CallHandler() {
 
             @Override
             public void onResult(Object result) {
                 String res = (String) result;
-                alert("http://example.com/procedures/hello result = " + res);
+                alert(echoUri + ": result = " + res);
             }
 
             @Override
             public void onError(String errorId, String errorInfo) {
-                alert("http://example.com/procedures/hello RPC error - " + errorInfo);
+                alert(echoUri + ": error = " + errorInfo);
             }
         }, "Foobar");
     }
@@ -160,6 +165,7 @@ public class CRAClientActivity extends Activity {
 
         mHostname = (EditText) findViewById(R.id.hostname);
         mPort = (EditText) findViewById(R.id.port);
+        mPath = (EditText) findViewById(R.id.path);
         mStatusline = (TextView) findViewById(R.id.statusline);
         mStart = (Button) findViewById(R.id.start);
 
