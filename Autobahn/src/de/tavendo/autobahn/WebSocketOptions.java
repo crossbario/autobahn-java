@@ -36,6 +36,8 @@ public class WebSocketOptions {
    private boolean mValidateIncomingUtf8;
    private boolean mMaskClientFrames;
    private int mReconnectInterval;
+   private int mActivityTimeout;
+   private int mPongTimeout;
 
 
    /**
@@ -52,6 +54,8 @@ public class WebSocketOptions {
       mValidateIncomingUtf8 = true;
       mMaskClientFrames = true;
       mReconnectInterval = 0;  // no reconnection by default
+      mActivityTimeout = 120000;
+      mPongTimeout = 30000;
    }
 
    /**
@@ -70,6 +74,8 @@ public class WebSocketOptions {
       mValidateIncomingUtf8 = other.mValidateIncomingUtf8;
       mMaskClientFrames = other.mMaskClientFrames;
       mReconnectInterval = other.mReconnectInterval;
+      mActivityTimeout = other.mActivityTimeout;
+      mPongTimeout = other.mPongTimeout;
    }
 
    /**
@@ -267,7 +273,52 @@ public class WebSocketOptions {
 	   mReconnectInterval = reconnectInterval;
    }
    
+   /**
+    * Get reconnect interval
+    *
+    * @return reconnect interval in ms
+    */
    public int getReconnectInterval() {
 	   return mReconnectInterval;
+   }
+
+   /**
+    * Set activity timeout
+    *
+    * DEFAULT: 120000
+    *
+    * @param activityTimeout activity timeout in ms
+    */
+   public void setActivityTimeout(int activityTimeout) {
+	   mActivityTimeout = activityTimeout;
+   }
+
+   /**
+    * Get activity timeout
+    *
+    * @return activity timeout in ms
+    */
+   public int getActivityTimeout() {
+	   return mActivityTimeout;
+   }
+
+   /**
+    * Set pong timeout
+    *
+    * DEFAULT: 30000
+    *
+    * @param pongTimeout pong timeout in ms
+    */
+   public void setPongTimeout(int pongTimeout) {
+	   mPongTimeout = pongTimeout;
+   }
+
+   /**
+    * Get pong timeout
+    *
+    * @return pong timeout in ms
+    */
+   public int getPongTimeout() {
+	   return mPongTimeout;
    }
 }
