@@ -1,2 +1,5 @@
 .metadata/*
 Autobahn/doc/html/*
+
+# maven
+target
