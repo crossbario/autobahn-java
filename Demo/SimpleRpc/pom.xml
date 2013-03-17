@@ -8,10 +8,10 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
     
-    <artifactId>echo-client-example</artifactId>
+    <artifactId>simple-rpc-client-example</artifactId>
     <packaging>apk</packaging>
     
-    <name>Autobahn Example - Echo Client</name>
+    <name>Autobahn Example - Simple RPC Client</name>
     
     <dependencies>
         <dependency>
