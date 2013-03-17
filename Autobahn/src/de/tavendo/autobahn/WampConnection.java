@@ -285,8 +285,8 @@ public class WampConnection extends WebSocketConnection implements Wamp {
       for (int i = 0; i < arguments.length; ++i) {
          call.mArgs[i] = arguments[i];
       }
-      mWriter.forward(call);
       mCalls.put(call.mCallId, resultMeta);
+      mWriter.forward(call);
    }
 
 
