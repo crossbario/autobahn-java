@@ -332,10 +332,11 @@ public class WampConnection extends WebSocketConnection implements Wamp {
 
       if (!mSubs.containsKey(uri)) {
 
+         mSubs.put(uri, meta);
+
          WampMessage.Subscribe msg = new WampMessage.Subscribe(mOutgoingPrefixes.shrink(topicUri));
          mWriter.forward(msg);
       }
-      mSubs.put(uri, meta);
    }
 
 
@@ -378,6 +379,8 @@ public class WampConnection extends WebSocketConnection implements Wamp {
 
          WampMessage.Unsubscribe msg = new WampMessage.Unsubscribe(topicUri);
          mWriter.forward(msg);
+         
+         mSubs.remove(topicUri);
       }
    }
 
@@ -391,7 +394,8 @@ public class WampConnection extends WebSocketConnection implements Wamp {
 
          WampMessage.Unsubscribe msg = new WampMessage.Unsubscribe(topicUri);
          mWriter.forward(msg);
-     }
+      }
+      mSubs.clear();
    }
 
 
