@@ -18,9 +18,11 @@
 
 package de.tavendo.autobahn;
 
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.http.message.BasicNameValuePair;
 import org.codehaus.jackson.type.TypeReference;
 
 import android.os.HandlerThread;
@@ -159,7 +161,7 @@ public class WampConnection extends WebSocketConnection implements Wamp {
    }
 
 
-   public void connect(String wsUri, Wamp.ConnectionHandler sessionHandler) {
+   public void connect(String wsUri, Wamp.ConnectionHandler sessionHandler, List<BasicNameValuePair> headers) {
 
       WampOptions options = new WampOptions();
       options.setReceiveTextMessagesRaw(true);
@@ -167,7 +169,7 @@ public class WampConnection extends WebSocketConnection implements Wamp {
       options.setMaxFramePayloadSize(64*1024);
       options.setTcpNoDelay(true);
 
-      connect(wsUri, sessionHandler, options);
+      connect(wsUri, sessionHandler, options, headers);
    }
 
 
@@ -177,7 +179,7 @@ public class WampConnection extends WebSocketConnection implements Wamp {
     * @param wsUri            WebSockets server URI.
     * @param sessionHandler   The session handler to fire callbacks on.
     */
-   public void connect(String wsUri, Wamp.ConnectionHandler sessionHandler, WampOptions options) {
+   public void connect(String wsUri, Wamp.ConnectionHandler sessionHandler, WampOptions options, List<BasicNameValuePair> headers) {
 
       mSessionHandler = sessionHandler;
 
@@ -206,7 +208,7 @@ public class WampConnection extends WebSocketConnection implements Wamp {
                }
             }
 
-         }, options);
+         }, options , headers);
 
       } catch (WebSocketException e) {
 
@@ -285,8 +287,8 @@ public class WampConnection extends WebSocketConnection implements Wamp {
       for (int i = 0; i < arguments.length; ++i) {
          call.mArgs[i] = arguments[i];
       }
-      mCalls.put(call.mCallId, resultMeta);
       mWriter.forward(call);
+      mCalls.put(call.mCallId, resultMeta);
    }
 
 
@@ -332,11 +334,12 @@ public class WampConnection extends WebSocketConnection implements Wamp {
 
       if (!mSubs.containsKey(uri)) {
 
-         mSubs.put(uri, meta);
-
          WampMessage.Subscribe msg = new WampMessage.Subscribe(mOutgoingPrefixes.shrink(topicUri));
          mWriter.forward(msg);
       }
+      
+      System.out.println("mSubs.put >> " + uri);
+      mSubs.put(uri, meta);
    }
 
 
@@ -379,8 +382,6 @@ public class WampConnection extends WebSocketConnection implements Wamp {
 
          WampMessage.Unsubscribe msg = new WampMessage.Unsubscribe(topicUri);
          mWriter.forward(msg);
-         
-         mSubs.remove(topicUri);
       }
    }
 
@@ -394,8 +395,7 @@ public class WampConnection extends WebSocketConnection implements Wamp {
 
          WampMessage.Unsubscribe msg = new WampMessage.Unsubscribe(topicUri);
          mWriter.forward(msg);
-      }
-      mSubs.clear();
+     }
    }
 
 

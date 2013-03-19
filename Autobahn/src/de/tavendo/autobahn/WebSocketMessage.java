@@ -18,6 +18,10 @@
 
 package de.tavendo.autobahn;
 
+import java.util.List;
+
+import org.apache.http.message.BasicNameValuePair;
+
 /**
  * WebSockets message classes.
  * The master thread and the background reader/writer threads communicate using these messages
@@ -41,12 +45,14 @@ public class WebSocketMessage {
       public String mQuery;
       public String mOrigin;
       public String[] mSubprotocols;
+      public List<BasicNameValuePair> mHeaderList;
 
       ClientHandshake(String host) {
          mHost = host;
          mPath = "/";
          mOrigin = null;
          mSubprotocols = null;
+         mHeaderList = null;
       }
 
       ClientHandshake(String host, String path, String origin) {

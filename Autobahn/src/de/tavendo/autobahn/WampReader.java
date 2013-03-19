@@ -19,15 +19,18 @@
 package de.tavendo.autobahn;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.http.util.ByteArrayBuffer;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.json.JSONArray;
 
 import android.os.Handler;
 import android.util.Log;
@@ -104,7 +107,21 @@ public class WampReader extends WebSocketReader {
       try {
 
          // create parser on top of raw UTF-8 payload
+    	/* JSONArray jArray =  new JSONArray();
+    	 jArray.put(8);
+    	 jArray.put("http://example.com/simple");
+    	 jArray.put(new String(payload));
+    	 
+    	 System.out.println(jArray.toString());
+    	 
+    	 JsonParser parser = mJsonFactory.createJsonParser(jArray.toString().getBytes());*/
+    	  
          JsonParser parser = mJsonFactory.createJsonParser(payload);
+/*         
+         String str= new String(payload);
+         
+         System.out.println("Parser info: " + str);
+         System.out.println("Parser next token: " + parser.nextToken().toString());*/
 
          // all Autobahn messages are JSON arrays
          if (parser.nextToken() == JsonToken.START_ARRAY) {
@@ -168,6 +185,7 @@ public class WampReader extends WebSocketReader {
                   // topic URI
                   parser.nextToken();
                   String topicUri = parser.getText();
+                  System.out.println("TOPIC URI>>>>" +  topicUri);   
 
                   // event
                   parser.nextToken();

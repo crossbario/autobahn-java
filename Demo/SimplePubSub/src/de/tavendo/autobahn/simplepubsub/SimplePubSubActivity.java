@@ -18,7 +18,11 @@
 
 package de.tavendo.autobahn.simplepubsub;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+
+import org.apache.http.message.BasicNameValuePair;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
@@ -33,142 +37,148 @@ import de.tavendo.autobahn.WampConnection;
 
 public class SimplePubSubActivity extends Activity {
 
-   @SuppressWarnings("unused")
-   private static final String TAG = "de.tavendo.autobahn.simplepubsub";
+	@SuppressWarnings("unused")
+	private static final String TAG = "de.tavendo.autobahn.simplepubsub";
 
-   private static final String PREFS_NAME = "AutobahnAndroidSimplePubSub";
+	private static final String PREFS_NAME = "AutobahnAndroidSimplePubSub";
 
-   private SharedPreferences mSettings;
+	private SharedPreferences mSettings;
 
-   private static EditText mHostname;
-   private static EditText mPort;
-   private static TextView mStatusline;
-   private static Button mStart;
+	private static EditText mHostname;
+	private static EditText mPort;
+	private static TextView mStatusline;
+	private static Button mStart;
 
-   private final Wamp mConnection = new WampConnection();
+	private List<BasicNameValuePair> headers = null;
 
-   private void alert(String message) {
-      Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-   }
+	private final Wamp mConnection = new WampConnection();
 
-   private void loadPrefs() {
+	private void alert(String message) {
+		Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+	}
 
-      mHostname.setText(mSettings.getString("hostname", ""));
-      mPort.setText(mSettings.getString("port", "9000"));
-   }
+	private void loadPrefs() {
 
-   private void savePrefs() {
+		mHostname.setText(mSettings.getString("hostname", ""));
+		mPort.setText(mSettings.getString("port", "9000"));
+	}
 
-      SharedPreferences.Editor editor = mSettings.edit();
-      editor.putString("hostname", mHostname.getText().toString());
-      editor.putString("port", mPort.getText().toString());
-      editor.commit();
-   }
+	private void savePrefs() {
 
-   private void setButtonConnect() {
-      mStart.setText("Connect");
-      mStart.setOnClickListener(new Button.OnClickListener() {
-         public void onClick(View v) {
-            test();
-         }
-      });
-   }
+		SharedPreferences.Editor editor = mSettings.edit();
+		editor.putString("hostname", mHostname.getText().toString());
+		editor.putString("port", mPort.getText().toString());
+		editor.commit();
+	}
 
-   private void setButtonDisconnect() {
-      mStart.setText("Disconnect");
-      mStart.setOnClickListener(new Button.OnClickListener() {
-         public void onClick(View v) {
-            mConnection.disconnect();
-         }
-      });
-   }
+	private void setButtonConnect() {
+		mStart.setText("Connect");
+		mStart.setOnClickListener(new Button.OnClickListener() {
+			public void onClick(View v) {
+				test();
+			}
+		});
+	}
 
-   /**
-    * We want PubSub events delivered to us in JSON payload to be automatically
-    * converted to this domain POJO. We specify this class later when we subscribe.
-    */
-   private static class MyEvent1 {
+	private void setButtonDisconnect() {
+		mStart.setText("Disconnect");
+		mStart.setOnClickListener(new Button.OnClickListener() {
+			public void onClick(View v) {
+				mConnection.disconnect();
+			}
+		});
+	}
 
-      public int num;
-      public String name;
-      public boolean flag;
-      public Date created;
-      public double rand;
+	/**
+	 * We want PubSub events delivered to us in JSON payload to be automatically
+	 * converted to this domain POJO. We specify this class later when we subscribe.
+	 */
+	private static class MyEvent1 {
 
-      @Override
-      public String toString() {
-         return "{name: " + name +
-                ", created: " + created +
-                ", num: " + num +
-                ", rand: " + rand +
-                ", flag:" + flag + "}";
-      }
-   }
+		public int num;
+		public String name;
+		public boolean flag;
+		public Date created;
+		public double rand;
 
-   private void test() {
+		@Override
+		public String toString() {
+			return "{name: " + name +
+					", created: " + created +
+					", num: " + num +
+					", rand: " + rand +
+					", flag:" + flag + "}";
+		}
+	}
 
-      final String wsuri = "ws://" + mHostname.getText() + ":" + mPort.getText();
+	private void test() {
 
-      mStatusline.setText("Connecting to\n" + wsuri + " ..");
+		final String wsuri = "ws://" + mHostname.getText();// + ":" + mPort.getText();
 
-      setButtonDisconnect();
+		mStatusline.setText("Connecting to\n" + wsuri + " ..");
 
-      // we establish a connection by giving the WebSockets URL of the server
-      // and the handler for open/close events
-      mConnection.connect(wsuri, new Wamp.ConnectionHandler() {
+		setButtonDisconnect();
 
-         @Override
-         public void onOpen() {
+		// we establish a connection by giving the WebSockets URL of the server
+		// and the handler for open/close events
+		mConnection.connect(wsuri, new Wamp.ConnectionHandler() {
 
-            // The connection was successfully established. we set the status
-            // and save the host/port as Android application preference for next time.
-            mStatusline.setText("Connected to\n" + wsuri);
-            savePrefs();
+			@Override
+			public void onOpen() {
 
-            // We establish a prefix to use for writing URIs using shorthand CURIE notation.
-            mConnection.prefix("event", "http://example.com/event#");
+				// The connection was successfully established. we set the status
+				// and save the host/port as Android application preference for next time.
+				mStatusline.setText("Connected to\n" + wsuri);
+				savePrefs();
 
-            // We subscribe to a topic by giving the topic URI, the type we want events
-            // to be converted to, and the event handler we want to have fired.
-            mConnection.subscribe("event:myevent1", MyEvent1.class, new Wamp.EventHandler() {
+				// We establish a prefix to use for writing URIs using shorthand CURIE notation.
+				mConnection.prefix("event", "http://example.com/event#");
 
-               @Override
-               public void onEvent(String topicUri, Object event) {
+				// We subscribe to a topic by giving the topic URI, the type we want events
+				// to be converted to, and the event handler we want to have fired.
+				mConnection.subscribe("event:myevent1", MyEvent1.class, new Wamp.EventHandler() {
 
-                  // when we get an event, we safely can cast to the type we specified previously
-                  MyEvent1 evt = (MyEvent1) event;
+					@Override
+					public void onEvent(String topicUri, Object event) {
 
-                  alert("Event received : " + evt.toString());
-               }
-            });
-         }
+						// when we get an event, we safely can cast to the type we specified previously
+						MyEvent1 evt = (MyEvent1) event;
 
-         @Override
-         public void onClose(int code, String reason) {
+						alert("Event received : " + evt.toString());
+					}
+				});
+			}
 
-            // The connection was closed. Set the status line, show a message box,
-            // and set the button to allow to connect again.
-            mStatusline.setText("Connection closed.");
-            alert(reason);
-            setButtonConnect();
-         }
-      });
-   }
+			@Override
+			public void onClose(int code, String reason) {
 
-   @Override
-   public void onCreate(Bundle savedInstanceState) {
+				// The connection was closed. Set the status line, show a message box,
+				// and set the button to allow to connect again.
+				mStatusline.setText("Connection closed.");
+				alert(reason);
+				setButtonConnect();
+			}
+		}, headers);
+	}
 
-      super.onCreate(savedInstanceState);
-      setContentView(R.layout.main);
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
 
-      mHostname = (EditText) findViewById(R.id.hostname);
-      mPort = (EditText) findViewById(R.id.port);
-      mStatusline = (TextView) findViewById(R.id.statusline);
-      mStart = (Button) findViewById(R.id.start);
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.main);
 
-      mSettings = getSharedPreferences(PREFS_NAME, 0);
-      loadPrefs();
+		mHostname = (EditText) findViewById(R.id.hostname);
+		mPort = (EditText) findViewById(R.id.port);
+		mStatusline = (TextView) findViewById(R.id.statusline);
+		mStart = (Button) findViewById(R.id.start);
 
-      setButtonConnect();
-   }
+		headers = Arrays.asList(
+				new BasicNameValuePair("X-sessionid", "1f45debd-2ced-62b7-07d0-c4b50a1237fe")
+				);
+
+		mSettings = getSharedPreferences(PREFS_NAME, 0);
+		loadPrefs();
+
+		setButtonConnect();
+	}
 }

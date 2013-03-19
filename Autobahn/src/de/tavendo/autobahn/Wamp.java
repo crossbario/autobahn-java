@@ -19,6 +19,9 @@
 package de.tavendo.autobahn;
 
 
+import java.util.List;
+
+import org.apache.http.message.BasicNameValuePair;
 import org.codehaus.jackson.type.TypeReference;
 
 /**
@@ -66,7 +69,7 @@ public interface Wamp {
     * @param wsUri            The WebSockets URI of the server.
     * @param sessionHandler   The handler for the session.
     */
-   public void connect(String wsUri, ConnectionHandler sessionHandler);
+   public void connect(String wsUri, ConnectionHandler sessionHandler, List<BasicNameValuePair> headers);
 
 
    /**
@@ -76,7 +79,7 @@ public interface Wamp {
     * @param sessionHandler   The handler for the session.
     * @param options          WebSockets and Autobahn option.s
     */
-   public void connect(String wsUri, ConnectionHandler sessionHandler, WampOptions options);
+   public void connect(String wsUri, ConnectionHandler sessionHandler, WampOptions options, List<BasicNameValuePair> headers);
 
 
    /**
