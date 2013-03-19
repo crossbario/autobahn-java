@@ -87,9 +87,18 @@ public interface Wamp {
     * @param wsUri            The WebSockets URI of the server.
     * @param sessionHandler   The handler for the session.
     * @param options          WebSockets and Autobahn option.s
+    * @param headers		  Headers for connection
     */
    public void connect(String wsUri, ConnectionHandler sessionHandler, WampOptions options, List<BasicNameValuePair> headers);
 
+   /**
+    * Connect to WAMP server.
+    *
+    * @param wsUri            The WebSockets URI of the server.
+    * @param sessionHandler   The handler for the session.
+    * @param options          WebSockets and Autobahn option.s
+    */
+   public void connect(String wsUri, ConnectionHandler sessionHandler, WampOptions options);
 
    /**
     * Disconnect from WAMP server.

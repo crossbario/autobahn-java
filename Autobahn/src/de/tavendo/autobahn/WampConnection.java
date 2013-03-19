@@ -193,6 +193,7 @@ public class WampConnection extends WebSocketConnection implements Wamp {
 	 *
 	 * @param wsUri            WebSockets server URI.
 	 * @param sessionHandler   The session handler to fire callbacks on.
+	 * @param headers		   The headers for connection
 	 */
 	public void connect(String wsUri, Wamp.ConnectionHandler sessionHandler, WampOptions options, List<BasicNameValuePair> headers) {
 
