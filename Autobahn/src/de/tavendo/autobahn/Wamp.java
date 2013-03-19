@@ -69,8 +69,17 @@ public interface Wamp {
     * @param wsUri            The WebSockets URI of the server.
     * @param sessionHandler   The handler for the session.
     */
+   public void connect(String wsUri, ConnectionHandler sessionHandler);
+   
+   /**
+    * 
+    * @param wsUri            The WebSockets URI of the server.
+    * @param sessionHandler   The handler for the session.
+    * @param headers		  The headers with the connection
+    */
    public void connect(String wsUri, ConnectionHandler sessionHandler, List<BasicNameValuePair> headers);
 
+   
 
    /**
     * Connect to WAMP server.
