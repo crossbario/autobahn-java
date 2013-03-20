@@ -19,7 +19,6 @@
 package de.tavendo.autobahn;
 
 import java.util.List;
-
 import org.apache.http.message.BasicNameValuePair;
 
 /**

@@ -24,7 +24,6 @@ import java.nio.channels.SocketChannel;
 import java.util.Random;
 
 import org.apache.http.NameValuePair;
-
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -182,15 +181,13 @@ public class WebSocketWriter extends Handler {
       mBuffer.write("Sec-WebSocket-Version: 13");
       mBuffer.crlf();
 
-      // Header injection
-      
+      // Header injection      
       if (message.mHeaderList != null) {
           for (NameValuePair pair : message.mHeaderList) {
         	  mBuffer.write( pair.getName() + ":" + pair.getValue() );
         	  mBuffer.crlf();
           }
-      }     
-      
+      }           
       mBuffer.crlf();
    }
 

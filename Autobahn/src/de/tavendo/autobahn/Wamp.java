@@ -20,7 +20,6 @@ package de.tavendo.autobahn;
 
 
 import java.util.List;
-
 import org.apache.http.message.BasicNameValuePair;
 import org.codehaus.jackson.type.TypeReference;
 
@@ -79,7 +78,6 @@ public interface Wamp {
     */
    public void connect(String wsUri, ConnectionHandler sessionHandler, List<BasicNameValuePair> headers);
 
-   
 
    /**
     * Connect to WAMP server.
