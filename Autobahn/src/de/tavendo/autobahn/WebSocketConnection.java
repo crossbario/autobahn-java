@@ -23,6 +23,8 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.SocketChannel;
+import java.util.List;
+import org.apache.http.message.BasicNameValuePair;
 
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -49,6 +51,7 @@ public class WebSocketConnection implements WebSocket {
    private String mWsPath;
    private String mWsQuery;
    private String[] mWsSubprotocols;
+   private List<BasicNameValuePair> mWsHeaders;
 
    private WebSocket.ConnectionHandler mWsHandler;
 
@@ -106,6 +109,7 @@ public class WebSocketConnection implements WebSocket {
 					hs.mPath = mWsPath;
 					hs.mQuery = mWsQuery;
 					hs.mSubprotocols = mWsSubprotocols;
+					hs.mHeaderList = mWsHeaders;
 					mWriter.forward(hs);
 
 					mPrevConnected = true;
@@ -203,16 +207,16 @@ public class WebSocketConnection implements WebSocket {
 
 
    public void connect(String wsUri, WebSocket.ConnectionHandler wsHandler) throws WebSocketException {
-      connect(wsUri, null, wsHandler, new WebSocketOptions());
+      connect(wsUri, null, wsHandler, new WebSocketOptions(), null);
    }
 
 
    public void connect(String wsUri, WebSocket.ConnectionHandler wsHandler, WebSocketOptions options) throws WebSocketException {
-      connect(wsUri, null, wsHandler, options);
+      connect(wsUri, null, wsHandler, options, null);
    }
 
 
-   public void connect(String wsUri, String[] wsSubprotocols, WebSocket.ConnectionHandler wsHandler, WebSocketOptions options) throws WebSocketException {
+   public void connect(String wsUri, String[] wsSubprotocols, WebSocket.ConnectionHandler wsHandler, WebSocketOptions options, List<BasicNameValuePair> headers) throws WebSocketException {
 
       // don't connect if already connected .. user needs to disconnect first
       //
@@ -269,7 +273,7 @@ public class WebSocketConnection implements WebSocket {
       }
 
       mWsSubprotocols = wsSubprotocols;
-
+      mWsHeaders = headers;
       mWsHandler = wsHandler;
 
       // make copy of options!

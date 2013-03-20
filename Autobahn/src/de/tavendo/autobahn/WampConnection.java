@@ -18,9 +18,11 @@
 
 package de.tavendo.autobahn;
 
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.http.message.BasicNameValuePair;
 import org.codehaus.jackson.type.TypeReference;
 
 import android.os.HandlerThread;
@@ -167,7 +169,7 @@ public class WampConnection extends WebSocketConnection implements Wamp {
       options.setMaxFramePayloadSize(64*1024);
       options.setTcpNoDelay(true);
 
-      connect(wsUri, sessionHandler, options);
+      connect(wsUri, sessionHandler, options, null);
    }
 
 
@@ -176,8 +178,9 @@ public class WampConnection extends WebSocketConnection implements Wamp {
     *
     * @param wsUri            WebSockets server URI.
     * @param sessionHandler   The session handler to fire callbacks on.
+    * @param headers		   The headers for connection
     */
-   public void connect(String wsUri, Wamp.ConnectionHandler sessionHandler, WampOptions options) {
+   public void connect(String wsUri, Wamp.ConnectionHandler sessionHandler, WampOptions options, List<BasicNameValuePair> headers) {
 
       mSessionHandler = sessionHandler;
 
@@ -206,7 +209,7 @@ public class WampConnection extends WebSocketConnection implements Wamp {
                }
             }
 
-         }, options);
+         }, options, headers);
 
       } catch (WebSocketException e) {
 
@@ -217,6 +220,22 @@ public class WampConnection extends WebSocketConnection implements Wamp {
          }
       }
 
+   }
+	
+   public void connect(String wsUri, Wamp.ConnectionHandler sessionHandler, List<BasicNameValuePair> headers) {
+
+	   WampOptions options = new WampOptions();
+	   options.setReceiveTextMessagesRaw(true);
+	   options.setMaxMessagePayloadSize(64*1024);
+	   options.setMaxFramePayloadSize(64*1024);
+	   options.setTcpNoDelay(true);
+
+	   connect(wsUri, sessionHandler, options, headers);
+   }
+
+   public void connect(String wsUri, Wamp.ConnectionHandler sessionHandler, WampOptions options) {	
+
+	   connect(wsUri, sessionHandler, options, null);
    }
 
 
