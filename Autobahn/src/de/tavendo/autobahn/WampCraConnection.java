@@ -31,8 +31,12 @@ import android.util.Log;
 
 public class WampCraConnection extends WampConnection implements WampCra {
 
-    public void authenticate(final AuthHandler authHandler, final String authKey, final String authSecret, Object... authExtra) {
-        call(Wamp.URI_WAMP_PROCEDURE + "authreq", String.class, new CallHandler(){
+    public void authenticate(final AuthHandler authHandler, final String authKey, final String authSecret){
+        authenticate(authHandler, authKey, authSecret, null);
+    }
+    
+    public void authenticate(final AuthHandler authHandler, final String authKey, final String authSecret, Object authExtra) {
+        CallHandler callHandler = new CallHandler(){
 
             public void onResult(Object challenge) {
                 
@@ -62,7 +66,11 @@ public class WampCraConnection extends WampConnection implements WampCra {
                 authHandler.onAuthError(errorUri,errorDesc);                
             }
             
-        }, authKey, authExtra);
+        };
+        if (authExtra != null)
+            call(Wamp.URI_WAMP_PROCEDURE + "authreq", String.class, callHandler, authKey, authExtra);
+        else
+            call(Wamp.URI_WAMP_PROCEDURE + "authreq", String.class, callHandler, authKey);
     }
 
     public String authSignature(String authChallenge, String authSecret) throws SignatureException{
