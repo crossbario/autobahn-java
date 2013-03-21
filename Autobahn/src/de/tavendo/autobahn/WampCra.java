@@ -48,9 +48,18 @@ public interface WampCra extends Wamp {
      * @param authHandler   The handler to be invoked upon authentication completion.
      * @param authKey       The user Key for authentication.
      * @param authSecret    The user Secret for authentication.
+     */
+    public void authenticate(AuthHandler authHandler, String authKey, String authSecret);
+    
+    /**
+     * Authenticate the WAMP Session.
+     *
+     * @param authHandler   The handler to be invoked upon authentication completion.
+     * @param authKey       The user Key for authentication.
+     * @param authSecret    The user Secret for authentication.
      * @param authExtra     Zero, one or more extra arguments for the authentication.
      */
-    public void authenticate(AuthHandler authHandler, String authKey, String authSecret, Object... authExtra);
+    public void authenticate(AuthHandler authHandler, String authKey, String authSecret, Object authExtra);
     
     
 }
