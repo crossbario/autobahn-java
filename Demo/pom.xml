@@ -36,7 +36,7 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>de.tavendo.autobahn</groupId>
+                <groupId>de.tavendo</groupId>
                 <artifactId>autobahn-android</artifactId>
                 <version>${autobahn.android.version}</version>
             </dependency>
