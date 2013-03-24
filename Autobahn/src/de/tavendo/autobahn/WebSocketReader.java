@@ -218,14 +218,14 @@ public class WebSocketReader extends Thread {
                   if ((0x80 & mFrameBuffer.get(i+0)) != 0) {
                      throw new WebSocketException("invalid data frame length (> 2^63)");
                   }
-                  payload_len = ((0xff & mFrameBuffer.get(i+0)) << 56) |
-                                ((0xff & mFrameBuffer.get(i+1)) << 48) |
-                                ((0xff & mFrameBuffer.get(i+2)) << 40) |
-                                ((0xff & mFrameBuffer.get(i+3)) << 32) |
-                                ((0xff & mFrameBuffer.get(i+4)) << 24) |
-                                ((0xff & mFrameBuffer.get(i+5)) << 16) |
-                                ((0xff & mFrameBuffer.get(i+6)) <<  8) |
-                                ((0xff & mFrameBuffer.get(i+7))      );
+                  payload_len = ((long)(0xff & mFrameBuffer.get(i+0)) << 56) |
+                                ((long)(0xff & mFrameBuffer.get(i+1)) << 48) |
+                                ((long)(0xff & mFrameBuffer.get(i+2)) << 40) |
+                                ((long)(0xff & mFrameBuffer.get(i+3)) << 32) |
+                                ((long)(0xff & mFrameBuffer.get(i+4)) << 24) |
+                                ((long)(0xff & mFrameBuffer.get(i+5)) << 16) |
+                                ((long)(0xff & mFrameBuffer.get(i+6)) <<  8) |
+                                ((long)(0xff & mFrameBuffer.get(i+7))      );
                   if (payload_len < 65536) {
                      throw new WebSocketException("invalid data frame length (not using minimal length encoding)");
                   }
