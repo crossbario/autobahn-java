@@ -19,7 +19,7 @@
             <artifactId>android</artifactId>
         </dependency>
         <dependency>
-            <groupId>de.tavendo.autobahn</groupId>
+            <groupId>de.tavendo</groupId>
             <artifactId>autobahn-android</artifactId>
         </dependency>
     </dependencies>
