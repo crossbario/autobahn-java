@@ -156,7 +156,7 @@ public class WebSocketWriter extends Handler {
       mBuffer.crlf();
       mBuffer.write("Host: " + message.mHost);
       mBuffer.crlf();
-      mBuffer.write("Upgrade: WebSocket");
+      mBuffer.write("Upgrade: websocket");
       mBuffer.crlf();
       mBuffer.write("Connection: Upgrade");
       mBuffer.crlf();
