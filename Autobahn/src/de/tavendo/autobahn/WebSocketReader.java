@@ -683,14 +683,15 @@ public class WebSocketReader extends Thread {
       try {
 
          mBuffer.clear();
+         if (mBufferEnc != null)
+            mBufferEnc.clear();
+            
          do {
             int len = 0;
             //boolean clear = true;
             
             // blocking read on socket
             if (mSSLEngine != null) {
-               mBufferEnc.clear();
-               //mBufferEnc.mark();
                len = mSocket.read(mBufferEnc);
                if (DEBUG) Log.d(TAG, "READ (WSS): " + len + " - " + mBufferEnc.remaining() + " - " + mSocket.isBlocking());
             } else {
@@ -720,14 +721,13 @@ public class WebSocketReader extends Thread {
                   } while (mBufferEnc.hasRemaining() && res.getStatus() != SSLEngineResult.Status.BUFFER_UNDERFLOW);
                   //mBuffer.flip();
 
-/*                  
                   if (res.getStatus() != SSLEngineResult.Status.BUFFER_UNDERFLOW) {
                      mBufferEnc.clear();
                   } else {
-                     mBufferEnc.reset();
+                     mBufferEnc.position(mBufferEnc.limit());
                      mBufferEnc.limit(mBufferEnc.capacity());
                   }
-*/                  
+                  
                   //if (res.getStatus() != SSLEngineResult.Status.CLOSED && res.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_WRAP) {
                   if (DEBUG) Log.d(TAG, "res Status " + res.getStatus());
                   if (DEBUG) Log.d(TAG, "res HS Status " + res.getHandshakeStatus());
