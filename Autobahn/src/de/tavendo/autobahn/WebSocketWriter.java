@@ -173,7 +173,9 @@ public class WebSocketWriter extends Handler {
          mBuffer.write("Sec-WebSocket-Protocol: ");
          for (int i = 0; i < message.mSubprotocols.length; ++i) {
             mBuffer.write(message.mSubprotocols[i]);
-            mBuffer.write(", ");
+            if (i != message.mSubprotocols.length-1) {
+               mBuffer.write(", ");
+            }
          }
          mBuffer.crlf();
       }
