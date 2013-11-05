@@ -28,6 +28,7 @@ import org.apache.http.message.BasicNameValuePair;
 
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
@@ -373,7 +374,7 @@ public class WebSocketConnection implements WebSocket {
     */
    protected void createHandler() {
 
-      mMasterHandler = new Handler() {
+      mMasterHandler = new Handler(Looper.getMainLooper()) {
 
          public void handleMessage(Message msg) {
 
