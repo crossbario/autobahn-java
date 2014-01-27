@@ -109,9 +109,7 @@ public class WebSocketReader extends Thread {
     * Graceful shutdown of background reader thread (called from master).
     */
    public void quit() {
-
-      mStopped = true;
-
+      mState = STATE_CLOSED;
       if (DEBUG) Log.d(TAG, "quit");
    }
 
@@ -302,7 +300,7 @@ public class WebSocketReader extends Thread {
 
                   if (mFrameHeader.mPayloadLen >= 2) {
 
-                     // parse and check close code
+                     // parse and check close code - see http://tools.ietf.org/html/rfc6455#section-7.4
                      code = (framePayload[0] & 0xff) * 256 + (framePayload[1] & 0xff);
                      if (code < 1000
                            || (code >= 1000 && code <= 2999 &&
@@ -658,6 +656,9 @@ public class WebSocketReader extends Thread {
                // process buffered data
                while (consumeData()) {
                }
+            } else if (mState == STATE_CLOSED) {
+                notify(new WebSocketMessage.Close(1000)); // Connection has been closed normally
+                mStopped = true;
             } else if (len < 0) {
 
                if (DEBUG) Log.d(TAG, "run() : ConnectionLost");
