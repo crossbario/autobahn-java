@@ -10,7 +10,7 @@
 
     <groupId>de.tavendo</groupId>
     <artifactId>autobahn-android</artifactId>
-    <version>0.5.2-2014-01-27</version>
+    <version>0.5.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>AutobahnAndroid</name>

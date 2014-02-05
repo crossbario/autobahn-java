@@ -438,6 +438,8 @@ public class WebSocketConnection implements WebSocket {
                final int tavendoCloseCode = (close.mCode == 1000) ? ConnectionHandler.CLOSE_NORMAL : ConnectionHandler.CLOSE_CONNECTION_LOST;
                onClose(tavendoCloseCode, close.mReason);
 
+               mWriter.forward(new WebSocketMessage.Close(1000));
+
             } else if (msg.obj instanceof WebSocketMessage.ServerHandshake) {
 
                WebSocketMessage.ServerHandshake serverHandshake = (WebSocketMessage.ServerHandshake) msg.obj;
