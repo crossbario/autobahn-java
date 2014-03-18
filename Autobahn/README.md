@@ -4,7 +4,6 @@ Clean build
 
 	mvn clean install
 
-
 # Deploying
 
 For Maven/Sonatype deployment docs, see [here](https://docs.sonatype.org/display/Repository/Sonatype+OSS+Maven+Repository+Usage+Guide).
@@ -45,6 +44,29 @@ Publish the release
 
 	mvn release:perform
 
+# Documentation
 
+The documentation is generated from source files using [Doxygen](http://www.stack.nl/~dimitri/doxygen/). To generate the documentation:
 
+	cd Autobahn
+	doxygen
 
+## Publishing
+
+> Note: this section is only relevant for administrators of the [Autobahn web site](http://autobahn.ws/).
+
+To publish to the Autobahn web site ([here](http://autobahn.ws/android/reference/)), you will need [SCons](http://scons.org/) and [Taschenmesser](https://pypi.python.org/pypi/taschenmesser).
+
+Then do
+
+	scons
+
+to build the docs and
+
+	scons publish
+
+to build and publish the docs and
+
+	scons -uc
+
+to cleanup.

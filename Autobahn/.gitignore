@@ -3,3 +3,5 @@ gen/*
 !gen/PLACEHOLDER
 *.jar
 !libs/*
+.sconsign.dblite
+_upload
