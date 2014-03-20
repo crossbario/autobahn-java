@@ -8,6 +8,8 @@ To install [javasphinx](http://bronto.github.io/javasphinx/), install [lxml](htt
  
 	pip install -U javasphinx
 
+> Note: Due to a little bug, you currently need to use [this](https://github.com/oberstet/javasphinx).
+
 To generate the docs:
 
 	make html
