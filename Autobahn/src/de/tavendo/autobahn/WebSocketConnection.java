@@ -294,6 +294,11 @@ public class WebSocketConnection implements WebSocket {
       } else {
          if (DEBUG) Log.d(TAG, "could not send Close .. writer already NULL");
       }
+      if (mReader != null) {
+         mReader.quit();
+      } else {
+         if (DEBUG) Log.d(TAG, "could not send Close .. reader already NULL");
+      }
       mActive = false;
       mPrevConnected = false;
    }
@@ -346,8 +351,8 @@ public class WebSocketConnection implements WebSocket {
    private void onClose(int code, String reason) {
 	   boolean reconnecting = false;
 	   
-	   if ((code == WebSocket.ConnectionHandler.CLOSE_CANNOT_CONNECT) ||
-			   (code == WebSocket.ConnectionHandler.CLOSE_CONNECTION_LOST)) {
+	   if ((code == ConnectionHandler.CLOSE_CANNOT_CONNECT) ||
+			   (code == ConnectionHandler.CLOSE_CONNECTION_LOST)) {
 		   reconnecting = scheduleReconnect();
 	   }
 	   
@@ -355,7 +360,7 @@ public class WebSocketConnection implements WebSocket {
 	   if (mWsHandler != null) {
 		   try {
 			   if (reconnecting) {
-				   mWsHandler.onClose(WebSocket.ConnectionHandler.CLOSE_RECONNECT, reason);
+				   mWsHandler.onClose(ConnectionHandler.CLOSE_RECONNECT, reason);
 			   } else {
 				   mWsHandler.onClose(code, reason);
 			   }
@@ -430,6 +435,9 @@ public class WebSocketConnection implements WebSocket {
                WebSocketMessage.Close close = (WebSocketMessage.Close) msg.obj;
 
                if (DEBUG) Log.d(TAG, "WebSockets Close received (" + close.mCode + " - " + close.mReason + ")");
+
+               final int tavendoCloseCode = (close.mCode == 1000) ? ConnectionHandler.CLOSE_NORMAL : ConnectionHandler.CLOSE_CONNECTION_LOST;
+               onClose(tavendoCloseCode, close.mReason);
 
                mWriter.forward(new WebSocketMessage.Close(1000));
 
