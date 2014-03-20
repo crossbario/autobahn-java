@@ -50,7 +50,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'AutobahnAndroid'
-copyright = u'2014, Tavendo GmbH'
+copyright = u'2011-2014 <a href="http://tavendo.com">Tavendo GmbH</a>'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -91,7 +91,9 @@ exclude_patterns = ['_build']
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+#pygments_style = 'sphinx'
+pygments_style = 'flask_theme_support.FlaskyStyle'
+
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
@@ -104,7 +106,11 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
+#html_theme = 'default'
+sys.path.append(os.path.abspath('_themes'))
+html_theme_path = ['_themes']
+html_theme = 'kr'
+
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -150,6 +156,12 @@ html_static_path = ['_static']
 
 # Custom sidebar templates, maps document names to template names.
 #html_sidebars = {}
+
+html_sidebars = {
+    'index':    ['side-primary.html', 'searchbox.html'],
+    '**':       ['side-secondary.html', 'localtoc.html',
+                 'relations.html', 'searchbox.html']
+}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
@@ -266,3 +278,9 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'http://docs.python.org/': None}
+
+javadoc_url_map = {
+    'com.netflix.curator' : ('http://netflix.github.com/curator/doc', 'javadoc'),
+    'org.springframework' : ('http://static.springsource.org/spring/docs/3.1.x/javadoc-api/', 'javadoc'),
+    'org.springframework.data.redis' : ('http://static.springsource.org/spring-data/data-redis/docs/current/api/', 'javadoc')
+}
