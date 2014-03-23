@@ -158,9 +158,9 @@ html_static_path = ['_static']
 #html_sidebars = {}
 
 html_sidebars = {
-    'index':    ['side-primary.html', 'searchbox.html'],
-    '**':       ['side-secondary.html', 'localtoc.html',
-                 'relations.html', 'searchbox.html']
+    # 'index':    ['side-primary.html', 'searchbox.html'],
+    '**':       ['side-secondary.html', 'stay_informed.html', 'sidetoc.html',
+                 'previous_next.html', 'searchbox.html' ]
 }
 
 # Additional templates that should be rendered to pages, maps page names to
@@ -284,3 +284,16 @@ javadoc_url_map = {
     'org.springframework' : ('http://static.springsource.org/spring/docs/3.1.x/javadoc-api/', 'javadoc'),
     'org.springframework.data.redis' : ('http://static.springsource.org/spring-data/data-redis/docs/current/api/', 'javadoc')
 }
+
+
+
+rst_epilog = """
+.. |ab| replace:: **Autobahn**\|Android
+"""
+
+rst_prolog = """
+.. container:: topnav
+
+   :doc:`Overview </index>` :doc:`Getting Started </gettingstarted>`  :doc:`/examples` :doc:`API Reference </_gen/packages>`
+
+"""
