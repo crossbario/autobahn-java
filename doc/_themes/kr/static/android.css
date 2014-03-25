@@ -10,6 +10,7 @@
    padding: 6px 6px 0;
    position: relative;
    width: 100%;
+   font-size: 1em;
 }
 
 dl.constructor,
@@ -35,4 +36,11 @@ dl.type {
 
 dl.type > dd {
    color: #3e4349;
+}
+
+
+.legacynotice {
+   border: 1px solid rgb(248, 139, 0);
+   background-color: #FFD1A0;
+   padding: 1em;
 }

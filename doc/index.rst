@@ -19,6 +19,12 @@
 
 for creating native mobile WebSocket/WAMP clients.
 
+WebSocket allows `bidirectional real-time messaging on the Web <http://tavendo.com/blog/post/websocket-why-what-can-i-use-it/>`_.
+
+WAMP adds asynchronous **Remote Procedure Calls** and **Publish & Subscribe** for applications in *one* protocol.
+
+WAMP is ideal for distributed, multi-client and server applications, such as multi-user database-drive business applications, sensor networks (IoT), instant messaging or MMOGs (massively multi-player online games) .
+
 
 WebSocket
 ---------
@@ -173,7 +179,6 @@ If you like, :doc:`get started <gettingstarted>`, check out the :doc:`examples` 
    :maxdepth: 2
    :hidden:
 
-   index
    gettingstarted
    examples
    _gen/packages

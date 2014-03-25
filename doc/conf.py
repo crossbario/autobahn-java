@@ -297,6 +297,6 @@ rst_epilog = """
 rst_prolog = """
 .. container:: topnav
 
-   :doc:`Overview </index>` :doc:`Getting Started </gettingstarted>`  :doc:`/examples` :doc:`API Reference </_gen/packages>`
+   :doc:`Overview </index>` :doc:`Getting Started </gettingstarted>`  :doc:`/examples` :doc:`API Reference </_gen/packages>` :doc:`/table_of_contents`
 
 """
