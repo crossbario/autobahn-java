@@ -1,0 +1,1041 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"po",
+				"postMessage"
+			],
+			[
+				"text",
+				"text-align"
+			],
+			[
+				"state",
+				"stateObj"
+			],
+			[
+				"prev",
+				"prevState"
+			],
+			[
+				"pop",
+				"popevent"
+			],
+			[
+				"currently",
+				"currentlySelected"
+			],
+			[
+				"new",
+				"newUrlPart"
+			],
+			[
+				"histor",
+				"historyCounter"
+			],
+			[
+				"sta",
+				"stateObj"
+			],
+			[
+				"add",
+				"addData"
+			],
+			[
+				"cre",
+				"createDisplayedTree"
+			],
+			[
+				"tree",
+				"treeFile"
+			],
+			[
+				"sna",
+				"snapshot"
+			],
+			[
+				"o",
+				"observableArray"
+			],
+			[
+				"snap",
+				"snapshots"
+			],
+			[
+				"obse",
+				"observableArray"
+			],
+			[
+				"observal",
+				"observableArray"
+			],
+			[
+				"fa",
+				"fakeData"
+			],
+			[
+				"map",
+				"mapIds"
+			],
+			[
+				"test",
+				"testString"
+			],
+			[
+				"displayed",
+				"displayedTree"
+			],
+			[
+				"currentSnap",
+				"currentSnapshotList"
+			],
+			[
+				"ids",
+				"idsToFullData"
+			],
+			[
+				"curre",
+				"currentlySelected2"
+			],
+			[
+				"ob",
+				"observableArray"
+			],
+			[
+				"update",
+				"updatePane"
+			],
+			[
+				"sw",
+				"switchPane"
+			],
+			[
+				"previ",
+				"previouslySelected"
+			],
+			[
+				"currentl",
+				"currentlySelected"
+			],
+			[
+				"c",
+				"currentlySelected"
+			],
+			[
+				"inl",
+				"inline-block"
+			],
+			[
+				"pos",
+				"position"
+			],
+			[
+				"current",
+				"currentlySelected"
+			],
+			[
+				"full",
+				"fullData"
+			],
+			[
+				"obser",
+				"observable"
+			],
+			[
+				"ober",
+				"observableArray"
+			],
+			[
+				"observable",
+				"observableArray"
+			],
+			[
+				"sc",
+				"screenResizeButton"
+			],
+			[
+				"con",
+				"contentRight"
+			],
+			[
+				"font-",
+				"font-style"
+			],
+			[
+				"has",
+				"hashParts"
+			],
+			[
+				"windo",
+				"windowUrl"
+			],
+			[
+				"pres",
+				"presenterAdminTabs"
+			],
+			[
+				"to",
+				"topswitchTarget"
+			],
+			[
+				"swit",
+				"switchTarget"
+			],
+			[
+				"switchTar",
+				"switchTarget"
+			],
+			[
+				"swi",
+				"switchTarget"
+			],
+			[
+				"topswitcht",
+				"topswitchTarget"
+			],
+			[
+				"hash",
+				"hashParts"
+			],
+			[
+				"swith",
+				"switchTargets"
+			],
+			[
+				"switch",
+				"switchTargets"
+			],
+			[
+				"top",
+				"topswitchTargets"
+			],
+			[
+				"curr",
+				"currentSoftwareVersion"
+			],
+			[
+				"form",
+				"formLabels_3"
+			],
+			[
+				"refre",
+				"refreshLabels"
+			],
+			[
+				"back",
+				"background-color"
+			],
+			[
+				"background",
+				"background-color"
+			],
+			[
+				"font",
+				"font-size"
+			],
+			[
+				"fon",
+				"font-size"
+			],
+			[
+				"i",
+				"italic"
+			],
+			[
+				"demo",
+				"demoUrl"
+			],
+			[
+				"tex",
+				"text-align"
+			],
+			[
+				"text-",
+				"text-decoration"
+			],
+			[
+				"dash",
+				"dashboardContent"
+			],
+			[
+				"das",
+				"dashboardContent"
+			],
+			[
+				"in",
+				"inline-block"
+			],
+			[
+				"connect",
+				"connectAtts"
+			],
+			[
+				"nva",
+				"navPanel"
+			],
+			[
+				"set",
+				"setTimeout"
+			],
+			[
+				"ne",
+				"newId"
+			],
+			[
+				"ui-",
+				"ui-btn-active"
+			],
+			[
+				"check",
+				"checkbox"
+			],
+			[
+				"un",
+				"unSetPateAndPanel"
+			],
+			[
+				"se",
+				"setTimeout"
+			],
+			[
+				"nav",
+				"navPanel"
+			],
+			[
+				"ui",
+				"ui-btn-active"
+			],
+			[
+				"pre",
+				"previousId"
+			],
+			[
+				"cur",
+				"cursor"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "doc/index.rst",
+			"settings":
+			{
+				"buffer_size": 5925,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "doc/gettingstarted.rst",
+			"settings":
+			{
+				"buffer_size": 4646,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "doc/examples.rst",
+			"settings":
+			{
+				"buffer_size": 1323,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "doc/Makefile",
+			"settings":
+			{
+				"buffer_size": 6892,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "doc/_gen/de/tavendo/autobahn/PrefixMap.rst",
+			"settings":
+			{
+				"buffer_size": 2138,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "doc/_themes/kr/static/autobahn.css",
+			"settings":
+			{
+				"buffer_size": 726,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "doc/conf.py",
+			"settings":
+			{
+				"buffer_size": 9649,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/C/Users/AG/scm/Autobahn/AutobahnJS/doc/index.rst",
+			"settings":
+			{
+				"buffer_size": 4892,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "doc/_templates/side-secondary.html",
+			"settings":
+			{
+				"buffer_size": 1130,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "doc/table_of_contents.rst",
+			"settings":
+			{
+				"buffer_size": 147,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/C/Users/AG/scm/snippets/sphinx/cheatsheet.rst",
+			"settings":
+			{
+				"buffer_size": 3542,
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "Packages/JSHint/JSHint.sublime-build",
+	"command_palette":
+	{
+		"height": 311.0,
+		"selected_items":
+		[
+			[
+				"Package Control: ",
+				"Package Control: List Packages"
+			],
+			[
+				"Package Control: in",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 512.0
+	},
+	"console":
+	{
+		"height": 125.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/README.md",
+		"/C/Users/AG/scm/Autobahn/AutobahnPython/doc/README.md",
+		"/C/Users/AG/scm/Autobahn/AutobahnPython/doc/index.rst",
+		"/C/Users/AG/scm/Autobahn/AutobahnPython/examples/twisted/wamp/basic/pubsub/basic/backend.html",
+		"/C/Users/AG/scm/Autobahn/AutobahnPython/examples/twisted/wamp/basic/pubsub/basic/frontend.html",
+		"/C/Users/AG/scm/Autobahn/AutobahnPython/examples/twisted/wamp/basic/pubsub/basic/backend.js",
+		"/C/Users/AG/scm/Autobahn/AutobahnPython/examples/twisted/wamp/basic/pubsub/basic/frontend.js",
+		"/C/Users/AG/scm/Autobahn/AutobahnPython/examples/twisted/wamp/basic/pubsub/basic/frontend.py",
+		"/C/Users/AG/scm/Autobahn/AutobahnPython/examples/twisted/wamp/basic/pubsub/basic/backend.py",
+		"/C/Users/AG/scm/scratchbox/test_cases/shared_webworkers/page_02.html",
+		"/C/Users/AG/scm/scratchbox/test_cases/shared_webworkers/worker.js",
+		"/C/Users/AG/scm/Tavendo/community/webpage/website/deps/worker.js",
+		"/C/Users/AG/scm/scratchbox/test_cases/shared_webworkers/page_01.html",
+		"/C/Users/AG/scm/scratchbox/test_cases/shared_webworkers/sworker.js",
+		"/C/Users/AG/scm/agscratchbox/websocket/shared_webworker/worker.js",
+		"/C/Users/AG/scm/agscratchbox/websocket/shared_webworker/page_02.html",
+		"/C/Users/AG/scm/agscratchbox/websocket/shared_webworker/page_01.html",
+		"/C/Users/AG/scm/Autobahn/AutobahnPython/examples/twisted/wamp/basic/session/series/frontend.py",
+		"/C/Users/AG/scm/Autobahn/AutobahnPython/examples/twisted/wamp/basic/session/series/backend.py",
+		"/C/Users/AG/scm/Autobahn/AutobahnPython/examples/twisted/wamp/basic/pubsub/basic/__init__.py",
+		"/C/Users/AG/scm/Autobahn/Wamp/website/wampws/templates/page_t_implementations.html",
+		"/C/Users/AG/scm/Autobahn/wamp/website/wampws/templates/page_t_implementations.html",
+		"/C/Users/AG/scm/Autobahn/wamp/website/wampws/__init__.py",
+		"/C/Users/AG/scm/Autobahn/wamp/website/wampws/templates/layout_t.html",
+		"/C/Users/AG/scm/Autobahn/wamp/website/wampws/templates/page_t_home.html",
+		"/C/Users/AG/scm/Autobahn/wamp/website/wampws/templates/page_t_impressum.html",
+		"/C/Users/AG/scm/sandbox/README.md",
+		"/C/Users/AG/scm/AutobahnWebsite/website/autobahnws/static/css/layout_t.css",
+		"/C/Users/AG/scm/AutobahnWebsite/website/autobahnws/static/css/page_t_home.css",
+		"/C/Users/AG/scm/AutobahnWebsite/website/autobahnws/templates/page_t_home.html",
+		"/C/Users/AG/scm/WebMQCodeLab/web/css/codechat.css",
+		"/C/Users/AG/scm/showroomdummy/website/showroomdummycom/templates/index.html",
+		"/C/Users/AG/.boto",
+		"/C/Users/AG/scm/AutobahnWebsite/website/autobahnws/static/js/page_t_home.js",
+		"/C/Users/AG/scm/WebMQDemo/web/demo/chat/js/chat.js",
+		"/C/Users/AG/scm/WebMQDemo/web/demo/chat/index.html",
+		"/C/Users/AG/scm/WebMQDemo/web/demo/notification/js/notification.js",
+		"/C/Users/AG/scm/WebMQDemo/web/demo/notification/index.html",
+		"/C/Users/AG/scm/WebMQDemo/webmqdemo/web/demo/notification/index.html",
+		"/C/Users/AG/scm/wwwtavendo/website/tavendo/templates/layout_tp.html",
+		"/C/Users/AG/scm/sixtdemo/js/sixtcounter.js",
+		"/C/Users/AG/scm/sixtdemo/workflow/css/workflow.css",
+		"/C/Users/AG/scm/sixtdemo/workflow/js/workflow.js",
+		"/C/Users/AG/scm/sixtdemo/workflow/index.html",
+		"/C/Users/AG/scm/sixtdemo/workflow/js/purchase.js",
+		"/C/Users/AG/scm/sixtdemo/workflow/js/products.js",
+		"/C/Users/AG/scm/sixtdemo/workflow/js/credits.js",
+		"/C/Users/AG/scm/sixtdemo/workflow/js/main.js",
+		"/C/Users/AG/scm/sixtdemo/workflow/js/knockout_pauseablecomputed.js",
+		"/C/Users/AG/scm/sixtdemo/workflow/js/pauseablecomputed.js",
+		"/C/Users/AG/scm/sixtdemo/work/index_old.html",
+		"/C/Users/AG/scm/sixtdemo/js/jquery.min.js",
+		"/C/Users/AG/scm/sixtdemo/index.html",
+		"/C/Users/AG/scm/sixtdemo/sixtdemo/index.html",
+		"/C/Users/AG/scm/sixtdemo/sixtdemo/js/sixtdemo.js",
+		"/C/Users/AG/scm/WebMQCodeLab/web/js/codechat.js",
+		"/C/Users/AG/scm/WebMQControlCenter/web/js/presenter/presenter_oracleconnect.js",
+		"/C/Users/AG/scm/WebMQManual/manual/administration/application/troubleshooting.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/administration/application/index.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/administration/system/webserver.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/administration/system/websocket.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/development/codelab/introduction.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/development/codelab/chat.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/development/codelab/sandbox.rst",
+		"/C/Users/AG/scm/WebMQCodeLab/web/js/util.js",
+		"/C/Users/AG/scm/WebMQControlCenter/web/js/main.js",
+		"/C/Users/AG/scm/WebMQManual/manual/cheatsheet.rst",
+		"/C/Users/AG/scm/WebMQCodeLab/sql/install.sql",
+		"/C/Users/AG/scm/WebMQCodeLab/sql/codechat.sql",
+		"/C/Users/AG/scm/WebMQCodeLab/sql/pkg_codechat_spec.sql",
+		"/C/Users/AG/scm/WebMQCodeLab/sql/pkg_codechat_body.sql",
+		"/C/Users/AG/scm/WebMQCodeLab/sql/uninstall.sql",
+		"/C/Users/AG/scm/WebMQCodeLab/sql/pkg_codechat_register.sql",
+		"/C/Users/AG/scm/WebMQControlCenter/web/js/view/view_oracleconnect.js",
+		"/C/Users/AG/scm/WebMQControlCenter/web/js/view/view_oraclepush.js",
+		"/C/Users/AG/scm/WebMQControlCenter/web/js/localization.js",
+		"/C/Users/AG/scm/WebMQControlCenter/web/js/presenter/presenter_oraclepush.js",
+		"/C/Users/AG/scm/WebMQControlCenter/web/js/presenter/presenter_form_list_dbconnect.js",
+		"/C/Users/AG/scm/WebMQManual/manual/administration/application/client.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/administration/application/oracle.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/administration/application/overview.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/administration/application/rest.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/_templates/layout.html",
+		"/C/Users/AG/scm/WebMQManual/manual/_static/styles.css",
+		"/C/Users/AG/scm/WebMQManual/manual/conf.py",
+		"/C/Users/AG/scm/WebMQManual/manual/administration/application/application.rst",
+		"/C/Users/AG/scm/WebMQControlCenter/web/js/presenter/presenter_admin_tabs.js",
+		"/C/Users/AG/scm/WebMQControlCenter/web/js/view/view_admin_tabs.js",
+		"/C/Users/AG/scm/WebMQControlCenter/web/js/presenter/presenter_updatesoftware.js",
+		"/C/Users/AG/scm/WebMQControlCenter/web/index.html",
+		"/C/Users/AG/scm/WebMQControlCenter/web/js/view/view_updatesoftware.js",
+		"/C/Users/AG/scm/WebMQControlCenter/web/css/main.css",
+		"/C/Users/AG/scm/WebMQControlCenter/SConstruct",
+		"/C/Users/AG/scm/WebMQControlCenter/web/js/logdisplay.js",
+		"/C/Users/AG/scm/WebMQControlCenter/web/logdisplay.html",
+		"/C/Users/AG/scm/WebMQControlCenter/webmqcontrolcenter/web/logdisplay.html",
+		"/C/Users/AG/scm/WebMQControlCenter/setup.py",
+		"/C/Users/AG/scm/WebMQControlCenter/README.md",
+		"/C/Users/AG/scm/WebMQControlCenter/MANIFEST.in",
+		"/C/Users/AG/scm/WebMQControlCenter/Makefile",
+		"/C/Users/AG/scm/WebMQManual/manual/administration/system/update.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/gettingstarted/index.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/administration/system/keys.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/administration/system/network.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/administration/system/overview.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/administration/system/secure.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/administration/system/ports.rst",
+		"/C/Users/AG/scm/WebMQManual/attic/templates/gettingstarted/page_c_firstrun.html",
+		"/C/Users/AG/scm/WebMQManual/manual/gettingstarted/exe.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/gettingstarted/virtualbox.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/gettingstarted/vmware.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/gettingstarted/firstrun.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/gettingstarted/setup_appliance.rst",
+		"/C/Users/AG/scm/WebMQManual/attic/templates/gettingstarted/page_c_vmware.html",
+		"/C/Users/AG/scm/WebMQManual/attic/__init__.py",
+		"/C/Users/AG/scm/WebMQManual/manual/development/html5/pubsub.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/development/html5/api.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/development/html5/setup.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/development/oracle/sessions.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/development/oracle/api.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/development/oracle/index.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/development/oracle/overview.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/development/oracle/pubsub.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/development/oracle/rpc.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/development/html5/connect.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/development/html5/frameworks.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/development/html5/index.rst",
+		"/C/Users/AG/scm/WebMQManual/manual/development/html5/overview.rst"
+	],
+	"find":
+	{
+		"height": 34.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+			"C:\\Users\\AG\\scm\\wamp\\website",
+			"C:\\Users\\AG\\scm\\WebMQControlCenter\\web",
+			"C:\\Users\\AG\\scm\\WebMQManual\\manual",
+			"C:\\Users\\AG\\scm\\WebMQManual",
+			"C:\\Users\\AG\\scm\\WebMQ\\webmq\\webmq\\static",
+			"C:\\Users\\AG\\scm\\WebMQ",
+			"C:\\Users\\AG\\scm\\WebMQ\\webmq\\webmq",
+			"C:\\Users\\AG\\scm\\WebMQ\\webmq\\webmq\\static",
+			"C:\\Users\\AG\\scm\\WebMQ\\webmq\\webmq\\static\\js"
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"Web Application Messaging Protocol (WAMP)",
+			"Autobahn|Android",
+			"---",
+			"/static/deps/syntaxhighlighter/styles/shCore.css",
+			"center",
+			"h1",
+			"tdwrapper",
+			");\n",
+			"linear",
+			"height",
+			"foldTreeLevel",
+			"expandTreeLevel",
+			"chevron-right",
+			"btn-sm",
+			"btn-lg",
+			"self.projects",
+			"projects",
+			"id",
+			"currentlySelected.type",
+			"currentlySelected.id",
+			"currentlySelected",
+			"title",
+			"mapPusherState",
+			"mappusherstate",
+			"Administration Console",
+			"virtualbox",
+			"exe_run_02",
+			"call",
+			"980",
+			"@media(min-width:",
+			"@media (min-width:",
+			"980",
+			"navbarextra ",
+			"( *",
+			"enable services",
+			"sess.",
+			"sess",
+			"sess.",
+			".. rubric:: ",
+			"logo",
+			"navbar_version",
+			"\"],",
+			".navbar-brand",
+			"none",
+			"col-sm",
+			"buttonCenter",
+			"h1",
+			"layout",
+			"oraConnectUri",
+			"not serializable",
+			"'utf8'",
+			"errorDetails",
+			"utf8",
+			"invalid object for errorDetails",
+			"eula_trial.txt",
+			"changePage",
+			"'",
+			"enhanceWithin"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"|ab|",
+			"\""
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 2,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "doc/index.rst",
+					"settings":
+					{
+						"buffer_size": 5925,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5810,
+								5810
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/RestructuredText/reStructuredText.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 2845.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "doc/gettingstarted.rst",
+					"settings":
+					{
+						"buffer_size": 4646,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4588,
+								4588
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/RestructuredText/reStructuredText.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 2700.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "doc/examples.rst",
+					"settings":
+					{
+						"buffer_size": 1323,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1037,
+								1037
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/RestructuredText/reStructuredText.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "doc/Makefile",
+					"settings":
+					{
+						"buffer_size": 6892,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2609,
+								2602
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Makefile/Makefile.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 706.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "doc/_gen/de/tavendo/autobahn/PrefixMap.rst",
+					"settings":
+					{
+						"buffer_size": 2138,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3,
+								3
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/RestructuredText/reStructuredText.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 5,
+					"file": "doc/_themes/kr/static/autobahn.css",
+					"settings":
+					{
+						"buffer_size": 726,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								721,
+								721
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/CSS/CSS.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "doc/conf.py",
+					"settings":
+					{
+						"buffer_size": 9649,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1737,
+								1737
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 808.0,
+						"translation.y": 216.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "/C/Users/AG/scm/Autobahn/AutobahnJS/doc/index.rst",
+					"settings":
+					{
+						"buffer_size": 4892,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1810,
+								1810
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/RestructuredText/reStructuredText.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 2267.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "doc/_templates/side-secondary.html",
+					"settings":
+					{
+						"buffer_size": 1130,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								716,
+								716
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "doc/table_of_contents.rst",
+					"settings":
+					{
+						"buffer_size": 147,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								129,
+								129
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/RestructuredText/reStructuredText.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "/C/Users/AG/scm/snippets/sphinx/cheatsheet.rst",
+					"settings":
+					{
+						"buffer_size": 3542,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2366,
+								2366
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/RestructuredText/reStructuredText.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 2052.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 34.0
+	},
+	"input":
+	{
+		"height": 34.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			0.27328990228,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 544.0
+	},
+	"replace":
+	{
+		"height": 62.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 323.0,
+	"status_bar_visible": true
+}

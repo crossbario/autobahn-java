@@ -1,0 +1,38 @@
+#constructors h3,
+#methods h3,
+#fields h3 {
+   display: inline-block;
+   margin: 6px 0 0 0;
+   line-height: normal;
+   background: #f0f0f0;
+   color: #2980b9;
+   border-left: solid 3px #ccc;
+   padding: 6px 6px 0;
+   position: relative;
+   width: 100%;
+}
+
+dl.constructor,
+dl.method,
+dl.field {
+   /*background: #f0f0f0;*/
+   margin: 0 0 6px 0;
+   padding: 0 6px 6px;
+   width: 100%;
+}
+
+dl.type {
+   display: inline-block;
+   margin: 6px 0;
+   line-height: normal;
+   background: #e7f2fa;
+   color: #2980b9;
+   border-top: solid 3px #6ab0de;
+   padding: 6px;
+   position: relative;
+   width: 100%;
+}
+
+dl.type > dd {
+   color: #3e4349;
+}
