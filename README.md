@@ -15,6 +15,113 @@ WAMP is ideal for distributed, multi-client and server applications, such as mul
 
 > Note: **Autobahn**|Android implements version 1 of WAMP. Current versions of the other Autobahn project libraries already provide implementations of version 2 of the protocol, with substantially expanded capabilities. An update to **Autobahn**|Android is under development.
 
+## Show me some code
+
+Here is a simple WebSocket echo client:
+
+```java
+private final WebSocketConnection mConnection = new WebSocketConnection();
+
+private void start() {
+
+   final String wsuri = "ws://localhost:9000";
+
+   try {
+      mConnection.connect(wsuri, new WebSocketHandler() {
+
+         @Override
+         public void onOpen() {
+            Log.d(TAG, "Status: Connected to " + wsuri);
+            mConnection.sendTextMessage("Hello, world!");
+         }
+
+         @Override
+         public void onTextMessage(String payload) {
+            Log.d(TAG, "Got echo: " + payload);
+         }
+
+         @Override
+         public void onClose(int code, String reason) {
+            Log.d(TAG, "Connection lost.");
+         }
+      });
+   } catch (WebSocketException e) {
+
+      Log.d(TAG, e.toString());
+   }
+}
+```
+
+... and a simple WAMP v1 client calling a RPC endpoint and subscribitng to a PubSub topic:
+
+```java
+private final AutobahnConnection mConnection = new AutobahnConnection();
+
+private void start() {
+
+   final String wsuri = "ws://localhost:9000";
+
+   mConnection.connect(wsuri, new Autobahn.SessionHandler() {
+
+      @Override
+      public void onOpen() {
+         testRpc();
+         testPubSub();
+      }
+
+      @Override
+      public void onClose(int code, String reason) {
+      }
+   });
+}
+
+private void testRpc() {
+
+   mConnection.call("http://example.com/calc#add",
+                    Integer.class,
+                    new Autobahn.CallHandler() {
+
+                        @Override
+                        public void onResult(Object result) {
+                           int res = (Integer) result;
+                           Log.d(TAG, "calc:add result = " + res);
+                        }
+
+                        @Override
+                        public void onError(String error, String info) {
+                        }
+                    },
+                    23, 55
+   );
+}
+
+private static class MyEvent1 {
+   public int num;
+   public String name;
+   public boolean flag;
+   public Date created;
+   public double rand;
+}
+
+private void testPubSub() {
+
+   mConnection.subscribe("http://example.com/events#myevent1",
+                         MyEvent1.class,
+                         new Autobahn.EventHandler() {
+
+                            @Override
+                            public void onEvent(String topic, Object event) {
+
+                               MyEvent1 evt = (MyEvent1) event;
+                            }
+                         }
+   );
+}
+```
+
+
+
+
 ## Features
 
 * library for WebSocket and WAMP clients
@@ -33,9 +140,9 @@ You can use AutobahnAndroid to create native Android apps talking to WebSocket s
 
 For more information, take a look at the [project documentation](http://autobahn.ws/android). This provides:
 
-* [a quick 'Getting Started'](http://autobahn.ws/android/gettingstarted)
-* [a list of all examples in this repo](http://autobahn.ws/android/examples)
-* [a full API reference](http://autobahn.ws/python/reference)
+* [a quick 'Getting Started'](http://autobahn.ws/android/gettingstarted.html)
+* [a list of all examples in this repo](http://autobahn.ws/android/examples.html)
+* [a full API reference](http://autobahn.ws/python/packages.html)
 
 
 ## Get in touch
