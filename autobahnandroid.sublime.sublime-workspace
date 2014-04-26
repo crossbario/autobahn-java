@@ -324,81 +324,10 @@
 	"buffers":
 	[
 		{
-			"file": "doc/index.rst",
+			"file": "doc/_static/communitywidget.css",
 			"settings":
 			{
-				"buffer_size": 6379,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "doc/_themes/kr/layout.html",
-			"settings":
-			{
-				"buffer_size": 797,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"settings":
-			{
-				"buffer_size": 0,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "autobahnandroid.sublime.project",
-			"settings":
-			{
-				"buffer_size": 530,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "doc/_templates/side-secondary.html",
-			"settings":
-			{
-				"buffer_size": 1151,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "README.md",
-			"settings":
-			{
-				"buffer_size": 1998,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "doc/_themes/kr/static/android.css",
-			"settings":
-			{
-				"buffer_size": 761,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "doc/_themes/kr/static/autobahn.css",
-			"settings":
-			{
-				"buffer_size": 658,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "doc/conf.py",
-			"settings":
-			{
-				"buffer_size": 9788,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "doc/table_of_contents.rst",
-			"settings":
-			{
-				"buffer_size": 147,
+				"buffer_size": 454,
 				"line_ending": "Windows"
 			}
 		}
@@ -435,14 +364,21 @@
 	},
 	"file_history":
 	[
+		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_templates/layout.html",
+		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/README.md",
+		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_templates/side-secondary.html",
+		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/index.rst",
+		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_themes/kr/layout.html",
+		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/autobahnandroid.sublime.project",
+		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/table_of_contents.rst",
+		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/conf.py",
+		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_themes/kr/static/autobahn.css",
+		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_themes/kr/static/android.css",
 		"/C/Users/AG/scm/Autobahn/AutobahnCpp/autobahncpp.sublime.project",
 		"/C/Users/AG/scm/snippets/sphinx/cheatsheet.rst",
-		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/table_of_contents.rst",
-		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_templates/side-secondary.html",
 		"/C/Users/AG/scm/Autobahn/AutobahnJS/doc/index.rst",
 		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_gen/de/tavendo/autobahn/PrefixMap.rst",
 		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/Makefile",
-		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/index.rst",
 		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/gettingstarted.rst",
 		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/examples.rst",
 		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/README.md",
@@ -555,14 +491,7 @@
 		"/C/Users/AG/scm/WebMQManual/attic/templates/gettingstarted/page_c_firstrun.html",
 		"/C/Users/AG/scm/WebMQManual/manual/gettingstarted/exe.rst",
 		"/C/Users/AG/scm/WebMQManual/manual/gettingstarted/virtualbox.rst",
-		"/C/Users/AG/scm/WebMQManual/manual/gettingstarted/vmware.rst",
-		"/C/Users/AG/scm/WebMQManual/manual/gettingstarted/firstrun.rst",
-		"/C/Users/AG/scm/WebMQManual/manual/gettingstarted/setup_appliance.rst",
-		"/C/Users/AG/scm/WebMQManual/attic/templates/gettingstarted/page_c_vmware.html",
-		"/C/Users/AG/scm/WebMQManual/attic/__init__.py",
-		"/C/Users/AG/scm/WebMQManual/manual/development/html5/pubsub.rst",
-		"/C/Users/AG/scm/WebMQManual/manual/development/html5/api.rst",
-		"/C/Users/AG/scm/WebMQManual/manual/development/html5/setup.rst"
+		"/C/Users/AG/scm/WebMQManual/manual/gettingstarted/vmware.rst"
 	],
 	"find":
 	{
@@ -667,267 +596,28 @@
 	"groups":
 	[
 		{
-			"selected": 4,
+			"selected": 0,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "doc/index.rst",
+					"file": "doc/_static/communitywidget.css",
 					"settings":
 					{
-						"buffer_size": 6379,
+						"buffer_size": 454,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								800,
-								800
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/RestructuredText/reStructuredText.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "doc/_themes/kr/layout.html",
-					"settings":
-					{
-						"buffer_size": 797,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								512,
-								512
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/HTML/HTML.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"settings":
-					{
-						"buffer_size": 0,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "autobahnandroid.sublime.project",
-					"settings":
-					{
-						"buffer_size": 530,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								530
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "doc/_templates/side-secondary.html",
-					"settings":
-					{
-						"buffer_size": 1151,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								30,
-								30
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/HTML/HTML.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				}
-			]
-		},
-		{
-			"selected": 4,
-			"sheets":
-			[
-				{
-					"buffer": 5,
-					"file": "README.md",
-					"settings":
-					{
-						"buffer_size": 1998,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								552,
-								552
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Markdown/Markdown.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "doc/_themes/kr/static/android.css",
-					"settings":
-					{
-						"buffer_size": 761,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								271,
-								271
+								416,
+								416
 							]
 						],
 						"settings":
 						{
 							"syntax": "Packages/CSS/CSS.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 7,
-					"file": "doc/_themes/kr/static/autobahn.css",
-					"settings":
-					{
-						"buffer_size": 658,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/CSS/CSS.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 8,
-					"file": "doc/conf.py",
-					"settings":
-					{
-						"buffer_size": 9788,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								9764,
-								9764
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage"
-						},
-						"translation.x": 817.0,
-						"translation.y": 5004.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 9,
-					"file": "doc/table_of_contents.rst",
-					"settings":
-					{
-						"buffer_size": 147,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/RestructuredText/reStructuredText.tmLanguage"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -955,18 +645,11 @@
 				0,
 				1,
 				1
-			],
-			[
-				1,
-				0,
-				2,
-				1
 			]
 		],
 		"cols":
 		[
 			0.0,
-			0.535179153094,
 			1.0
 		],
 		"rows":
