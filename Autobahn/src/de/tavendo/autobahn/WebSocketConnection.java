@@ -256,16 +256,16 @@ public class WebSocketConnection implements WebSocket {
             mWsHost = mWsUri.getHost();
          }
 
-         if (mWsUri.getPath() == null || mWsUri.getPath().equals("")) {
+         if (mWsUri.getRawPath() == null || mWsUri.getRawPath().equals("")) {
             mWsPath = "/";
          } else {
-            mWsPath = mWsUri.getPath();
+            mWsPath = mWsUri.getRawPath();
          }
 
-         if (mWsUri.getQuery() == null || mWsUri.getQuery().equals("")) {
+         if (mWsUri.getRawQuery() == null || mWsUri.getRawQuery().equals("")) {
             mWsQuery = null;
          } else {
-            mWsQuery = mWsUri.getQuery();
+            mWsQuery = mWsUri.getRawQuery();
          }
 
       } catch (URISyntaxException e) {
