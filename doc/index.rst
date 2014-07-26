@@ -29,14 +29,14 @@ WAMP is ideal for distributed, multi-client and server applications, such as mul
 WebSocket
 ---------
 
- * supports WebSocket RFC6455, Draft Hybi-10+ and WAMP v1
- * works on Android 2.2+
- * very good `standards conformance <http://autobahn.ws/testsuite/>`_
- * high-performance asynchronous design
- * easy to use API
- * seamless integration in Android UI apps
- * no (really none) network activity on UI thread
- * `Open-source <https://github.com/tavendo/AutobahnAndroid>`_ (Apache 2 license)
+* supports WebSocket RFC6455, Draft Hybi-10+ and WAMP v1
+* works on Android 2.2+
+* very good `standards conformance <http://autobahn.ws/testsuite/>`_
+* high-performance asynchronous design
+* easy to use API
+* seamless integration in Android UI apps
+* no (really none) network activity on UI thread
+* `Open-source <https://github.com/tavendo/AutobahnAndroid>`_ (Apache 2 license)
 
 You can use |ab| to create native Android apps talking to WebSocket servers or any `WAMP <http://wamp.ws/>`_ compatible server.
 
@@ -85,13 +85,13 @@ Web Application Messaging Protocol (WAMP)
 
 It features:
 
- * RPC and PubSub, fully asynchronous design
- * built on JSON and WebSockets
- * simple, efficient and open protocol
- * automatic mapping to user-defined POJOs
- * seamless integration in Android UI apps
- * Open-Source, licensed under the Apache 2.0 license
- * Call results and events which travel the wire as JSON payload are automatically converted and mapped to Java primitive types or user-defined POJOs (Plain-old Java Objects).
+* RPC and PubSub, fully asynchronous design
+* built on JSON and WebSockets
+* simple, efficient and open protocol
+* automatic mapping to user-defined POJOs
+* seamless integration in Android UI apps
+* Open-Source, licensed under the Apache 2.0 license
+* Call results and events which travel the wire as JSON payload are automatically converted and mapped to Java primitive types or user-defined POJOs (Plain-old Java Objects).
 
 The latter is a very convenient and powerful feature made possible by the use of Jackson, a high-performance JSON processor. This works even for container types, such as lists or maps over POJOs.
 
@@ -179,6 +179,7 @@ If you like, :doc:`get started <gettingstarted>`, check out the :doc:`examples` 
    :maxdepth: 2
    :hidden:
 
+   Home <self>
    gettingstarted
    examples
    _gen/packages

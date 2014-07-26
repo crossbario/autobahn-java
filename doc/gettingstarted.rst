@@ -12,9 +12,9 @@ Getting Started
 
 This short intro will get you started with |ab| in no time:
 
-   * Installation
-   * Your first Client
-   * Where to go now
+* Installation
+* Your first Client
+* Where to go now
 
 
 Installation
@@ -41,9 +41,9 @@ Add JARs to your project
 
 To use |ab| , you will need 3 JARs:
 
- * `AutobahnAndroid <https://autobahn.s3.amazonaws.com/android/autobahn-0.5.0.jar>`_
- * `Jackson Core <http://repository.codehaus.org/org/codehaus/jackson/jackson-core-asl/1.9.7/jackson-core-asl-1.9.7.jar>`_
- * `Jackson Mapper <http://repository.codehaus.org/org/codehaus/jackson/jackson-mapper-asl/1.9.7/jackson-mapper-asl-1.9.7.jar>`_
+* `AutobahnAndroid <https://autobahn.s3.amazonaws.com/android/autobahn-0.5.0.jar>`_
+* `Jackson Core <http://repository.codehaus.org/org/codehaus/jackson/jackson-core-asl/1.9.7/jackson-core-asl-1.9.7.jar>`_
+* `Jackson Mapper <http://repository.codehaus.org/org/codehaus/jackson/jackson-mapper-asl/1.9.7/jackson-mapper-asl-1.9.7.jar>`_
 
 You can also get a `complete bundle <https://autobahn.s3.amazonaws.com/android/autobahn-0.5.0.zip>`_ of AutobahnAndroid and Jackson JARs.
 

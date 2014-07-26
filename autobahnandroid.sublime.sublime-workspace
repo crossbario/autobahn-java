@@ -327,7 +327,23 @@
 			"file": "doc/_templates/layout.html",
 			"settings":
 			{
-				"buffer_size": 1242,
+				"buffer_size": 2608,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/C/Users/AG/scm/Autobahn/AutobahnJS/doc/conf.py",
+			"settings":
+			{
+				"buffer_size": 13196,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "doc/_templates/side-primary.html",
+			"settings":
+			{
+				"buffer_size": 1268,
 				"line_ending": "Windows"
 			}
 		},
@@ -335,7 +351,7 @@
 			"file": "doc/conf.py",
 			"settings":
 			{
-				"buffer_size": 10024,
+				"buffer_size": 13603,
 				"line_ending": "Windows"
 			}
 		}
@@ -604,6 +620,7 @@
 	"groups":
 	[
 		{
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -611,15 +628,67 @@
 					"file": "doc/_templates/layout.html",
 					"settings":
 					{
-						"buffer_size": 1242,
+						"buffer_size": 2608,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								930,
-								930
+								1718,
+								1718
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 90.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "/C/Users/AG/scm/Autobahn/AutobahnJS/doc/conf.py",
+					"settings":
+					{
+						"buffer_size": 13196,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								12489,
+								12545
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 5139.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "doc/_templates/side-primary.html",
+					"settings":
+					{
+						"buffer_size": 1268,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								918,
+								918
 							]
 						],
 						"settings":
@@ -639,19 +708,19 @@
 			"sheets":
 			[
 				{
-					"buffer": 1,
+					"buffer": 3,
 					"file": "doc/conf.py",
 					"settings":
 					{
-						"buffer_size": 10024,
+						"buffer_size": 13603,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								5348,
-								5348
+								13417,
+								13417
 							]
 						],
 						"settings":
@@ -659,7 +728,7 @@
 							"syntax": "Packages/Python/Python.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 1930.0,
+						"translation.y": 5258.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"

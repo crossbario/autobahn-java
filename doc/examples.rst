@@ -17,12 +17,12 @@ All tutorials and examples are hosted on `GitHub <https://github.com/tavendo/Aut
 WebSocket Programming
 ------------------------
 
-   * `Hello world: WebSocket Echo <https://github.com/tavendo/AutobahnAndroid/tree/master/Demo/EchoClient>`_
-   * `Broadcasting over WebSocket <https://github.com/tavendo/AutobahnAndroid/tree/master/Demo/BroadcastClient>`_
-   * `AutobahnTestsuite client <https://github.com/tavendo/AutobahnAndroid/tree/master/Demo/TestSuiteClient>`_
+* `Hello world: WebSocket Echo <https://github.com/tavendo/AutobahnAndroid/tree/master/Demo/EchoClient>`_
+* `Broadcasting over WebSocket <https://github.com/tavendo/AutobahnAndroid/tree/master/Demo/BroadcastClient>`_
+* `AutobahnTestsuite client <https://github.com/tavendo/AutobahnAndroid/tree/master/Demo/TestSuiteClient>`_
 
 WAMP Programming
 -------------------
 
-   * `Remote Procedure Calls with AutobahnAndroid <https://github.com/tavendo/AutobahnAndroid/tree/master/Demo/SimpleRpc>`_
-   * `Publish & Subscribe with AutobahnAndroid <https://github.com/tavendo/AutobahnAndroid/tree/master/Demo/SimplePubSub>`_
+* `Remote Procedure Calls with AutobahnAndroid <https://github.com/tavendo/AutobahnAndroid/tree/master/Demo/SimpleRpc>`_
+* `Publish & Subscribe with AutobahnAndroid <https://github.com/tavendo/AutobahnAndroid/tree/master/Demo/SimplePubSub>`_
