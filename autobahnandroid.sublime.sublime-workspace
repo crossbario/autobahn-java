@@ -324,10 +324,18 @@
 	"buffers":
 	[
 		{
-			"file": "doc/_static/communitywidget.css",
+			"file": "doc/_templates/layout.html",
 			"settings":
 			{
-				"buffer_size": 454,
+				"buffer_size": 1242,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "doc/conf.py",
+			"settings":
+			{
+				"buffer_size": 10024,
 				"line_ending": "Windows"
 			}
 		}
@@ -364,6 +372,7 @@
 	},
 	"file_history":
 	[
+		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_static/communitywidget.css",
 		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_templates/layout.html",
 		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/README.md",
 		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_templates/side-secondary.html",
@@ -490,8 +499,7 @@
 		"/C/Users/AG/scm/WebMQManual/manual/administration/system/ports.rst",
 		"/C/Users/AG/scm/WebMQManual/attic/templates/gettingstarted/page_c_firstrun.html",
 		"/C/Users/AG/scm/WebMQManual/manual/gettingstarted/exe.rst",
-		"/C/Users/AG/scm/WebMQManual/manual/gettingstarted/virtualbox.rst",
-		"/C/Users/AG/scm/WebMQManual/manual/gettingstarted/vmware.rst"
+		"/C/Users/AG/scm/WebMQManual/manual/gettingstarted/virtualbox.rst"
 	],
 	"find":
 	{
@@ -596,31 +604,62 @@
 	"groups":
 	[
 		{
-			"selected": 0,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "doc/_static/communitywidget.css",
+					"file": "doc/_templates/layout.html",
 					"settings":
 					{
-						"buffer_size": 454,
+						"buffer_size": 1242,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								416,
-								416
+								930,
+								930
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/CSS/CSS.tmLanguage"
+							"syntax": "Packages/HTML/HTML.tmLanguage"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 1,
+					"file": "doc/conf.py",
+					"settings":
+					{
+						"buffer_size": 10024,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5348,
+								5348
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 1930.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -645,11 +684,18 @@
 				0,
 				1,
 				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
 			]
 		],
 		"cols":
 		[
 			0.0,
+			0.5,
 			1.0
 		],
 		"rows":
