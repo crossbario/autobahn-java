@@ -324,18 +324,60 @@
 	"buffers":
 	[
 		{
-			"file": "doc/_templates/layout.html",
+			"file": "doc/README.md",
 			"settings":
 			{
-				"buffer_size": 2608,
+				"buffer_size": 1001,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "/C/Users/AG/scm/Autobahn/AutobahnJS/doc/conf.py",
+			"file": "doc/SConstruct",
 			"settings":
 			{
-				"buffer_size": 13196,
+				"buffer_size": 2404,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/C/Users/AG/scm/Autobahn/AutobahnPython/doc/conf.py",
+			"settings":
+			{
+				"buffer_size": 14083,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "doc/_templates/layout.html",
+			"settings":
+			{
+				"buffer_size": 2691,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "doc/examples.rst",
+			"settings":
+			{
+				"buffer_size": 1308,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "Searching 912 files for \"*.txt\"\n\n0 matches across 0 files\n",
+			"settings":
+			{
+				"buffer_size": 58,
+				"line_ending": "Windows",
+				"name": "Find Results",
+				"scratch": true
+			}
+		},
+		{
+			"file": "/C/Users/AG/scm/Autobahn/AutobahnPython/doc/SConstruct",
+			"settings":
+			{
+				"buffer_size": 2402,
 				"line_ending": "Windows"
 			}
 		},
@@ -343,7 +385,7 @@
 			"file": "doc/_templates/side-primary.html",
 			"settings":
 			{
-				"buffer_size": 1268,
+				"buffer_size": 1272,
 				"line_ending": "Windows"
 			}
 		},
@@ -351,7 +393,7 @@
 			"file": "doc/conf.py",
 			"settings":
 			{
-				"buffer_size": 13603,
+				"buffer_size": 13619,
 				"line_ending": "Windows"
 			}
 		}
@@ -388,15 +430,22 @@
 	},
 	"file_history":
 	[
-		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_static/communitywidget.css",
+		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_build/html/_sources/gettingstarted.txt",
+		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/gettingstarted.rst",
+		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_static/local.css",
+		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/examples.rst",
+		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/index.rst",
+		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_static/page.css",
+		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/conf.py",
+		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_templates/side-primary.html",
+		"/C/Users/AG/scm/Autobahn/AutobahnJS/doc/conf.py",
 		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_templates/layout.html",
+		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_static/communitywidget.css",
 		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/README.md",
 		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_templates/side-secondary.html",
-		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/index.rst",
 		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_themes/kr/layout.html",
 		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/autobahnandroid.sublime.project",
 		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/table_of_contents.rst",
-		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/conf.py",
 		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_themes/kr/static/autobahn.css",
 		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_themes/kr/static/android.css",
 		"/C/Users/AG/scm/Autobahn/AutobahnCpp/autobahncpp.sublime.project",
@@ -404,8 +453,6 @@
 		"/C/Users/AG/scm/Autobahn/AutobahnJS/doc/index.rst",
 		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/_gen/de/tavendo/autobahn/PrefixMap.rst",
 		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/Makefile",
-		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/gettingstarted.rst",
-		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/examples.rst",
 		"/C/Users/AG/scm/Autobahn/AutobahnAndroid/doc/README.md",
 		"/C/Users/AG/scm/Autobahn/AutobahnPython/doc/README.md",
 		"/C/Users/AG/scm/Autobahn/AutobahnPython/doc/index.rst",
@@ -510,12 +557,7 @@
 		"/C/Users/AG/scm/WebMQManual/manual/gettingstarted/index.rst",
 		"/C/Users/AG/scm/WebMQManual/manual/administration/system/keys.rst",
 		"/C/Users/AG/scm/WebMQManual/manual/administration/system/network.rst",
-		"/C/Users/AG/scm/WebMQManual/manual/administration/system/overview.rst",
-		"/C/Users/AG/scm/WebMQManual/manual/administration/system/secure.rst",
-		"/C/Users/AG/scm/WebMQManual/manual/administration/system/ports.rst",
-		"/C/Users/AG/scm/WebMQManual/attic/templates/gettingstarted/page_c_firstrun.html",
-		"/C/Users/AG/scm/WebMQManual/manual/gettingstarted/exe.rst",
-		"/C/Users/AG/scm/WebMQManual/manual/gettingstarted/virtualbox.rst"
+		"/C/Users/AG/scm/WebMQManual/manual/administration/system/overview.rst"
 	],
 	"find":
 	{
@@ -523,9 +565,10 @@
 	},
 	"find_in_files":
 	{
-		"height": 0.0,
+		"height": 90.0,
 		"where_history":
 		[
+			"C:\\Users\\AG\\scm\\Autobahn\\AutobahnAndroid\\doc",
 			"C:\\Users\\AG\\scm\\wamp\\website",
 			"C:\\Users\\AG\\scm\\WebMQControlCenter\\web",
 			"C:\\Users\\AG\\scm\\WebMQManual\\manual",
@@ -542,6 +585,8 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"*.txt",
+			".. image::",
 			"js",
 			"Web Application Messaging Protocol (WAMP)",
 			"Autobahn|Android",
@@ -620,49 +665,49 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 2,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "doc/_templates/layout.html",
+					"file": "doc/README.md",
 					"settings":
 					{
-						"buffer_size": 2608,
+						"buffer_size": 1001,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1718,
-								1718
+								0,
+								0
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/HTML/HTML.tmLanguage"
+							"syntax": "Packages/Markdown/Markdown.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 90.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "/C/Users/AG/scm/Autobahn/AutobahnJS/doc/conf.py",
+					"file": "doc/SConstruct",
 					"settings":
 					{
-						"buffer_size": 13196,
+						"buffer_size": 2404,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								12489,
-								12545
+								0,
+								0
 							]
 						],
 						"settings":
@@ -670,25 +715,57 @@
 							"syntax": "Packages/Python/Python.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 5139.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 2,
-					"file": "doc/_templates/side-primary.html",
+					"file": "/C/Users/AG/scm/Autobahn/AutobahnPython/doc/conf.py",
 					"settings":
 					{
-						"buffer_size": 1268,
+						"buffer_size": 14083,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								918,
-								918
+								1545,
+								1545
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 1710.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 5,
+			"sheets":
+			[
+				{
+					"buffer": 3,
+					"file": "doc/_templates/layout.html",
+					"settings":
+					{
+						"buffer_size": 2691,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								748,
+								748
 							]
 						],
 						"settings":
@@ -700,27 +777,79 @@
 						"zoom_level": 1.0
 					},
 					"type": "text"
-				}
-			]
-		},
-		{
-			"selected": 0,
-			"sheets":
-			[
+				},
 				{
-					"buffer": 3,
-					"file": "doc/conf.py",
+					"buffer": 4,
+					"file": "doc/examples.rst",
 					"settings":
 					{
-						"buffer_size": 13603,
+						"buffer_size": 1308,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								13417,
-								13417
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/RestructuredText/reStructuredText.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"settings":
+					{
+						"buffer_size": 58,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"detect_indentation": false,
+							"output_tag": 1,
+							"result_base_dir": "",
+							"result_file_regex": "^([A-Za-z\\\\/<].*):$",
+							"result_line_regex": "^ +([0-9]+):",
+							"scroll_past_end": true,
+							"syntax": "Packages/Default/Find Results.hidden-tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "/C/Users/AG/scm/Autobahn/AutobahnPython/doc/SConstruct",
+					"settings":
+					{
+						"buffer_size": 2402,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2141,
+								2141
 							]
 						],
 						"settings":
@@ -728,7 +857,59 @@
 							"syntax": "Packages/Python/Python.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 5258.0,
+						"translation.y": 540.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "doc/_templates/side-primary.html",
+					"settings":
+					{
+						"buffer_size": 1272,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								130,
+								130
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "doc/conf.py",
+					"settings":
+					{
+						"buffer_size": 13619,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4550,
+								4550
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 1530.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
