@@ -143,7 +143,7 @@ if sphinx_bootstrap_theme:
    html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
    # (Optional) Logo. Should be small enough to fit the navbar (ideally 24x24).
    # Path should be relative to the ``_static`` files directory.
-   html_logo = "autobahnandroid.svg"
+   html_logo = "_static/img/gen/autobahnandroid.svg"
 
    html_theme_options = {
        # Navigation bar title. (Default: ``project`` value)

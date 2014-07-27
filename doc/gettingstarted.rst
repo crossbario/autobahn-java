@@ -33,7 +33,7 @@ Set Compiler Level
 
 Make sure the Java compiler compliance level is set to (at least) 1.6 in your project settings:
 
-.. image:: /_static/autobahn_eclipse0.png
+.. image:: /_static/img/autobahn_eclipse0.png
 
 
 Add JARs to your project
@@ -51,11 +51,11 @@ You can also get a `complete bundle <https://autobahn.s3.amazonaws.com/android/a
 
 Put the 3 above JARs into your project's libs folder
 
-.. image:: /_static/autobahn_eclipse1.png
+.. image:: /_static/img/autobahn_eclipse1.png
 
 and add the JARs to the project's build path
 
-.. image:: /_static/autobahn_eclipse2.png
+.. image:: /_static/img/autobahn_eclipse2.png
 
 
 Set App Permissions
@@ -75,7 +75,7 @@ Make sure the Manifest for your application contains the android.permission.INTE
        </application>
    </manifest>
 
-.. image:: /_static/autobahn_eclipse3.png
+.. image:: /_static/img/autobahn_eclipse3.png
 
 
 Your first Client
@@ -147,7 +147,7 @@ Now start a WebSocket echo server on some host and adjust line 18 for the IP of 
 
 Build and run the app. You should see the following in the Android device logcat:
 
-.. image:: /_static/autobahn_eclipse4.png
+.. image:: /_static/img/autobahn_eclipse4.png
 
 
 Where to go now

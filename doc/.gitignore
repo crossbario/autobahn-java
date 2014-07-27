@@ -1,4 +1,5 @@
-_gen
 _build
-*.pyc
+_gen
+_upload
+_static/img/gen
 .sconsign.dblite

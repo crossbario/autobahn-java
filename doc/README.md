@@ -1,22 +1,61 @@
-**Autobahn**|Android documentation is generated using [Sphinx](http://sphinx-doc.org/).
+# Documentation
 
-To install Sphinx:
+The **Autobahn**|Android documentation is generated using [Sphinx](http://sphinx.pocoo.org/) and the generated documentation is hosted [here](http://autobahn.ws/android).
 
-	pip install -U sphinx
 
-To install [javasphinx](http://bronto.github.io/javasphinx/), install [lxml](https://pypi.python.org/pypi/lxml/) and then:
- 
-	pip install -U javasphinx
+## Generate
 
-> Note: Due to a little bug, you currently need to use [this](https://github.com/oberstet/javasphinx).
+You will need to have [SCons](http://scons.org/) installed, plus the following
 
-To generate the docs:
+```sh
+pip install taschenmesser
+pip install sphinx
+pip install sphinx-bootstrap-theme
+pip install sphinxcontrib-spelling
+pip install repoze.sphinx.autointerface
+```
 
-	make html
+To generate the documentation
 
-> This will run `javasphinx-apidoc -u -o _gen ../Autobahn/src/` under the hood to first generate RST files from Javadoc.
-> 
+```sh
+cd doc
+scons
+```
 
-To cleanup
+This will create the documentation under the directory `_build`.
 
-	make clean
+
+## Test
+
+To build the documentation and start a Web server
+```sh
+scons test
+```
+
+## Clean
+
+To clean up all build artifacts
+
+```sh
+scons -uc
+```
+
+## Publish
+
+> Note: this section is only relevant for administrators of the [Autobahn web site](http://autobahn.ws/).
+
+Publishing requires a **2 step process**.
+
+**First** do
+
+```sh
+scons
+```
+
+to build the docs and **second** do
+
+```sh
+scons publish
+```
+
+to actually publish the docs.
