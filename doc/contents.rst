@@ -1,7 +1,10 @@
-.. _table_of_contents:
+:tocdepth: 0
+:orphan:
 
-Table of Contents
-=================
+.. _site_contents:
+
+Site Contents
+=============
 
 .. toctree::
    :maxdepth: 3

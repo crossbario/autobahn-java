@@ -1,8 +1,8 @@
 ..
 
 
-|ab| Documentation
-==================
+|ab|
+====
 
 .. container:: legacynotice
 
@@ -183,7 +183,6 @@ If you like, :doc:`get started <gettingstarted>`, check out the :doc:`examples` 
    gettingstarted
    examples
    _gen/packages
-   table_of_contents
 
 
 Indices and tables
