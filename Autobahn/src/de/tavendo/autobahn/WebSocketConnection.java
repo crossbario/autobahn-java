@@ -439,7 +439,17 @@ public class WebSocketConnection implements WebSocket {
                final int tavendoCloseCode = (close.mCode == 1000) ? ConnectionHandler.CLOSE_NORMAL : ConnectionHandler.CLOSE_CONNECTION_LOST;
                onClose(tavendoCloseCode, close.mReason);
 
-               mWriter.forward(new WebSocketMessage.Close(1000));
+               if (mActive) {
+                   mWriter.forward(new WebSocketMessage.Close(1000));        
+               } else {
+                   // we've initiated disconnect, so ready to close the channel
+                    try {
+                        mTransportChannel.close();
+                    } catch (IOException e) {
+                        if (DEBUG) e.printStackTrace();
+                    }
+               }
+               
 
             } else if (msg.obj instanceof WebSocketMessage.ServerHandshake) {
 
