@@ -437,7 +437,6 @@ public class WebSocketConnection implements WebSocket {
                if (DEBUG) Log.d(TAG, "WebSockets Close received (" + close.mCode + " - " + close.mReason + ")");
 
                final int tavendoCloseCode = (close.mCode == 1000) ? ConnectionHandler.CLOSE_NORMAL : ConnectionHandler.CLOSE_CONNECTION_LOST;
-               onClose(tavendoCloseCode, close.mReason);
 
                if (mActive) {
                    mWriter.forward(new WebSocketMessage.Close(1000));        
@@ -450,6 +449,7 @@ public class WebSocketConnection implements WebSocket {
                     }
                }
                
+               onClose(tavendoCloseCode, close.mReason);
 
             } else if (msg.obj instanceof WebSocketMessage.ServerHandshake) {
 
