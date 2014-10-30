@@ -80,6 +80,12 @@ public interface WebSocket {
 	    * @param payload    Binar message payload or null (empty payload).
 	    */
 	   public void onBinaryMessage(byte[] payload);
+	   /**
+	    * Fired when a pong message has been received.
+	    *
+	    * @param payload    pong message payload or null (empty payload).
+	    */
+	   public void onPongMessage(byte[] payload);
    }
 
    public void connect(String wsUri, ConnectionHandler wsHandler) throws WebSocketException;

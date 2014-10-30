@@ -66,5 +66,13 @@ public class WebSocketConnectionHandler implements WebSocket.ConnectionHandler {
     */
    public void onBinaryMessage(byte[] payload) {
    }
+   
+   /**
+    * Fired when a pong message has been received.
+    *
+    * @param payload    pong message payload or null (empty payload).
+    */
+   public void onPongMessage(byte[] payload) {
+   }
 
 }

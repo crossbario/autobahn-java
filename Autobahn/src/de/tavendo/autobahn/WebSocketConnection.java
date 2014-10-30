@@ -155,6 +155,9 @@ public class WebSocketConnection implements WebSocket {
       mWriter.forward(new WebSocketMessage.BinaryMessage(payload));
    }
 
+   public void sendPingMessage(byte[] payload) {
+      mWriter.forward(new WebSocketMessage.Ping(payload));
+   }
 
    public boolean isConnected() {
       return mTransportChannel != null && mTransportChannel.isConnected();
@@ -425,10 +428,14 @@ public class WebSocketConnection implements WebSocket {
 
             } else if (msg.obj instanceof WebSocketMessage.Pong) {
 
-               @SuppressWarnings("unused")
                WebSocketMessage.Pong pong = (WebSocketMessage.Pong) msg.obj;
 
                if (DEBUG) Log.d(TAG, "WebSockets Pong received");
+                if (mWsHandler != null) {
+                   mWsHandler.onPongMessage(pong.mPayload);
+                } else {
+                   if (DEBUG) Log.d(TAG, "could not call onPongMessage() .. handler already NULL");
+                }
 
             } else if (msg.obj instanceof WebSocketMessage.Close) {
 
