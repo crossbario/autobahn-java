@@ -86,6 +86,13 @@ public interface WebSocket {
 	    * @param payload    pong message payload or null (empty payload).
 	    */
 	   public void onPongMessage(byte[] payload);
+	   /**
+	    * Fired when a ping message has been received.
+	    * 
+	    * @param payload    ping message payload or null (empty payload).
+	    * @retrun byte[]    reply pong message with it as payload. if return null replay with ping.payload.
+	    */
+	   public byte[] onPingMessage(byte[] payload);
    }
 
    public void connect(String wsUri, ConnectionHandler wsHandler) throws WebSocketException;

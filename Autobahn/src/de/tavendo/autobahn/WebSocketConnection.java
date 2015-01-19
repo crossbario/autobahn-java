@@ -421,9 +421,17 @@ public class WebSocketConnection implements WebSocket {
                WebSocketMessage.Ping ping = (WebSocketMessage.Ping) msg.obj;
                if (DEBUG) Log.d(TAG, "WebSockets Ping received");
 
+               byte[] payload = null;
+               if (mWsHandler != null) {
+                   payload = mWsHandler.onPingMessage(ping.mPayload);
+                } else {
+                   if (DEBUG) Log.d(TAG, "could not call onPongMessage() .. handler already NULL");
+                }
+               
                // reply with Pong
                WebSocketMessage.Pong pong = new WebSocketMessage.Pong();
-               pong.mPayload = ping.mPayload;
+               if (payload != null) pong.mPayload = payload;
+               else pong.mPayload = ping.mPayload;
                mWriter.forward(pong);
 
             } else if (msg.obj instanceof WebSocketMessage.Pong) {
