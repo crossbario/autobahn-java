@@ -400,6 +400,7 @@ public class WebSocketWriter extends Handler {
             @SuppressWarnings("unused")
             int written = mSocket.write(mBuffer.getBuffer());
          }
+         mSocket.socket().getOutputStream().flush(); // Setting TCP_NODELAY does not seem to ensure messages are always written immediately.
 
       } catch (SocketException e) {
     	  
