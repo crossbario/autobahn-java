@@ -25,15 +25,15 @@
     </properties>
 
     <scm>
-        <url>http://github.com/tavendo/AutobahnAndroid/</url>
-        <connection>scm:git:git://github.com/tavendo/AutobahnAndroid.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com:tavendo/AutobahnAndroid.git</developerConnection>
+        <url>http://github.com/crossbario/autobahn-android/</url>
+        <connection>scm:git:git://github.com/crossbario/autobahn-android.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:crossbario/autobahn-android.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
     <issueManagement>
         <system>GitHub Issues</system>
-        <url>http://github.com/tavendo/AutobahnAndroid/issues</url>
+        <url>http://github.com/crossbario/autobahn-android/issues</url>
     </issueManagement>
 
     <licenses>

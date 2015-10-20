@@ -403,7 +403,7 @@ rst_epilog = """
 .. _RFC6455: http://tools.ietf.org/html/rfc6455
 .. _WAMP: http://wamp.ws/
 .. _WAMPv1: http://wamp.ws/spec/wamp1/
-.. _WAMPv2: https://github.com/tavendo/WAMP/blob/master/spec/README.md
+.. _WAMPv2: https://wamp-proto.org/spec/
 .. _AutobahnTestsuite: http://autobahn.ws/testsuite
 """
 

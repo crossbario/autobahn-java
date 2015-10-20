@@ -36,7 +36,7 @@ WebSocket
 * easy to use API
 * seamless integration in Android UI apps
 * no (really none) network activity on UI thread
-* `Open-source <https://github.com/tavendo/AutobahnAndroid>`_ (Apache 2 license)
+* `Open-source <https://github.com/crossbario/autobahn-android>`_ (Apache 2 license)
 
 You can use |ab| to create native Android apps talking to WebSocket servers or any `WAMP <http://wamp.ws/>`_ compatible server.
 
@@ -75,7 +75,7 @@ Here is a simple WebSocket echo client:
       }
    }
 
-Complete Tutorial:    `WebSocket Echo Client <https://github.com/tavendo/AutobahnAndroid/tree/master/Demo/EchoClient>`_
+Complete Tutorial:    `WebSocket Echo Client <https://github.com/crossbario/autobahn-android/tree/master/Demo/EchoClient>`_
 
 
 Web Application Messaging Protocol (WAMP)
@@ -166,7 +166,7 @@ Here is a simple WAMP client calling a RPC endpoint and subscribing to a PubSub 
       );
    }
 
-Complete Tutorials:   `WAMP RPC Client <https://github.com/tavendo/AutobahnAndroid/tree/master/Demo/SimpleRpc>`_   `WAMP PubSub Client <https://github.com/tavendo/AutobahnAndroid/tree/master/Demo/SimplePubSub>`_
+Complete Tutorials:   `WAMP RPC Client <https://github.com/crossbario/autobahn-android/tree/master/Demo/SimpleRpc>`_   `WAMP PubSub Client <https://github.com/crossbario/autobahn-android/tree/master/Demo/SimplePubSub>`_
 
 You can use any Java basic type or POJO with RPC and PubSub and have i.e. PubSub event payloads automatically mapped to your POJOs.
 

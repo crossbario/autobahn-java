@@ -76,7 +76,7 @@ project.
 
 For more information, please visit the <a href="http://autobahn.ws/android">project page</a>,
 the <a href="http://groups.google.com/group/autobahnws">forum</a> or the
-<a href="https://github.com/tavendo/AutobahnAndroid">code repository</a>.
+<a href="https://github.com/crossbario/autobahn-android">code repository</a>.
 */
 
 /// Empty class file to hold Doxygen documentation.

@@ -12,17 +12,17 @@ Examples
 
 Tutorials and examples are here to showcase specific areas of Autobahn|Android . They include self-contained, fully working code, but may not cover all features available. For the latter, please consult the :doc:`API reference </_gen/packages>`.
 
-All tutorials and examples are hosted on `GitHub <https://github.com/tavendo/AutobahnAndroid/tree/master/Demo>`_.
+All tutorials and examples are hosted on `GitHub <https://github.com/crossbario/autobahn-android/tree/master/Demo>`_.
 
 WebSocket Programming
 ------------------------
 
-* `Hello world: WebSocket Echo <https://github.com/tavendo/AutobahnAndroid/tree/master/Demo/EchoClient>`_
-* `Broadcasting over WebSocket <https://github.com/tavendo/AutobahnAndroid/tree/master/Demo/BroadcastClient>`_
-* `AutobahnTestsuite client <https://github.com/tavendo/AutobahnAndroid/tree/master/Demo/TestSuiteClient>`_
+* `Hello world: WebSocket Echo <https://github.com/crossbario/autobahn-android/tree/master/Demo/EchoClient>`_
+* `Broadcasting over WebSocket <https://github.com/crossbario/autobahn-android/tree/master/Demo/BroadcastClient>`_
+* `AutobahnTestsuite client <https://github.com/crossbario/autobahn-android/tree/master/Demo/TestSuiteClient>`_
 
 WAMP Programming
 -------------------
 
-* `Remote Procedure Calls with AutobahnAndroid <https://github.com/tavendo/AutobahnAndroid/tree/master/Demo/SimpleRpc>`_
-* `Publish & Subscribe with AutobahnAndroid <https://github.com/tavendo/AutobahnAndroid/tree/master/Demo/SimplePubSub>`_
+* `Remote Procedure Calls with AutobahnAndroid <https://github.com/crossbario/autobahn-android/tree/master/Demo/SimpleRpc>`_
+* `Publish & Subscribe with AutobahnAndroid <https://github.com/crossbario/autobahn-android/tree/master/Demo/SimplePubSub>`_

@@ -47,7 +47,7 @@ To use |ab| , you will need 3 JARs:
 
 You can also get a `complete bundle <https://autobahn.s3.amazonaws.com/android/autobahn-0.5.0.zip>`_ of AutobahnAndroid and Jackson JARs.
 
-. note:: |ab| is also available as `source code <https://github.com/tavendo/AutobahnAndroid>`_ on GitHub.
+. note:: |ab| is also available as `source code <https://github.com/crossbario/autobahn-android>`_ on GitHub.
 
 Put the 3 above JARs into your project's libs folder
 

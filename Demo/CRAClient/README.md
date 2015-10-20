@@ -10,7 +10,7 @@ WebSocket Wamp Cra Server
 ---------------------
 
 When you don't have a Wamp Cra server around, you can use the
-[WAMP CRA example](http://github.com/tavendo/AutobahnPython/tree/master/examples/wamp/authentication) provided with AutobahnPython.
+[WAMP CRA example](http://github.com/crossbario/autobahn-python/tree/master/examples/wamp/authentication) provided with AutobahnPython.
 
 
 	cd scm/AutobahnPython/examples/wamp/authentication/
