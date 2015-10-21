@@ -99,7 +99,11 @@ public class WebSocketWriter extends Handler {
 
       Message msg = obtainMessage();
       msg.obj = message;
-      sendMessage(msg);
+      try {
+    	  sendMessage(msg);
+      } catch (Exception e) {
+    	  e.printStackTrace();
+      }
    }
 
 
@@ -112,7 +116,11 @@ public class WebSocketWriter extends Handler {
 
       Message msg = mMaster.obtainMessage();
       msg.obj = message;
-      mMaster.sendMessage(msg);
+      try {
+    	  mMaster.sendMessage(msg);
+      } catch (Exception e) {
+    	  e.printStackTrace();
+      }
    }
 
 
