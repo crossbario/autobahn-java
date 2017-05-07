@@ -1,1 +1,1 @@
-include ':sample', ':Autobahn'
+include ':demo-gallery', ':Autobahn'

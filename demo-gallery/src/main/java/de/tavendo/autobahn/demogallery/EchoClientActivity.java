@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-package de.tavendo.autobahn.echoclient;
+package de.tavendo.autobahn.demogallery;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
@@ -128,7 +128,6 @@ public class EchoClientActivity extends Activity {
             }
          });
       } catch (WebSocketException e) {
-
          Log.d(TAG, e.toString());
       }
    }

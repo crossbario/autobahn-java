@@ -3,7 +3,7 @@
       package="de.tavendo.autobahn">
     <application
         android:allowBackup="true"
-        android:label="Sample App"
+        android:label="Autobahn Android"
         android:supportsRtl="true">
     </application>
 </manifest>
