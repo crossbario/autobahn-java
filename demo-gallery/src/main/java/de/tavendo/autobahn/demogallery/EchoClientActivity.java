@@ -59,7 +59,7 @@ public class EchoClientActivity extends Activity {
 
    private void loadPrefs() {
 
-      mHostname.setText(mSettings.getString("hostname", ""));
+      mHostname.setText(mSettings.getString("hostname", "192.168.1.3"));
       mPort.setText(mSettings.getString("port", "9000"));
    }
 
