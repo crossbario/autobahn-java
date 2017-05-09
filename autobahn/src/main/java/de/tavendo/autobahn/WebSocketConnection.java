@@ -18,19 +18,22 @@
 
 package de.tavendo.autobahn;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.channels.SocketChannel;
-import java.util.List;
-import org.apache.http.message.BasicNameValuePair;
-
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+
+import org.apache.http.message.BasicNameValuePair;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+
+import javax.net.SocketFactory;
 
 public class WebSocketConnection implements WebSocket {
 
@@ -43,8 +46,7 @@ public class WebSocketConnection implements WebSocket {
    protected WebSocketWriter mWriter;
    protected HandlerThread mWriterThread;
 
-   protected SocketChannel mTransportChannel;
-
+   protected Socket mSocket;
    private URI mWsUri;
    private String mWsScheme;
    private String mWsHost;
@@ -73,20 +75,16 @@ public class WebSocketConnection implements WebSocket {
 			 * connect TCP socket
 			 */
 			try {
-				mTransportChannel = SocketChannel.open();
+                mSocket = SocketFactory.getDefault().createSocket();
 
 				// the following will block until connection was established or
 				// an error occurred!
-				mTransportChannel.socket().connect(
-						new InetSocketAddress(mWsHost, mWsPort),
-						mOptions.getSocketConnectTimeout());
+                mSocket.connect(new InetSocketAddress(mWsHost, mWsPort), mOptions.getSocketConnectTimeout());
 
 				// before doing any data transfer on the socket, set socket
 				// options
-				mTransportChannel.socket().setSoTimeout(
-						mOptions.getSocketReceiveTimeout());
-				mTransportChannel.socket().setTcpNoDelay(
-						mOptions.getTcpNoDelay());
+//                mSocket.setSoTimeout(mOptions.getSocketReceiveTimeout());
+                mSocket.setTcpNoDelay(mOptions.getTcpNoDelay());
 
 			} catch (IOException e) {
 				onClose(WebSocketConnectionHandler.CLOSE_CANNOT_CONNECT,
@@ -94,19 +92,19 @@ public class WebSocketConnection implements WebSocket {
 				return;
 			}
 
-			if (mTransportChannel.isConnected()) {
+			if (mSocket.isConnected()) {
 
 				try {
+
+                    // create & start WebSocket writer
+                    createWriter();
 
 					// create & start WebSocket reader
 					createReader();
 
-					// create & start WebSocket writer
-					createWriter();
-
 					// start WebSockets handshake
 					WebSocketMessage.ClientHandshake hs = new WebSocketMessage.ClientHandshake(
-							mWsHost + ":" + mWsPort);
+					        mWsHost + ":" + mWsPort);
 					hs.mPath = mWsPath;
 					hs.mQuery = mWsQuery;
 					hs.mSubprotocols = mWsSubprotocols;
@@ -118,15 +116,12 @@ public class WebSocketConnection implements WebSocket {
 				} catch (Exception e) {
 					onClose(WebSocketConnectionHandler.CLOSE_INTERNAL_ERROR,
 							e.getMessage());
-					return;
 				}
 			} else {
 				onClose(WebSocketConnectionHandler.CLOSE_CANNOT_CONNECT,
 						"Could not connect to WebSocket server");
-				return;
 			}
 		}
-
 	}
 
    public WebSocketConnection() {
@@ -157,12 +152,11 @@ public class WebSocketConnection implements WebSocket {
 
 
    public boolean isConnected() {
-      return mTransportChannel != null && mTransportChannel.isConnected();
+      return mSocket != null && mSocket.isConnected();
    }
 
 
    private void failConnection(int code, String reason) {
-
       if (DEBUG) Log.d(TAG, "fail connection [code = " + code + ", reason = " + reason);
 
       if (mReader != null) {
@@ -190,9 +184,9 @@ public class WebSocketConnection implements WebSocket {
          if (DEBUG) Log.d(TAG, "mWriter already NULL");
       }
 
-      if (mTransportChannel != null) {
+      if (mSocket != null) {
          try {
-            mTransportChannel.close();
+            mSocket.close();
          } catch (IOException e) {
             if (DEBUG) e.printStackTrace();
          }
@@ -221,7 +215,7 @@ public class WebSocketConnection implements WebSocket {
 
       // don't connect if already connected .. user needs to disconnect first
       //
-      if (mTransportChannel != null && mTransportChannel.isConnected()) {
+      if (mSocket != null && mSocket.isConnected()) {
          throw new WebSocketException("already connected");
       }
 
@@ -443,7 +437,7 @@ public class WebSocketConnection implements WebSocket {
                } else {
                    // we've initiated disconnect, so ready to close the channel
                     try {
-                        mTransportChannel.close();
+                        mSocket.close();
                     } catch (IOException e) {
                         if (DEBUG) e.printStackTrace();
                     }
@@ -508,7 +502,7 @@ public class WebSocketConnection implements WebSocket {
 
       mWriterThread = new HandlerThread("WebSocketWriter");
       mWriterThread.start();
-      mWriter = new WebSocketWriter(mWriterThread.getLooper(), mMasterHandler, mTransportChannel, mOptions);
+      mWriter = new WebSocketWriter(mWriterThread.getLooper(), mMasterHandler, mSocket, mOptions);
 
       if (DEBUG) Log.d(TAG, "WS writer created and started");
    }
@@ -519,7 +513,7 @@ public class WebSocketConnection implements WebSocket {
     */
    protected void createReader() {
 
-      mReader = new WebSocketReader(mMasterHandler, mTransportChannel, mOptions, "WebSocketReader");
+      mReader = new WebSocketReader(mMasterHandler, mSocket, mOptions, "WebSocketReader");
       mReader.start();
 
       if (DEBUG) Log.d(TAG, "WS reader created and started");

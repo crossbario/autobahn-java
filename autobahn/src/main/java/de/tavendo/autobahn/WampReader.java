@@ -18,9 +18,8 @@
 
 package de.tavendo.autobahn;
 
-import java.io.IOException;
-import java.nio.channels.SocketChannel;
-import java.util.concurrent.ConcurrentHashMap;
+import android.os.Handler;
+import android.util.Log;
 
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParseException;
@@ -29,8 +28,10 @@ import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import android.os.Handler;
-import android.util.Log;
+import java.io.IOException;
+import java.net.Socket;
+import java.util.concurrent.ConcurrentHashMap;
+
 import de.tavendo.autobahn.WampConnection.CallMeta;
 import de.tavendo.autobahn.WampConnection.SubMeta;
 
@@ -67,7 +68,7 @@ public class WampReader extends WebSocketReader {
    public WampReader(ConcurrentHashMap<String, CallMeta> calls,
                          ConcurrentHashMap<String, SubMeta> subs,
                          Handler master,
-                         SocketChannel socket,
+                         Socket socket,
                          WebSocketOptions options,
                          String threadName) {
 

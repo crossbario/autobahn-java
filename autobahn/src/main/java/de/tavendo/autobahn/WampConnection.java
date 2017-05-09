@@ -118,7 +118,7 @@ public class WampConnection extends WebSocketConnection implements Wamp {
 
       mWriterThread = new HandlerThread("AutobahnWriter");
       mWriterThread.start();
-      mWriter = new WampWriter(mWriterThread.getLooper(), mMasterHandler, mTransportChannel, mOptions);
+      mWriter = new WampWriter(mWriterThread.getLooper(), mMasterHandler, mSocket, mOptions);
 
       if (DEBUG) Log.d(TAG, "writer created and started");
    }
@@ -128,7 +128,7 @@ public class WampConnection extends WebSocketConnection implements Wamp {
     * Create the connection receiving leg reader.
     */
    protected void createReader() {
-      mReader = new WampReader(mCalls, mSubs, mMasterHandler, mTransportChannel, mOptions, "AutobahnReader");
+      mReader = new WampReader(mCalls, mSubs, mMasterHandler, mSocket, mOptions, "AutobahnReader");
       mReader.start();
 
       if (DEBUG) Log.d(TAG, "reader created and started");

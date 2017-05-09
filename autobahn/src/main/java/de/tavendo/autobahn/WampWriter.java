@@ -18,8 +18,9 @@
 
 package de.tavendo.autobahn;
 
-import java.io.IOException;
-import java.nio.channels.SocketChannel;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerationException;
@@ -27,9 +28,8 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.MappingJsonFactory;
 
-import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
+import java.io.IOException;
+import java.net.Socket;
 
 /**
  * Autobahn WAMP writer, the transmitting leg of a WAMP connection.
@@ -60,7 +60,7 @@ public class WampWriter extends WebSocketWriter {
     * @param socket     The TCP socket (channel) the WebSocket connection runs over.
     * @param options    WebSockets options for the underlying WebSockets connection.
     */
-   public WampWriter(Looper looper, Handler master, SocketChannel socket,
+   public WampWriter(Looper looper, Handler master, Socket socket,
          WebSocketOptions options) {
 
       super(looper, master, socket, options);
