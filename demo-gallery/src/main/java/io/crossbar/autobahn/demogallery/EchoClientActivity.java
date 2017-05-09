@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-package de.tavendo.autobahn.demogallery;
+package io.crossbar.autobahn.demogallery;
 
 import android.app.Activity;
 import android.content.SharedPreferences;

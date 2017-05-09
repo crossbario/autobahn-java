@@ -1,4 +1,4 @@
-package de.tavendo.autobahn.demogallery;
+package io.crossbar.autobahn.demogallery;
 
 import android.content.Intent;
 import android.os.Bundle;
