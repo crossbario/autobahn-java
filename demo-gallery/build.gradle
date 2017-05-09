@@ -23,6 +23,6 @@ android {
 }
 
 dependencies {
-    compile project(path: ':Autobahn')
+    compile project(path: ':autobahn')
     compile 'com.android.support:appcompat-v7:25.3.1'
 }
