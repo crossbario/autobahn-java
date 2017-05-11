@@ -47,7 +47,6 @@ public class WebSocketReader extends Thread {
 
    private Socket mSocket;
    private int mPosition;
-   private String mHandShakeData;
    private byte[] mMessageData;
    private NoCopyByteArrayOutputStream mMessagePayload;
 
@@ -286,7 +285,7 @@ public class WebSocketReader extends Thread {
                framePayload = new byte[mFrameHeader.mPayloadLen];
                System.arraycopy(mMessageData, mFrameHeader.mHeaderLen, framePayload, 0, mFrameHeader.mPayloadLen);
             }
-            mMessageData = Arrays.copyOfRange(mMessageData, mFrameHeader.mTotalLen, mMessageData.length - mFrameHeader.mTotalLen);
+            mMessageData = Arrays.copyOfRange(mMessageData, mFrameHeader.mTotalLen, mMessageData.length);
             mPosition -= mFrameHeader.mTotalLen;
 
             if (mFrameHeader.mOpcode > 7) {
@@ -517,8 +516,6 @@ public class WebSocketReader extends Thread {
             /// \todo process & verify handshake from server
             /// \todo forward subprotocol, if any
 
-            int oldPosition = mPosition;
-
             // Check HTTP status code
             boolean serverError = false;
             if (mMessageData[0] == 'H' &&
@@ -534,7 +531,7 @@ public class WebSocketReader extends Thread {
                }
             }
 
-            mMessageData = Arrays.copyOfRange(mMessageData, pos + 4, mMessageData.length - pos + 4);
+            mMessageData = Arrays.copyOfRange(mMessageData, pos + 4, mMessageData.length);
             mPosition -= pos + 4;
 
             if (!serverError) {
@@ -602,7 +599,6 @@ public class WebSocketReader extends Thread {
       int statusMessageLength = eol - end;
       byte[] statusBuf = new byte[statusMessageLength];
       System.arraycopy(mMessageData, end, statusBuf, 0, statusMessageLength);
-      mMessageData = Arrays.copyOfRange(mMessageData, end, mMessageData.length - end);
       String statusMessage = new String(statusBuf, "UTF-8");
       if (DEBUG) Log.w(TAG, String.format("Status: %d (%s)", statusCode, statusMessage));
       return new Pair<>(statusCode, statusMessage);
@@ -631,14 +627,6 @@ public class WebSocketReader extends Thread {
          return false;
       }
 
-   }
-
-   private byte[] trim(byte[] bytes) {
-      int i = bytes.length - 1;
-      while (i >= 0 && bytes[i] == 0) {
-         --i;
-      }
-      return Arrays.copyOf(bytes, i + 1);
    }
 
 
