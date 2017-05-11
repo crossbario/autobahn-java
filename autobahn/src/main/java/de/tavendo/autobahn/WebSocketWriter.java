@@ -55,14 +55,10 @@ public class WebSocketWriter extends Handler {
    /// Message looper this object is running on.
    private final Looper mLooper;
 
-   /// The NIO socket channel created on foreground thread.
-//   private final Socket mSocket;
-
    /// WebSockets options.
    private final WebSocketOptions mOptions;
 
    /// The send buffer that holds data to send on socket.
-//   private final ByteBufferOutputStream mBuffer;
    private BufferedOutputStream mBufferedOutputStream;
 
 
@@ -81,14 +77,12 @@ public class WebSocketWriter extends Handler {
 
       mLooper = looper;
       mMaster = master;
-//      mSocket = socket;
       mOptions = options;
       try {
          mBufferedOutputStream = new BufferedOutputStream(socket.getOutputStream(), options.getMaxFramePayloadSize());
       } catch (IOException e) {
          e.printStackTrace();
       }
-//      mBuffer = new ByteBufferOutputStream(options.getMaxFramePayloadSize() + 14, 4*64*1024);
 
       if (DEBUG) Log.d(TAG, "created");
    }
@@ -222,7 +216,6 @@ public class WebSocketWriter extends Handler {
           }
       }           
       write(CRLF);
-//      mBufferedOutputStream.flush();
    }
 
 
@@ -420,20 +413,11 @@ public class WebSocketWriter extends Handler {
 
       try {
 
-         // clear send buffer
-//         mBuffer.clear();
-
          // process message from master
          processMessage(msg.obj);
 
          // send out buffered data
          mBufferedOutputStream.flush();
-//         mBuffer.flip();
-//         while (mBuffer.remaining() > 0) {
-//            // this can block on socket write
-//            @SuppressWarnings("unused")
-//            int written = mSocket.write(mBuffer.getBuffer());
-//         }
 
       } catch (SocketException e) {
     	  
