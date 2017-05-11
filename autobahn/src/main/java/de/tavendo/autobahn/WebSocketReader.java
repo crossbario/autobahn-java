@@ -21,6 +21,7 @@ package de.tavendo.autobahn;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.util.Pair;
 
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
@@ -28,9 +29,6 @@ import java.net.SocketException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * WebSocket reader, the receiving leg of a WebSockets connection.
@@ -504,43 +502,57 @@ public class WebSocketReader extends Thread {
       notify(new WebSocketMessage.BinaryMessage(payload));
    }
 
-
    /**
     * Process WebSockets handshake received from server.
     */
-   private void processHandshake() throws UnsupportedEncodingException {
-      boolean serverError = true;
-      // Find the HTTP line in the handshake response.
-      Matcher http = Pattern.compile("^HTTP.*").matcher(mHandShakeData);
-      if (http.find()) {
-         String[] httpLineItems = http.group(0).split(" ");
-         // The item after first whitespace is the response code.
-         int responseCode = Integer.parseInt(httpLineItems[1]);
-         // Followed by response code is the response message till the end of line.
-         StringBuilder responseMessageBuilder = new StringBuilder();
-         for (int i = 2; i < httpLineItems.length; i++) {
-            responseMessageBuilder.append(httpLineItems[i]);
-            responseMessageBuilder.append(" ");
-         }
-         String responseMessage = responseMessageBuilder.toString().trim();
-         /// \todo process & verify handshake from server
-         /// \todo forward subprotocol, if any
-         if (responseCode >= 300) {
-            // Invalid status code for success connection
-            notify(new WebSocketMessage.ServerError(responseCode, responseMessage));
-            serverError = true;
-         } else {
-            serverError = false;
-         }
-      }
-      if (!serverError) {
-         mState = STATE_OPEN;
-      } else {
-         mState = STATE_CLOSED;
-         mStopped = true;
-      }
+   private boolean processHandshake() throws UnsupportedEncodingException {
 
-      onHandshake(!serverError);
+      boolean res = false;
+      for (int pos = mPosition - 4; pos >= 0; --pos) {
+         if (mMessageData[pos] == 0x0d &&
+                 mMessageData[pos+1] == 0x0a &&
+                 mMessageData[pos+2] == 0x0d &&
+                 mMessageData[pos+3] == 0x0a) {
+
+            /// \todo process & verify handshake from server
+            /// \todo forward subprotocol, if any
+
+            int oldPosition = mPosition;
+
+            // Check HTTP status code
+            boolean serverError = false;
+            if (mMessageData[0] == 'H' &&
+                    mMessageData[1] == 'T' &&
+                    mMessageData[2] == 'T' &&
+                    mMessageData[3] == 'P') {
+
+               Pair<Integer, String> status = parseHttpStatus();
+               if (status.first >= 300) {
+                  // Invalid status code for success connection
+                  notify(new WebSocketMessage.ServerError(status.first, status.second));
+                  serverError = true;
+               }
+            }
+
+            mMessageData = Arrays.copyOfRange(mMessageData, pos + 4, mMessageData.length - pos + 4);
+            mPosition -= pos + 4;
+
+            if (!serverError) {
+               // process further when data after HTTP headers left in buffer
+               res = mPosition > 0;
+
+               mState = STATE_OPEN;
+            } else {
+               res = true;
+               mState = STATE_CLOSED;
+               mStopped = true;
+            }
+
+            onHandshake(!serverError);
+            break;
+         }
+      }
+      return res;
    }
 
    @SuppressWarnings("unused")
@@ -563,6 +575,39 @@ public class WebSocketReader extends Thread {
 	   return headers;
    }
 
+   private Pair<Integer, String> parseHttpStatus() throws UnsupportedEncodingException {
+      int beg, end;
+      // Find first space
+      for (beg = 4; beg < mPosition; ++beg) {
+         if (mMessageData[beg] == ' ') break;
+      }
+      // Find second space
+      for (end = beg + 1; end < mPosition; ++end) {
+         if (mMessageData[end] == ' ') break;
+      }
+      // Parse status code between them
+      ++beg;
+      int statusCode = 0;
+      for (int i = 0; beg + i < end; ++i) {
+         int digit = (mMessageData[beg + i] - 0x30);
+         statusCode *= 10;
+         statusCode += digit;
+      }
+      // Find end of line to extract error message
+      ++end;
+      int eol;
+      for (eol = end; eol < mPosition; ++eol) {
+         if (mMessageData[eol] == 0x0d) break;
+      }
+      int statusMessageLength = eol - end;
+      byte[] statusBuf = new byte[statusMessageLength];
+      System.arraycopy(mMessageData, end, statusBuf, 0, statusMessageLength);
+      mMessageData = Arrays.copyOfRange(mMessageData, end, mMessageData.length - end);
+      String statusMessage = new String(statusBuf, "UTF-8");
+      if (DEBUG) Log.w(TAG, String.format("Status: %d (%s)", statusCode, statusMessage));
+      return new Pair<>(statusCode, statusMessage);
+   }
+
 
    /**
     * Consume data buffered in mFrameBuffer.
@@ -572,6 +617,10 @@ public class WebSocketReader extends Thread {
       if (mState == STATE_OPEN || mState == STATE_CLOSING) {
 
          return processData();
+
+      } else if (mState == STATE_CONNECTING) {
+
+         return processHandshake();
 
       } else if (mState == STATE_CLOSED) {
 
@@ -604,22 +653,15 @@ public class WebSocketReader extends Thread {
       try {
          do {
             // blocking read on socket
-            int dataLength;
-            if (mState == STATE_CONNECTING) {
-               mHandShakeData = new Scanner(mSocket.getInputStream(), "UTF-8").useDelimiter("\\r\\n\\r\\n").next();
-               processHandshake();
-               continue;
-            } else {
-               dataLength = mSocket.getInputStream().read(mMessageData, mPosition, mMessageData.length - mPosition);
-               mPosition += dataLength;
-            }
-            if (dataLength > 0) {
+            int len = mSocket.getInputStream().read(mMessageData, mPosition, mMessageData.length - mPosition);
+            mPosition += len;
+            if (len > 0) {
                // process buffered data
                while (consumeData()) {}
             } else if (mState == STATE_CLOSED) {
                 notify(new WebSocketMessage.Close(1000)); // Connection has been closed normally
                 mStopped = true;
-            } else if (dataLength < 0) {
+            } else if (len < 0) {
 
                if (DEBUG) Log.d(TAG, "run() : ConnectionLost");
 
