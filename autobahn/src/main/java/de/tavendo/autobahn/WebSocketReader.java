@@ -23,6 +23,7 @@ import android.os.Message;
 import android.util.Log;
 import android.util.Pair;
 
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.SocketException;
@@ -45,6 +46,7 @@ public class WebSocketReader extends Thread {
    private final Handler mMaster;
    private final WebSocketOptions mOptions;
 
+   private InputStream mInputStream;
    private Socket mSocket;
    private int mPosition;
    private byte[] mMessageData;
@@ -639,16 +641,25 @@ public class WebSocketReader extends Thread {
       if (DEBUG) Log.d(TAG, "running");
 
       try {
+         if (mInputStream == null) {
+            mInputStream = mSocket.getInputStream();
+         }
          do {
             // blocking read on socket
-            int len = mSocket.getInputStream().read(mMessageData, mPosition, mMessageData.length - mPosition);
+            int len = mInputStream.read(mMessageData, mPosition, mMessageData.length - mPosition);
             mPosition += len;
             if (len > 0) {
+
                // process buffered data
-               while (consumeData()) {}
+               while (consumeData()) {
+
+               }
+
             } else if (mState == STATE_CLOSED) {
+
                 notify(new WebSocketMessage.Close(1000)); // Connection has been closed normally
                 mStopped = true;
+
             } else if (len < 0) {
 
                if (DEBUG) Log.d(TAG, "run() : ConnectionLost");
@@ -673,7 +684,6 @@ public class WebSocketReader extends Thread {
     	  notify(new WebSocketMessage.ConnectionLost());;
     	  
       } catch (Exception e) {
-         e.printStackTrace();
 
          if (DEBUG) Log.d(TAG, "run() : Exception (" + e.toString() + ")");
 
