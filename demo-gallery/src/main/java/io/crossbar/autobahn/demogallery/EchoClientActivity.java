@@ -45,9 +45,9 @@ public class EchoClientActivity extends Activity {
    static EditText mPort;
    static TextView mStatusline;
    static Button mStart;
-
    static EditText mMessage;
    static Button mSendMessage;
+
 
    private SharedPreferences mSettings;
 

@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(new Intent(getApplicationContext(), EchoClientActivity.class));
                 break;
             case R.id.button_wamp_gallery:
-                // Need to open the WAMP demo gallery browser.
+                startActivity(new Intent(getApplicationContext(), TestSuiteClientActivity.class));
                 break;
         }
     }

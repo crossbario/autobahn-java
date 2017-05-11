@@ -22,8 +22,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.SocketException;
@@ -49,9 +47,10 @@ public class WebSocketReader extends Thread {
    private final Handler mMaster;
    private final WebSocketOptions mOptions;
 
+   private Socket mSocket;
+   private int mPosition;
    private String mHandShakeData;
    private byte[] mMessageData;
-   private InputStream mInputStream;
    private NoCopyByteArrayOutputStream mMessagePayload;
 
    private final static int STATE_CLOSED = 0;
@@ -98,12 +97,9 @@ public class WebSocketReader extends Thread {
 
       mMaster = master;
       mOptions = options;
+      mSocket = socket;
 
-      try {
-         mInputStream = socket.getInputStream();
-      } catch (IOException e) {
-         e.printStackTrace();
-      }
+      mMessageData = new byte[mOptions.getMaxFramePayloadSize() + 14];
       mMessagePayload = new NoCopyByteArrayOutputStream(options.getMaxMessagePayloadSize());
 
       mFrameHeader = null;
@@ -145,7 +141,7 @@ public class WebSocketReader extends Thread {
       if (mFrameHeader == null) {
 
          // need at least 2 bytes from WS frame header to start processing
-         if (mMessageData.length >= 2) {
+         if (mPosition >= 2) {
 
             byte b0 = mMessageData[0];
             boolean fin = (b0 & 0x80) != 0;
@@ -209,11 +205,11 @@ public class WebSocketReader extends Thread {
             }
 
             // continue when complete frame header is available
-            if (mMessageData.length >= header_len) {
+            if (mPosition >= header_len) {
 
                // determine frame payload length
                int i = 2;
-               long payload_len = 0;
+               long payload_len;
                if (payload_len1 == 126) {
                   payload_len = ((0xff & mMessageData[i]) << 8) | (0xff & mMessageData[i + 1]);
                   if (payload_len < 126) {
@@ -264,7 +260,7 @@ public class WebSocketReader extends Thread {
                }
 
                // continue processing when payload empty or completely buffered
-               return mFrameHeader.mPayloadLen == 0 || mMessageData.length >= mFrameHeader.mTotalLen;
+               return mFrameHeader.mPayloadLen == 0 || mPosition >= mFrameHeader.mTotalLen;
 
             } else {
 
@@ -284,31 +280,19 @@ public class WebSocketReader extends Thread {
          // within frame
 
          // see if we buffered complete frame
-         if (mMessageData.length >= mFrameHeader.mTotalLen) {
+         if (mPosition >= mFrameHeader.mTotalLen) {
 
             // cut out frame payload
             byte[] framePayload = null;
-            int oldPosition = mMessageData.length;
             if (mFrameHeader.mPayloadLen > 0) {
                framePayload = new byte[mFrameHeader.mPayloadLen];
                System.arraycopy(mMessageData, mFrameHeader.mHeaderLen, framePayload, 0, mFrameHeader.mPayloadLen);
             }
-
-//            // cut out frame payload
-//            byte[] framePayload = null;
-//            int oldPosition = mFrameBuffer.position();
-//            if (mFrameHeader.mPayloadLen > 0) {
-//               framePayload = new byte[mFrameHeader.mPayloadLen];
-//               mFrameBuffer.position(mFrameHeader.mHeaderLen);
-//               mFrameBuffer.get(framePayload, 0, (int) mFrameHeader.mPayloadLen);
-//            }
-//            mFrameBuffer.position(mFrameHeader.mTotalLen);
-//            mFrameBuffer.limit(oldPosition);
-//            mFrameBuffer.compact();
+            mMessageData = Arrays.copyOfRange(mMessageData, mFrameHeader.mTotalLen, mMessageData.length - mFrameHeader.mTotalLen);
+            mPosition -= mFrameHeader.mTotalLen;
 
             if (mFrameHeader.mOpcode > 7) {
                // control frame
-
                if (mFrameHeader.mOpcode == 8) {
 
                   int code = 1005; // CLOSE_STATUS_CODE_NULL : no status code received
@@ -429,8 +413,7 @@ public class WebSocketReader extends Thread {
             mFrameHeader = null;
 
             // reprocess if more data left
-            return false;
-//            return mFrameBuffer.position() > 0;
+            return mPosition > 0;
 
          } else {
 
@@ -623,13 +606,12 @@ public class WebSocketReader extends Thread {
             // blocking read on socket
             int dataLength;
             if (mState == STATE_CONNECTING) {
-               mHandShakeData = new Scanner(mInputStream, "UTF-8").useDelimiter("\\r\\n\\r\\n").next();
+               mHandShakeData = new Scanner(mSocket.getInputStream(), "UTF-8").useDelimiter("\\r\\n\\r\\n").next();
                processHandshake();
                continue;
             } else {
-               byte[] initialBuffer = new byte[mOptions.getMaxFramePayloadSize() + 14];
-               dataLength = mInputStream.read(initialBuffer);
-               mMessageData = trim(initialBuffer);
+               dataLength = mSocket.getInputStream().read(mMessageData, mPosition, mMessageData.length - mPosition);
+               mPosition += dataLength;
             }
             if (dataLength > 0) {
                // process buffered data
