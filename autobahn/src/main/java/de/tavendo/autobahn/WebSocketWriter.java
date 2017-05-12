@@ -71,18 +71,14 @@ public class WebSocketWriter extends Handler {
     * @param socket    The socket channel created on foreground thread.
     * @param options   WebSockets connection options.
     */
-   public WebSocketWriter(Looper looper, Handler master, Socket socket, WebSocketOptions options) {
+   public WebSocketWriter(Looper looper, Handler master, Socket socket, WebSocketOptions options) throws IOException {
 
       super(looper);
 
       mLooper = looper;
       mMaster = master;
       mOptions = options;
-      try {
-         mBufferedOutputStream = new BufferedOutputStream(socket.getOutputStream(), options.getMaxFramePayloadSize());
-      } catch (IOException e) {
-         e.printStackTrace();
-      }
+      mBufferedOutputStream = new BufferedOutputStream(socket.getOutputStream(), options.getMaxFramePayloadSize() + 14);
 
       if (DEBUG) Log.d(TAG, "created");
    }
@@ -223,11 +219,10 @@ public class WebSocketWriter extends Handler {
     * Send WebSockets close.
     */
    private void sendClose(WebSocketMessage.Close message) throws IOException, WebSocketException {
-      System.out.println("CLOSE");
 
       if (message.mCode > 0) {
 
-         byte[] payload = null;
+         byte[] payload;
 
          if (message.mReason != null && !message.mReason.equals("")) {
             byte[] pReason = message.mReason.getBytes("UTF-8");

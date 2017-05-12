@@ -18,15 +18,16 @@
 
 package de.tavendo.autobahn;
 
-import java.util.List;
-import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
+import android.os.HandlerThread;
+import android.util.Log;
 
 import org.apache.http.message.BasicNameValuePair;
 import org.codehaus.jackson.type.TypeReference;
 
-import android.os.HandlerThread;
-import android.util.Log;
+import java.io.IOException;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class WampConnection extends WebSocketConnection implements Wamp {
 
@@ -114,7 +115,7 @@ public class WampConnection extends WebSocketConnection implements Wamp {
    /**
     * Create the connection transmitting leg writer.
     */
-   protected void createWriter() {
+   protected void createWriter() throws IOException {
 
       mWriterThread = new HandlerThread("AutobahnWriter");
       mWriterThread.start();
@@ -127,7 +128,7 @@ public class WampConnection extends WebSocketConnection implements Wamp {
    /**
     * Create the connection receiving leg reader.
     */
-   protected void createReader() {
+   protected void createReader() throws IOException {
       mReader = new WampReader(mCalls, mSubs, mMasterHandler, mSocket, mOptions, "AutobahnReader");
       mReader.start();
 

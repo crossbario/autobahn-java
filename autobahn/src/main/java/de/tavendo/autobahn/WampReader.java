@@ -70,7 +70,7 @@ public class WampReader extends WebSocketReader {
                          Handler master,
                          Socket socket,
                          WebSocketOptions options,
-                         String threadName) {
+                         String threadName) throws IOException {
 
       super(master, socket, options, threadName);
 

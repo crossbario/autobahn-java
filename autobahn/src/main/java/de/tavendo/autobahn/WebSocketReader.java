@@ -23,7 +23,8 @@ import android.os.Message;
 import android.util.Log;
 import android.util.Pair;
 
-import java.io.InputStream;
+import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.SocketException;
@@ -46,7 +47,7 @@ public class WebSocketReader extends Thread {
    private final Handler mMaster;
    private final WebSocketOptions mOptions;
 
-   private InputStream mInputStream;
+   private BufferedInputStream mBufferedStream;
    private Socket mSocket;
    private int mPosition;
    private byte[] mMessageData;
@@ -90,7 +91,7 @@ public class WebSocketReader extends Thread {
     * @param master    The message handler of master (foreground thread).
     * @param socket    The socket channel created on foreground thread.
     */
-   public WebSocketReader(Handler master, Socket socket, WebSocketOptions options, String threadName) {
+   public WebSocketReader(Handler master, Socket socket, WebSocketOptions options, String threadName) throws IOException {
 
       super(threadName);
 
@@ -99,6 +100,7 @@ public class WebSocketReader extends Thread {
       mSocket = socket;
 
       mMessageData = new byte[mOptions.getMaxFramePayloadSize() + 14];
+      mBufferedStream = new BufferedInputStream(mSocket.getInputStream(), mOptions.getMaxFramePayloadSize() + 14);
       mMessagePayload = new NoCopyByteArrayOutputStream(options.getMaxMessagePayloadSize());
 
       mFrameHeader = null;
@@ -641,12 +643,9 @@ public class WebSocketReader extends Thread {
       if (DEBUG) Log.d(TAG, "running");
 
       try {
-         if (mInputStream == null) {
-            mInputStream = mSocket.getInputStream();
-         }
          do {
             // blocking read on socket
-            int len = mInputStream.read(mMessageData, mPosition, mMessageData.length - mPosition);
+            int len = mBufferedStream.read(mMessageData, mPosition, mMessageData.length);
             mPosition += len;
             if (len > 0) {
 

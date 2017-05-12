@@ -49,7 +49,7 @@ public class TestSuiteClientActivity extends Activity {
     static Button mStart;
 
     private void loadPrefs() {
-        mWsUri.setText(mSettings.getString("wsuri", "ws://192.168.1.3:9001"));
+        mWsUri.setText(mSettings.getString("wsuri", "ws://192.168.1.12:9001"));
         mAgent.setText(mSettings.getString("agent", "AutobahnAndroid"));
     }
 

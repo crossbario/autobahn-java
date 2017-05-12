@@ -498,7 +498,7 @@ public class WebSocketConnection implements WebSocket {
    /**
     * Create WebSockets background writer.
     */
-   protected void createWriter() {
+   protected void createWriter() throws IOException {
 
       mWriterThread = new HandlerThread("WebSocketWriter");
       mWriterThread.start();
@@ -511,7 +511,7 @@ public class WebSocketConnection implements WebSocket {
    /**
     * Create WebSockets background reader.
     */
-   protected void createReader() {
+   protected void createReader() throws IOException {
 
       mReader = new WebSocketReader(mMasterHandler, mSocket, mOptions, "WebSocketReader");
       mReader.start();

@@ -61,7 +61,7 @@ public class WampWriter extends WebSocketWriter {
     * @param options    WebSockets options for the underlying WebSockets connection.
     */
    public WampWriter(Looper looper, Handler master, Socket socket,
-         WebSocketOptions options) {
+         WebSocketOptions options) throws IOException {
 
       super(looper, master, socket, options);
 
