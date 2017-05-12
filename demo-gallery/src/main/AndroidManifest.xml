@@ -19,6 +19,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".EchoClientActivity"/>
+        <activity android:name=".TestSuiteClientActivity"/>
     </application>
 
 </manifest>
