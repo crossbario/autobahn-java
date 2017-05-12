@@ -18,8 +18,9 @@
 
 package de.tavendo.autobahn;
 
-import java.util.List;
 import org.apache.http.message.BasicNameValuePair;
+
+import java.util.List;
 
 /**
  * WebSockets message classes.
@@ -28,169 +29,169 @@ import org.apache.http.message.BasicNameValuePair;
  */
 public class WebSocketMessage {
 
-   /// Base message class.
-   public static class Message {
-   }
+    /// Base message class.
+    public static class Message {
+    }
 
-   /// Quite background thread.
-   public static class Quit extends Message {
-   }
+    /// Quite background thread.
+    public static class Quit extends Message {
+    }
 
-   /// Initial WebSockets handshake (client request).
-   public static class ClientHandshake extends Message {
+    /// Initial WebSockets handshake (client request).
+    public static class ClientHandshake extends Message {
 
-      public String mHost;
-      public String mPath;
-      public String mQuery;
-      public String mOrigin;
-      public String[] mSubprotocols;
-      public List<BasicNameValuePair> mHeaderList;
+        public String mHost;
+        public String mPath;
+        public String mQuery;
+        public String mOrigin;
+        public String[] mSubprotocols;
+        public List<BasicNameValuePair> mHeaderList;
 
-      ClientHandshake(String host) {
-         mHost = host;
-         mPath = "/";
-         mOrigin = null;
-         mSubprotocols = null;
-         mHeaderList = null;
-      }
+        ClientHandshake(String host) {
+            mHost = host;
+            mPath = "/";
+            mOrigin = null;
+            mSubprotocols = null;
+            mHeaderList = null;
+        }
 
-      ClientHandshake(String host, String path, String origin) {
-         mHost = host;
-         mPath = path;
-         mOrigin = origin;
-         mSubprotocols = null;
-      }
+        ClientHandshake(String host, String path, String origin) {
+            mHost = host;
+            mPath = path;
+            mOrigin = origin;
+            mSubprotocols = null;
+        }
 
-      ClientHandshake(String host, String path, String origin, String[] subprotocols) {
-         mHost = host;
-         mPath = path;
-         mOrigin = origin;
-         mSubprotocols = subprotocols;
-      }
-   }
+        ClientHandshake(String host, String path, String origin, String[] subprotocols) {
+            mHost = host;
+            mPath = path;
+            mOrigin = origin;
+            mSubprotocols = subprotocols;
+        }
+    }
 
-   /// Initial WebSockets handshake (server response).
-   public static class ServerHandshake extends Message {
-	   public boolean mSuccess;
-	   
-	   public ServerHandshake(boolean success) {
-		   mSuccess = success;
-	   }
-   }
+    /// Initial WebSockets handshake (server response).
+    public static class ServerHandshake extends Message {
+        public boolean mSuccess;
 
-   /// WebSockets connection lost
-   public static class ConnectionLost extends Message {
-   }
-   
-   public static class ServerError extends Message {
-	   public int mStatusCode;
-	   public String mStatusMessage;
-	   
-	   public ServerError(int statusCode, String statusMessage) {
-		   mStatusCode = statusCode;
-		   mStatusMessage = statusMessage;
-	   }
-	   
-   }
+        public ServerHandshake(boolean success) {
+            mSuccess = success;
+        }
+    }
 
-   /// WebSockets reader detected WS protocol violation.
-   public static class ProtocolViolation extends Message {
+    /// WebSockets connection lost
+    public static class ConnectionLost extends Message {
+    }
 
-      public WebSocketException mException;
+    public static class ServerError extends Message {
+        public int mStatusCode;
+        public String mStatusMessage;
 
-      public ProtocolViolation(WebSocketException e) {
-         mException = e;
-      }
-   }
+        public ServerError(int statusCode, String statusMessage) {
+            mStatusCode = statusCode;
+            mStatusMessage = statusMessage;
+        }
 
-   /// An exception occured in the WS reader or WS writer.
-   public static class Error extends Message {
+    }
 
-      public Exception mException;
+    /// WebSockets reader detected WS protocol violation.
+    public static class ProtocolViolation extends Message {
 
-      public Error(Exception e) {
-         mException = e;
-      }
-   }
+        public WebSocketException mException;
 
-   /// WebSockets text message to send or received.
-   public static class TextMessage extends Message {
+        public ProtocolViolation(WebSocketException e) {
+            mException = e;
+        }
+    }
 
-      public String mPayload;
+    /// An exception occured in the WS reader or WS writer.
+    public static class Error extends Message {
 
-      TextMessage(String payload) {
-         mPayload = payload;
-      }
-   }
+        public Exception mException;
 
-   /// WebSockets raw (UTF-8) text message to send or received.
-   public static class RawTextMessage extends Message {
+        public Error(Exception e) {
+            mException = e;
+        }
+    }
 
-      public byte[] mPayload;
+    /// WebSockets text message to send or received.
+    public static class TextMessage extends Message {
 
-      RawTextMessage(byte[] payload) {
-         mPayload = payload;
-      }
-   }
+        public String mPayload;
 
-   /// WebSockets binary message to send or received.
-   public static class BinaryMessage extends Message {
+        TextMessage(String payload) {
+            mPayload = payload;
+        }
+    }
 
-      public byte[] mPayload;
+    /// WebSockets raw (UTF-8) text message to send or received.
+    public static class RawTextMessage extends Message {
 
-      BinaryMessage(byte[] payload) {
-         mPayload = payload;
-      }
-   }
+        public byte[] mPayload;
 
-   /// WebSockets close to send or received.
-   public static class Close extends Message {
+        RawTextMessage(byte[] payload) {
+            mPayload = payload;
+        }
+    }
 
-      public int mCode;
-      public String mReason;
+    /// WebSockets binary message to send or received.
+    public static class BinaryMessage extends Message {
 
-      Close() {
-         mCode = -1;
-         mReason = null;
-      }
+        public byte[] mPayload;
 
-      Close(int code) {
-         mCode = code;
-         mReason = null;
-      }
+        BinaryMessage(byte[] payload) {
+            mPayload = payload;
+        }
+    }
 
-      Close(int code, String reason) {
-         mCode = code;
-         mReason = reason;
-      }
-   }
+    /// WebSockets close to send or received.
+    public static class Close extends Message {
 
-   /// WebSockets ping to send or received.
-   public static class Ping extends Message {
+        public int mCode;
+        public String mReason;
 
-      public byte[] mPayload;
+        Close() {
+            mCode = -1;
+            mReason = null;
+        }
 
-      Ping() {
-         mPayload = null;
-      }
+        Close(int code) {
+            mCode = code;
+            mReason = null;
+        }
 
-      Ping(byte[] payload) {
-         mPayload = payload;
-      }
-   }
+        Close(int code, String reason) {
+            mCode = code;
+            mReason = reason;
+        }
+    }
 
-   /// WebSockets pong to send or received.
-   public static class Pong extends Message {
+    /// WebSockets ping to send or received.
+    public static class Ping extends Message {
 
-      public byte[] mPayload;
+        public byte[] mPayload;
 
-      Pong() {
-         mPayload = null;
-      }
+        Ping() {
+            mPayload = null;
+        }
 
-      Pong(byte[] payload) {
-         mPayload = payload;
-      }
-   }
+        Ping(byte[] payload) {
+            mPayload = payload;
+        }
+    }
+
+    /// WebSockets pong to send or received.
+    public static class Pong extends Message {
+
+        public byte[] mPayload;
+
+        Pong() {
+            mPayload = null;
+        }
+
+        Pong(byte[] payload) {
+            mPayload = payload;
+        }
+    }
 
 }

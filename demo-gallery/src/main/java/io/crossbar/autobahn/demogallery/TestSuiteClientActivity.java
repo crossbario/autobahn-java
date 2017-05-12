@@ -109,8 +109,8 @@ public class TestSuiteClientActivity extends Activity {
                     options.setReceiveTextMessagesRaw(true);
                     //options.setValidateIncomingUtf8(false);
                     //options.setMaskClientFrames(false);
-                    options.setMaxMessagePayloadSize(4*1024*1024);
-                    options.setMaxFramePayloadSize(4*1024*1024);
+                    options.setMaxMessagePayloadSize(4 * 1024 * 1024);
+                    options.setMaxFramePayloadSize(4 * 1024 * 1024);
                     //options.setTcpNoDelay(false);
 
                     sess.connect(mWsUri.getText() + "/runCase?case=" + currCase + "&agent=" + mAgent.getText(),
