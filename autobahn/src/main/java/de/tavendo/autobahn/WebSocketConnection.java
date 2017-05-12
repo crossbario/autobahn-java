@@ -34,6 +34,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocketFactory;
 
 public class WebSocketConnection implements WebSocket {
 
@@ -75,7 +76,11 @@ public class WebSocketConnection implements WebSocket {
              * connect TCP socket
 			 */
             try {
-                mSocket = SocketFactory.getDefault().createSocket();
+                if (mWsScheme.equals("wss")) {
+                    mSocket = SSLSocketFactory.getDefault().createSocket();
+                } else {
+                    mSocket = SocketFactory.getDefault().createSocket();
+                }
 
                 // the following will block until connection was established or
                 // an error occurred!
@@ -226,10 +231,6 @@ public class WebSocketConnection implements WebSocket {
 
             if (!mWsUri.getScheme().equals("ws") && !mWsUri.getScheme().equals("wss")) {
                 throw new WebSocketException("unsupported scheme for WebSockets URI");
-            }
-
-            if (mWsUri.getScheme().equals("wss")) {
-                throw new WebSocketException("secure WebSockets not implemented");
             }
 
             mWsScheme = mWsUri.getScheme();
