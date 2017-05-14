@@ -19,10 +19,10 @@
 package de.tavendo.autobahn;
 
 public class WampCraPermissions {
-    
+
     public WampCraRpcPermission[] rpc;
     public WampCraPubSubPermission[] pubsub;
-    
+
     public WampCraPermissions() {
     }
 
@@ -46,7 +46,6 @@ public class WampCraPermissions {
     public void setPubsub(WampCraPubSubPermission[] pubsub) {
         this.pubsub = pubsub;
     }
-    
-    
-    
+
+
 }
