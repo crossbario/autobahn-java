@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2011-2012 Tavendo GmbH
+ *  Copyright 2012 Alejandro Hernandez
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,17 +16,36 @@
  *
  ******************************************************************************/
 
-package de.tavendo.autobahn;
+package io.crossbar.autobahn;
 
-public class WebSocketException extends Exception {
+public class WampCraRpcPermission {
 
-    private static final long serialVersionUID = 1L;
+    boolean call;
+    String uri;
 
-    public WebSocketException(String message) {
-        super(message);
+    public WampCraRpcPermission() {
     }
 
-    public WebSocketException(String message, Throwable t) {
-        super(message, t);
+    public WampCraRpcPermission(boolean call, String uri) {
+        this.call = call;
+        this.uri = uri;
     }
+
+    public boolean isCall() {
+        return call;
+    }
+
+    public void setCall(boolean call) {
+        this.call = call;
+    }
+
+    public String getUri() {
+        return uri;
+    }
+
+    public void setUri(String uri) {
+        this.uri = uri;
+    }
+
+
 }

@@ -1,4 +1,4 @@
-package de.tavendo.autobahn;
+package io.crossbar.autobahn;
 
 public class WampConnectionHandler implements Wamp.ConnectionHandler {
 

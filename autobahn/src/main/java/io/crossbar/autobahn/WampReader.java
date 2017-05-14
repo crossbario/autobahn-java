@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-package de.tavendo.autobahn;
+package io.crossbar.autobahn;
 
 import android.os.Handler;
 import android.util.Log;
@@ -31,9 +31,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
-
-import de.tavendo.autobahn.WampConnection.CallMeta;
-import de.tavendo.autobahn.WampConnection.SubMeta;
 
 /**
  * Autobahn WAMP reader, the receiving leg of a WAMP connection.
@@ -50,10 +47,10 @@ public class WampReader extends WebSocketReader {
     private final JsonFactory mJsonFactory;
 
     /// Holds reference to call map created on master.
-    private final ConcurrentHashMap<String, CallMeta> mCalls;
+    private final ConcurrentHashMap<String, WampConnection.CallMeta> mCalls;
 
     /// Holds reference to event subscription map created on master.
-    private final ConcurrentHashMap<String, SubMeta> mSubs;
+    private final ConcurrentHashMap<String, WampConnection.SubMeta> mSubs;
 
     /**
      * A reader object is created in AutobahnConnection.
@@ -65,8 +62,8 @@ public class WampReader extends WebSocketReader {
      * @param options    WebSockets connection options.
      * @param threadName The thread name we announce.
      */
-    public WampReader(ConcurrentHashMap<String, CallMeta> calls,
-                      ConcurrentHashMap<String, SubMeta> subs,
+    public WampReader(ConcurrentHashMap<String, WampConnection.CallMeta> calls,
+                      ConcurrentHashMap<String, WampConnection.SubMeta> subs,
                       Handler master,
                       Socket socket,
                       WebSocketOptions options,
@@ -127,7 +124,7 @@ public class WampReader extends WebSocketReader {
 
                         if (mCalls.containsKey(callId)) {
 
-                            CallMeta meta = mCalls.get(callId);
+                            WampConnection.CallMeta meta = mCalls.get(callId);
                             if (meta.mResultClass != null) {
                                 result = parser.readValueAs(meta.mResultClass);
                             } else if (meta.mResultTypeRef != null) {
@@ -176,7 +173,7 @@ public class WampReader extends WebSocketReader {
 
                         if (mSubs.containsKey(topicUri)) {
 
-                            SubMeta meta = mSubs.get(topicUri);
+                            WampConnection.SubMeta meta = mSubs.get(topicUri);
                             if (meta.mEventClass != null) {
                                 event = parser.readValueAs(meta.mEventClass);
                             } else if (meta.mEventTypeRef != null) {

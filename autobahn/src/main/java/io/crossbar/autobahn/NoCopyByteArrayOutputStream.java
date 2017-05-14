@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-package de.tavendo.autobahn;
+package io.crossbar.autobahn;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
