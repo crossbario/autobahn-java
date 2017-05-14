@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-package de.tavendo.autobahn;
+package io.crossbar.autobahn;
 
 /**
  * WebSockets event handler. Users will usually provide an instance of a class

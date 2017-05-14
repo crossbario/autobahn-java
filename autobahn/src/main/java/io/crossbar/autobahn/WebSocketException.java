@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2012 Alejandro Hernandez
+ *  Copyright 2011-2012 Tavendo GmbH
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,36 +16,17 @@
  *
  ******************************************************************************/
 
-package de.tavendo.autobahn;
+package io.crossbar.autobahn;
 
-public class WampCraPermissions {
+public class WebSocketException extends Exception {
 
-    public WampCraRpcPermission[] rpc;
-    public WampCraPubSubPermission[] pubsub;
+    private static final long serialVersionUID = 1L;
 
-    public WampCraPermissions() {
+    public WebSocketException(String message) {
+        super(message);
     }
 
-    public WampCraPermissions(WampCraRpcPermission[] rpc, WampCraPubSubPermission[] pubsub) {
-        this.rpc = rpc;
-        this.pubsub = pubsub;
+    public WebSocketException(String message, Throwable t) {
+        super(message, t);
     }
-
-    public WampCraRpcPermission[] getRpc() {
-        return rpc;
-    }
-
-    public void setRpc(WampCraRpcPermission[] rpc) {
-        this.rpc = rpc;
-    }
-
-    public WampCraPubSubPermission[] getPubsub() {
-        return pubsub;
-    }
-
-    public void setPubsub(WampCraPubSubPermission[] pubsub) {
-        this.pubsub = pubsub;
-    }
-
-
 }

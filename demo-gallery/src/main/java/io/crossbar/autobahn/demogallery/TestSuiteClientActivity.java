@@ -27,11 +27,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import de.tavendo.autobahn.WebSocket;
-import de.tavendo.autobahn.WebSocketConnection;
-import de.tavendo.autobahn.WebSocketConnectionHandler;
-import de.tavendo.autobahn.WebSocketException;
-import de.tavendo.autobahn.WebSocketOptions;
+import io.crossbar.autobahn.WebSocket;
+import io.crossbar.autobahn.WebSocketConnection;
+import io.crossbar.autobahn.WebSocketConnectionHandler;
+import io.crossbar.autobahn.WebSocketException;
+import io.crossbar.autobahn.WebSocketOptions;
 
 //import dalvik.system.VMRuntime;
 

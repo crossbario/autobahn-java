@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-package de.tavendo.autobahn;
+package io.crossbar.autobahn;
 
 import android.os.Handler;
 import android.util.Log;
@@ -32,8 +32,8 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
 
-import de.tavendo.autobahn.WampConnection.CallMeta;
-import de.tavendo.autobahn.WampConnection.SubMeta;
+import io.crossbar.autobahn.WampConnection.CallMeta;
+import io.crossbar.autobahn.WampConnection.SubMeta;
 
 /**
  * Autobahn WAMP reader, the receiving leg of a WAMP connection.

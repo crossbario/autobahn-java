@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-package de.tavendo.autobahn;
+package io.crossbar.autobahn;
 
 
 import org.apache.http.message.BasicNameValuePair;

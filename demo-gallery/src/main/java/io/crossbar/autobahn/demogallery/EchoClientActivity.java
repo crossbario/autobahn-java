@@ -32,14 +32,14 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import de.tavendo.autobahn.WebSocket;
-import de.tavendo.autobahn.WebSocketConnection;
-import de.tavendo.autobahn.WebSocketException;
-import de.tavendo.autobahn.WebSocketConnectionHandler;
+import io.crossbar.autobahn.WebSocket;
+import io.crossbar.autobahn.WebSocketConnection;
+import io.crossbar.autobahn.WebSocketException;
+import io.crossbar.autobahn.WebSocketConnectionHandler;
 
 public class EchoClientActivity extends Activity {
 
-    static final String TAG = "de.tavendo.autobahn.echo";
+    static final String TAG = "io.crossbar.autobahn.echo";
     private static final String PREFS_NAME = "AutobahnAndroidEcho";
 
     static EditText mHostname;

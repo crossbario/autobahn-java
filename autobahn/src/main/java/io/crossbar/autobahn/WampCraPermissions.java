@@ -16,35 +16,35 @@
  *
  ******************************************************************************/
 
-package de.tavendo.autobahn;
+package io.crossbar.autobahn;
 
-public class WampCraRpcPermission {
+public class WampCraPermissions {
 
-    boolean call;
-    String uri;
+    public WampCraRpcPermission[] rpc;
+    public WampCraPubSubPermission[] pubsub;
 
-    public WampCraRpcPermission() {
+    public WampCraPermissions() {
     }
 
-    public WampCraRpcPermission(boolean call, String uri) {
-        this.call = call;
-        this.uri = uri;
+    public WampCraPermissions(WampCraRpcPermission[] rpc, WampCraPubSubPermission[] pubsub) {
+        this.rpc = rpc;
+        this.pubsub = pubsub;
     }
 
-    public boolean isCall() {
-        return call;
+    public WampCraRpcPermission[] getRpc() {
+        return rpc;
     }
 
-    public void setCall(boolean call) {
-        this.call = call;
+    public void setRpc(WampCraRpcPermission[] rpc) {
+        this.rpc = rpc;
     }
 
-    public String getUri() {
-        return uri;
+    public WampCraPubSubPermission[] getPubsub() {
+        return pubsub;
     }
 
-    public void setUri(String uri) {
-        this.uri = uri;
+    public void setPubsub(WampCraPubSubPermission[] pubsub) {
+        this.pubsub = pubsub;
     }
 
 
