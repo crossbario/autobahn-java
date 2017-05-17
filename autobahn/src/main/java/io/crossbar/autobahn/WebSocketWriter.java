@@ -134,8 +134,9 @@ public class WebSocketWriter extends Handler {
      *                this class).
      */
     public void forward(Object message) {
-        // We have already quite, we are no longer sending messages.
+        // We have already quit, we are no longer sending messages.
         if (!mActive) {
+            if (DEBUG) Log.d(TAG, "We have already quite, not processing further messages");
             return;
         }
         Message msg = obtainMessage();
