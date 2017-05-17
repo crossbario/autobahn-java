@@ -140,7 +140,7 @@ public class TestSuiteClientActivity extends AppCompatActivity implements View.O
 
                     @Override
                     public void onClose(int code, String reason) {
-                        // XXX om26er. Temporary workaround a bug where onClose is closed multiple times,
+                        // XXX om26er. Temporary workaround a bug where onClose is called multiple times,
                         // causing the test run counter to go haywire.
                         if (!receivedClose[0]) {
                             receivedClose[0] = true;
