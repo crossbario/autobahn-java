@@ -80,8 +80,8 @@ public class TestSuiteClientActivity extends AppCompatActivity implements View.O
 
         mOptions = new WebSocketOptions();
         mOptions.setReceiveTextMessagesRaw(true);
-        mOptions.setMaxMessagePayloadSize(4 * 1024 * 1024);
-        mOptions.setMaxFramePayloadSize(4 * 1024 * 1024);
+        mOptions.setMaxMessagePayloadSize(16 * 1024 * 1024);
+        mOptions.setMaxFramePayloadSize(16 * 1024 * 1024);
 
         mHandler = new Handler();
         mTestRunner = new Runnable() {
