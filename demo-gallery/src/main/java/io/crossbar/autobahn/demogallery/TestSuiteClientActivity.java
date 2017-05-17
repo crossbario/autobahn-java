@@ -26,154 +26,43 @@
 
 package io.crossbar.autobahn.demogallery;
 
-import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
+import android.os.Handler;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import io.crossbar.autobahn.WebSocket;
 import io.crossbar.autobahn.WebSocketConnection;
 import io.crossbar.autobahn.WebSocketConnectionHandler;
 import io.crossbar.autobahn.WebSocketException;
 import io.crossbar.autobahn.WebSocketOptions;
 
-//import dalvik.system.VMRuntime;
+public class TestSuiteClientActivity extends AppCompatActivity implements View.OnClickListener {
 
-public class TestSuiteClientActivity extends Activity {
-
-    static final String TAG = "io.crossbar.autobahn.demogallery";
+    private static final String TAG = TestSuiteClientActivity.class.getName();
 
     private static final String PREFS_NAME = "AutobahnAndroidTestsuiteClient";
 
     private SharedPreferences mSettings;
 
-    static EditText mWsUri;
-    static EditText mAgent;
-    static TextView mStatusline;
-    static Button mStart;
+    private EditText mWsUri;
+    private EditText mAgent;
+    private TextView mStatusLine;
+    private Button mStart;
 
-    private void loadPrefs() {
-        mWsUri.setText(mSettings.getString("wsuri", "ws://192.168.1.12:9001"));
-        mAgent.setText(mSettings.getString("agent", "AutobahnAndroid"));
-    }
+    private int currentCase;
+    private int lastCase;
 
-    private void savePrefs() {
-        SharedPreferences.Editor editor = mSettings.edit();
-        editor.putString("wsuri", mWsUri.getText().toString());
-        editor.putString("agent", mAgent.getText().toString());
-        editor.commit();
-    }
+    private WebSocketOptions mOptions;
 
-    int currCase = 0;
-    int lastCase = 0;
-
-    private WebSocket sess = new WebSocketConnection();
-
-    private void next() {
-
-        try {
-            if (currCase == 0) {
-
-                sess.connect(mWsUri.getText() + "/getCaseCount",
-                        new WebSocketConnectionHandler() {
-
-                            @Override
-                            public void onOpen() {
-                                savePrefs();
-                            }
-
-                            @Override
-                            public void onTextMessage(String payload) {
-                                System.out.println(payload);
-                                lastCase = Integer.parseInt(payload);
-                            }
-
-                            @Override
-                            public void onRawTextMessage(byte[] payload) {
-                                System.out.println("RTM");
-                            }
-
-                            @Override
-                            public void onBinaryMessage(byte[] payload) {
-                                System.out.println("BM");
-                            }
-
-                            @Override
-                            public void onClose(int code, String reason) {
-                                mStatusline.setText("Ok, will run " + lastCase + " cases.");
-                                currCase += 1;
-                                next();
-                            }
-                        });
-
-            } else {
-                if (currCase <= lastCase) {
-
-                    WebSocketOptions options = new WebSocketOptions();
-                    options.setReceiveTextMessagesRaw(true);
-                    //options.setValidateIncomingUtf8(false);
-                    //options.setMaskClientFrames(false);
-                    options.setMaxMessagePayloadSize(4 * 1024 * 1024);
-                    options.setMaxFramePayloadSize(4 * 1024 * 1024);
-                    //options.setTcpNoDelay(false);
-
-                    sess.connect(mWsUri.getText() + "/runCase?case=" + currCase + "&agent=" + mAgent.getText(),
-                            new WebSocketConnectionHandler() {
-
-                                @Override
-                                public void onRawTextMessage(byte[] payload) {
-                                    sess.sendRawTextMessage(payload);
-                                }
-
-                                @Override
-                                public void onBinaryMessage(byte[] payload) {
-                                    sess.sendBinaryMessage(payload);
-                                }
-
-                                @Override
-                                public void onOpen() {
-                                    mStatusline.setText("Test case " + currCase + "/" + lastCase + " started ..");
-                                }
-
-                                @Override
-                                public void onClose(int code, String reason) {
-                                    mStatusline.setText("Test case " + currCase + "/" + lastCase + " finished.");
-                                    currCase += 1;
-                                    next();
-                                }
-                            }, options);
-                } else {
-                    sess.connect(mWsUri.getText() + "/updateReports?agent=" + mAgent.getText(),
-                            new WebSocketConnectionHandler() {
-
-                                @Override
-                                public void onOpen() {
-                                    mStatusline.setText("Updating test reports ..");
-                                }
-
-                                @Override
-                                public void onClose(int code, String reason) {
-                                    mStatusline.setText("Test reports updated. Finished.");
-                                    mStart.setEnabled(true);
-                                }
-                            });
-                }
-            }
-        } catch (WebSocketException e) {
-
-            Log.d(TAG, e.toString());
-        }
-    }
+    private Handler mHandler;
+    private Runnable mTestRunner;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-
-        //VMRuntime heap = VMRuntime.getRuntime();
-        //heap.setMinimumHeapSize(128 * 1024 * 1024);
 
         super.onCreate(savedInstanceState);
 
@@ -181,21 +70,147 @@ public class TestSuiteClientActivity extends Activity {
 
         mWsUri = (EditText) findViewById(R.id.wsuri);
         mAgent = (EditText) findViewById(R.id.agent);
-        mStatusline = (TextView) findViewById(R.id.statusline);
+        mStatusLine = (TextView) findViewById(R.id.statusline);
 
         mSettings = getSharedPreferences(PREFS_NAME, 0);
         loadPrefs();
 
         mStart = (Button) findViewById(R.id.start);
-        mStart.setOnClickListener(new Button.OnClickListener() {
+        mStart.setOnClickListener(this);
 
-            public void onClick(View v) {
-                mStart.setEnabled(false);
-                currCase = 0;
-                next();
+        mOptions = new WebSocketOptions();
+        mOptions.setReceiveTextMessagesRaw(true);
+        mOptions.setMaxMessagePayloadSize(4 * 1024 * 1024);
+        mOptions.setMaxFramePayloadSize(4 * 1024 * 1024);
+
+        mHandler = new Handler();
+        mTestRunner = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    runTest();
+                } catch (WebSocketException e) {
+                    e.printStackTrace();
+                }
             }
+        };
+    }
 
+    private void loadPrefs() {
+        mWsUri.setText(mSettings.getString("wsuri", "ws://192.168.1.3:9001"));
+        mAgent.setText(mSettings.getString("agent", "AutobahnAndroid"));
+    }
+
+    private void savePrefs() {
+        SharedPreferences.Editor editor = mSettings.edit();
+        editor.putString("wsuri", mWsUri.getText().toString());
+        editor.putString("agent", mAgent.getText().toString());
+        editor.apply();
+    }
+
+    private void updateText(final TextView textView, final String text) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                textView.setText(text);
+            }
         });
     }
 
+    private void runTest() throws WebSocketException {
+        final WebSocketConnection webSocket = new WebSocketConnection();
+        webSocket.connect(mWsUri.getText() + "/runCase?case=" + currentCase + "&agent=" + mAgent.getText(),
+                new WebSocketConnectionHandler() {
+
+                    @Override
+                    public void onRawTextMessage(byte[] payload) {
+                        webSocket.sendRawTextMessage(payload);
+                    }
+
+                    @Override
+                    public void onBinaryMessage(byte[] payload) {
+                        webSocket.sendBinaryMessage(payload);
+                    }
+
+                    @Override
+                    public void onOpen() {
+                        updateText(mStatusLine, "Test case " + currentCase + "/" + lastCase + " started ..");
+                    }
+
+                    @Override
+                    public void onClose(int code, String reason) {
+                        System.out.println("RAN TEST: " + reason);
+                        mStatusLine.setText("Test case " + currentCase + "/" + lastCase + " finished.");
+                        currentCase += 1;
+                        processNext();
+                    }
+                }, mOptions);
+    }
+
+    private void updateReport() throws WebSocketException {
+        WebSocketConnection webSocket = new WebSocketConnection();
+        webSocket.connect(mWsUri.getText() + "/updateReports?agent=" + mAgent.getText(),
+                new WebSocketConnectionHandler() {
+                    @Override
+                    public void onOpen() {
+                        mStatusLine.setText("Updating test reports ..");
+                    }
+
+                    @Override
+                    public void onClose(int code, String reason) {
+                        System.out.println("CLOSED: " + reason);
+                        mStatusLine.setText("Test reports updated. Finished.");
+                        mStart.setEnabled(true);
+                    }
+                });
+    }
+
+    private void queryCaseCount() throws WebSocketException {
+        final WebSocketConnection webSocket = new WebSocketConnection();
+        webSocket.connect(mWsUri.getText() + "/getCaseCount", new WebSocketConnectionHandler() {
+
+                    @Override
+                    public void onOpen() {
+                        savePrefs();
+                    }
+
+                    @Override
+                    public void onTextMessage(String payload) {
+                        lastCase = Integer.parseInt(payload);
+                    }
+
+                    @Override
+                    public void onClose(int code, String reason) {
+                        System.out.println("GOT CASE COUNT");
+                        mStatusLine.setText("Ok, will run " + lastCase + " cases.");
+                        currentCase += 1;
+                        processNext();
+                    }
+                });
+    }
+
+    private void processNext() {
+        try {
+            if (currentCase == 0) {
+                queryCaseCount();
+            } else if (currentCase <= lastCase) {
+                mHandler.postDelayed(mTestRunner, 250);
+            } else {
+                updateReport();
+            }
+        } catch (WebSocketException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.start:
+                mStart.setEnabled(false);
+                currentCase = 0;
+                processNext();
+                break;
+        }
+    }
 }

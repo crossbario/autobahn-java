@@ -685,11 +685,14 @@ public class WebSocketReader extends Thread {
 
         } catch (SocketException e) {
 
-            if (DEBUG) Log.d(TAG, "run() : SocketException (" + e.toString() + ")");
+            // BufferedInputStream throws when the socket is closed,
+            // eat the exception if we are already in STATE_CLOSED.
+            if (mState != STATE_CLOSED) {
+                if (DEBUG) Log.d(TAG, "run() : SocketException (" + e.toString() + ")");
 
-            // wrap the exception and notify master
-            notify(new WebSocketMessage.ConnectionLost());
-            ;
+                // wrap the exception and notify master
+                notify(new WebSocketMessage.ConnectionLost());
+            }
 
         } catch (Exception e) {
 
