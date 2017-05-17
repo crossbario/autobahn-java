@@ -415,7 +415,6 @@ public class WebSocketWriter extends Handler {
             }
             mBufferedOutputStream.write(payload, offset, length);
         }
-        mBufferedOutputStream.flush();
     }
 
 
@@ -431,7 +430,6 @@ public class WebSocketWriter extends Handler {
         try {
 
             // process message from master
-            Log.d(TAG, msg.obj.toString());
             processMessage(msg.obj);
 
             // send out buffered data
