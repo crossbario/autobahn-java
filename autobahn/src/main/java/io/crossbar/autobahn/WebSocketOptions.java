@@ -54,7 +54,7 @@ public class WebSocketOptions {
         mMaxMessagePayloadSize = 128 * 1024;
         mReceiveTextMessagesRaw = false;
         mTcpNoDelay = true;
-        mSocketReceiveTimeout = -1;
+        mSocketReceiveTimeout = 0;
         mSocketConnectTimeout = 6000;
         mValidateIncomingUtf8 = true;
         mMaskClientFrames = true;
