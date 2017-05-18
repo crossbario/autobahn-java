@@ -432,7 +432,8 @@ public class WebSocketWriter extends Handler {
             processMessage(msg.obj);
 
             // send out buffered data
-            if (mActive && mSocket.isConnected()) {
+
+            if (mActive && mSocket.isConnected() && !mSocket.isClosed()) {
                 mBufferedOutputStream.flush();
             }
 

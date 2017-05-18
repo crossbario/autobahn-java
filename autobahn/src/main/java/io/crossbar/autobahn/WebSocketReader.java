@@ -654,8 +654,13 @@ class WebSocketReader extends Thread {
         try {
             do {
                 // blocking read on socket
-                int len = mBufferedStream.read(mMessageData, mPosition, mMessageData.length - mPosition);
-                mPosition += len;
+                int len = 0;
+                if (mBufferedStream.available() > 0) {
+                    len = mBufferedStream.read(mMessageData, mPosition, mMessageData.length - mPosition);
+                    mPosition += len;
+                }
+//                int len = mBufferedStream.read(mMessageData, mPosition, mMessageData.length - mPosition);
+//                mPosition += len;
                 if (len > 0) {
 
                     // process buffered data
@@ -688,7 +693,7 @@ class WebSocketReader extends Thread {
 
             // BufferedInputStream throws when the socket is closed,
             // eat the exception if we are already in STATE_CLOSED.
-            if (mState != STATE_CLOSED) {
+            if (mState != STATE_CLOSED && !mSocket.isClosed()) {
                 if (DEBUG) Log.d(TAG, "run() : SocketException (" + e.toString() + ")");
 
                 // wrap the exception and notify master

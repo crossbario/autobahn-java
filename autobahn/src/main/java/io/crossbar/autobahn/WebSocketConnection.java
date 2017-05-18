@@ -103,7 +103,7 @@ public class WebSocketConnection implements WebSocket {
                 return;
             }
 
-            if (mSocket.isConnected()) {
+            if (isConnected()) {
 
                 try {
 
@@ -163,7 +163,7 @@ public class WebSocketConnection implements WebSocket {
 
 
     public boolean isConnected() {
-        return mSocket != null && mSocket.isConnected();
+        return mSocket != null && mSocket.isConnected() && !mSocket.isClosed();
     }
 
 
@@ -195,7 +195,7 @@ public class WebSocketConnection implements WebSocket {
             if (DEBUG) Log.d(TAG, "mWriter already NULL");
         }
 
-        if (mSocket != null) {
+        if (isConnected()) {
             try {
                 mSocket.close();
             } catch (IOException e) {
@@ -226,7 +226,7 @@ public class WebSocketConnection implements WebSocket {
 
         // don't connect if already connected .. user needs to disconnect first
         //
-        if (mSocket != null && mSocket.isConnected()) {
+        if (isConnected()) {
             throw new WebSocketException("already connected");
         }
 
@@ -295,11 +295,11 @@ public class WebSocketConnection implements WebSocket {
         } else {
             if (DEBUG) Log.d(TAG, "could not send Close .. writer already NULL");
         }
-        if (mReader != null) {
-            mReader.quit();
-        } else {
-            if (DEBUG) Log.d(TAG, "could not send Close .. reader already NULL");
-        }
+//        if (mReader != null) {
+//            mReader.quit();
+//        } else {
+//            if (DEBUG) Log.d(TAG, "could not send Close .. reader already NULL");
+//        }
         mActive = false;
         mPrevConnected = false;
     }
@@ -385,6 +385,33 @@ public class WebSocketConnection implements WebSocket {
 
             public void handleMessage(Message msg) {
 
+                // We have received a closing handshake and replied to it, discard
+                // any data received after that.
+                if (!mActive) {
+                    return;
+                }
+//                if (!mActive) {
+//                    if (msg.obj instanceof WebSocketMessage.Close) {
+//                        WebSocketMessage.Close close = (WebSocketMessage.Close) msg.obj;
+//
+//                        if (DEBUG) Log.d(TAG, "WebSockets Close received (" + close.mCode + " - " + close.mReason + ")");
+//                        final int crossbarCloseCode = (close.mCode == 1000) ? ConnectionHandler.CLOSE_NORMAL : ConnectionHandler.CLOSE_CONNECTION_LOST;
+//
+//                        if (isConnected()) {
+//                            // we've initiated disconnect, so ready to close the channel
+//                            try {
+//                                mSocket.close();
+//                            } catch (IOException e) {
+//                                if (DEBUG) e.printStackTrace();
+//                            }
+//                        }
+//                        onClose(crossbarCloseCode, close.mReason);
+//                        return;
+//                    } else {
+//                        return;
+//                    }
+//                }
+
                 if (msg.obj instanceof WebSocketMessage.TextMessage) {
 
                     WebSocketMessage.TextMessage textMessage = (WebSocketMessage.TextMessage) msg.obj;
@@ -440,17 +467,15 @@ public class WebSocketConnection implements WebSocket {
 
                     final int crossbarCloseCode = (close.mCode == 1000) ? ConnectionHandler.CLOSE_NORMAL : ConnectionHandler.CLOSE_CONNECTION_LOST;
 
-                    if (mActive) {
-                        // We have received a close frame, lets clean.
-                        disconnect();
+                    // We have received a close frame, lets clean.
+                    if (mReader != null) {
+                        mReader.quit();
                     } else {
-                        // we've initiated disconnect, so ready to close the channel
-                        try {
-                            mSocket.close();
-                        } catch (IOException e) {
-                            if (DEBUG) e.printStackTrace();
-                        }
+                        if (DEBUG) Log.d(TAG, "could not send Close .. reader already NULL");
                     }
+                    // Reply with the closing handshake.
+                    mWriter.forward(new WebSocketMessage.Close(1000));
+                    mActive = false;
 
                     onClose(crossbarCloseCode, close.mReason);
 
@@ -463,6 +488,7 @@ public class WebSocketConnection implements WebSocket {
                     if (serverHandshake.mSuccess) {
                         if (mWsHandler != null) {
                             mWsHandler.onOpen();
+                            if (DEBUG) Log.d(TAG, "onOpen() called, ready to rock.");
                         } else {
                             if (DEBUG) Log.d(TAG, "could not call onOpen() .. handler already NULL");
                         }
