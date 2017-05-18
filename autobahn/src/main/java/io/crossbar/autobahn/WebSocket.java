@@ -26,7 +26,7 @@
 
 package io.crossbar.autobahn;
 
-interface WebSocket {
+public interface WebSocket {
 
     /**
      * Session handler for WebSocket sessions.

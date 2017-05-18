@@ -32,12 +32,11 @@ import android.os.Message;
 import android.util.Base64;
 import android.util.Log;
 
-import org.apache.http.NameValuePair;
-
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -227,8 +226,8 @@ public class WebSocketWriter extends Handler {
 
         // Header injection
         if (message.mHeaderList != null) {
-            for (NameValuePair pair : message.mHeaderList) {
-                write(pair.getName() + ":" + pair.getValue());
+            for (Map.Entry<String, String> entry : message.mHeaderList.entrySet()) {
+                write(entry.getKey() + ":" + entry.getValue());
                 write(CRLF);
             }
         }
