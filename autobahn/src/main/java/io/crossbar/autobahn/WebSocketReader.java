@@ -32,6 +32,7 @@ import android.util.Log;
 import android.util.Pair;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
@@ -47,7 +48,7 @@ import java.util.Map;
  * The only method that needs to be called (from foreground thread) is quit(),
  * which gracefully shuts down the background receiver thread.
  */
-public class WebSocketReader extends Thread {
+class WebSocketReader extends Thread {
 
     private static final boolean DEBUG = true;
     private static final String TAG = WebSocketReader.class.getName();
@@ -59,7 +60,7 @@ public class WebSocketReader extends Thread {
     private Socket mSocket;
     private int mPosition;
     private byte[] mMessageData;
-    private NoCopyByteArrayOutputStream mMessagePayload;
+    private ByteArrayOutputStream mMessagePayload;
 
     private final static int STATE_CLOSED = 0;
     private final static int STATE_CONNECTING = 1;
@@ -109,7 +110,7 @@ public class WebSocketReader extends Thread {
 
         mMessageData = new byte[mOptions.getMaxFramePayloadSize() + 14];
         mBufferedStream = new BufferedInputStream(mSocket.getInputStream(), mOptions.getMaxFramePayloadSize() + 14);
-        mMessagePayload = new NoCopyByteArrayOutputStream(options.getMaxMessagePayloadSize());
+        mMessagePayload = new ByteArrayOutputStream(options.getMaxMessagePayloadSize());
 
         mFrameHeader = null;
         mState = STATE_CONNECTING;
