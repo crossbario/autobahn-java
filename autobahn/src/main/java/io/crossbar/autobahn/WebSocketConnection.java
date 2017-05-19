@@ -32,12 +32,14 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
+import org.apache.http.message.BasicNameValuePair;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashMap;
+import java.util.List;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLSocketFactory;
@@ -61,7 +63,7 @@ public class WebSocketConnection implements WebSocket {
     private String mWsPath;
     private String mWsQuery;
     private String[] mWsSubprotocols;
-    private HashMap<String, String> mWsHeaders;
+    private List<BasicNameValuePair> mWsHeaders;
 
     private WebSocket.ConnectionHandler mWsHandler;
 
@@ -227,7 +229,7 @@ public class WebSocketConnection implements WebSocket {
     }
 
 
-    public void connect(String wsUri, String[] wsSubprotocols, WebSocket.ConnectionHandler wsHandler, WebSocketOptions options, HashMap<String, String> headers) throws WebSocketException {
+    public void connect(String wsUri, String[] wsSubprotocols, WebSocket.ConnectionHandler wsHandler, WebSocketOptions options, List<BasicNameValuePair> headers) throws WebSocketException {
 
         // don't connect if already connected .. user needs to disconnect first
         //
