@@ -168,20 +168,24 @@ public class WebSocketConnection implements WebSocket {
     }
 
 
-    private void failConnection(int code, String reason) {
-        if (DEBUG) Log.d(TAG, "fail connection [code = " + code + ", reason = " + reason);
-
+    private void closeReaderThread() {
         if (mReader != null) {
             mReader.quit();
             try {
                 mReader.join();
             } catch (InterruptedException e) {
-                if (DEBUG) e.printStackTrace();
+                e.printStackTrace();
             }
-            //mReader = null;
         } else {
             if (DEBUG) Log.d(TAG, "mReader already NULL");
         }
+    }
+
+
+    private void failConnection(int code, String reason) {
+        if (DEBUG) Log.d(TAG, "fail connection [code = " + code + ", reason = " + reason);
+
+        closeReaderThread();
 
         if (mWriter != null) {
             //mWriterThread.getLooper().quit();
@@ -294,16 +298,14 @@ public class WebSocketConnection implements WebSocket {
 
 
     public void disconnect() {
+        // Close the writer thread here but delay the closing of reader thread
+        // as we need to have active connection to be able to process the response
+        // of this close request.
         if (mWriter != null) {
             mWriter.forward(new WebSocketMessage.Close(1000));
         } else {
             if (DEBUG) Log.d(TAG, "could not send Close .. writer already NULL");
         }
-//        if (mReader != null) {
-//            mReader.quit();
-//        } else {
-//            if (DEBUG) Log.d(TAG, "could not send Close .. reader already NULL");
-//        }
         onCloseCalled = false;
         mActive = false;
         mPrevConnected = false;
@@ -453,15 +455,12 @@ public class WebSocketConnection implements WebSocket {
 
                     if (mActive) {
                         // We have received a close frame, lets clean.
-                        if (mReader != null) {
-                            mReader.quit();
-                        } else {
-                            if (DEBUG) Log.d(TAG, "could not send Close .. reader already NULL");
-                        }
+                        closeReaderThread();
                         mWriter.forward(new WebSocketMessage.Close(1000));
                         mActive = false;
                     } else {
                         // we've initiated disconnect, so ready to close the channel
+                        closeReaderThread();
                         try {
                             mSocket.close();
                         } catch (IOException e) {
