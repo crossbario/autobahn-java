@@ -443,7 +443,7 @@ public class WebSocketWriter extends Handler {
             if (msg.obj instanceof WebSocketMessage.Close) {
                 WebSocketMessage.Close closeMessage = (WebSocketMessage.Close) msg.obj;
                 if (closeMessage.mIsReply) {
-                    notify(closeMessage);
+                    notify(new WebSocketMessage.Close(closeMessage.mCode, closeMessage.mReason, true));
                 }
             }
 

@@ -172,11 +172,18 @@ public class WebSocketMessage {
 
         // For local use only.
         Close(int code, boolean isReply) {
+            mCode = code;
             mIsReply = isReply;
         }
 
         Close(int code, String reason) {
             mCode = code;
+            mReason = reason;
+        }
+
+        Close(int code, String reason, boolean isReply) {
+            mCode = code;
+            mIsReply = isReply;
             mReason = reason;
         }
     }

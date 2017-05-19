@@ -28,7 +28,6 @@ package io.crossbar.autobahn.demogallery;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -41,8 +40,6 @@ import io.crossbar.autobahn.WebSocketException;
 import io.crossbar.autobahn.WebSocketOptions;
 
 public class TestSuiteClientActivity extends AppCompatActivity implements View.OnClickListener {
-
-    private static final String TAG = TestSuiteClientActivity.class.getName();
 
     private static final String PREFS_NAME = "AutobahnAndroidTestsuiteClient";
 
@@ -57,9 +54,6 @@ public class TestSuiteClientActivity extends AppCompatActivity implements View.O
     private int lastCase;
 
     private WebSocketOptions mOptions;
-
-    private Handler mHandler;
-    private Runnable mTestRunner;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -82,18 +76,6 @@ public class TestSuiteClientActivity extends AppCompatActivity implements View.O
         mOptions.setReceiveTextMessagesRaw(true);
         mOptions.setMaxMessagePayloadSize(16 * 1024 * 1024);
         mOptions.setMaxFramePayloadSize(16 * 1024 * 1024);
-
-        mHandler = new Handler();
-        mTestRunner = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    runTest();
-                } catch (WebSocketException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
     }
 
     private void loadPrefs() {
@@ -118,7 +100,6 @@ public class TestSuiteClientActivity extends AppCompatActivity implements View.O
     }
 
     private void runTest() throws WebSocketException {
-//        final boolean[] receivedClose = new boolean[1];
         final WebSocketConnection webSocket = new WebSocketConnection();
         webSocket.connect(mWsUri.getText() + "/runCase?case=" + currentCase + "&agent=" + mAgent.getText(),
                 new WebSocketConnectionHandler() {
@@ -140,8 +121,6 @@ public class TestSuiteClientActivity extends AppCompatActivity implements View.O
 
                     @Override
                     public void onClose(int code, String reason) {
-                        // XXX om26er. Temporary workaround a bug where onClose is called multiple times,
-                        // causing the test run counter to go haywire.
                         mStatusLine.setText("Test case " + currentCase + "/" + lastCase + " finished.");
                         currentCase += 1;
                         processNext();
@@ -160,7 +139,6 @@ public class TestSuiteClientActivity extends AppCompatActivity implements View.O
 
                     @Override
                     public void onClose(int code, String reason) {
-                        System.out.println("CLOSED: " + reason);
                         mStatusLine.setText("Test reports updated. Finished.");
                         mStart.setEnabled(true);
                     }
@@ -195,7 +173,7 @@ public class TestSuiteClientActivity extends AppCompatActivity implements View.O
             if (currentCase == 0) {
                 queryCaseCount();
             } else if (currentCase <= lastCase) {
-                mHandler.postDelayed(mTestRunner, 250);
+                runTest();
             } else {
                 updateReport();
             }

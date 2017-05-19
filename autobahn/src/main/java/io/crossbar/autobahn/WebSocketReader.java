@@ -336,6 +336,12 @@ class WebSocketReader extends Thread {
                             }
                         }
                         onClose(code, reason);
+                        // We have received a close, so lets set the state as early as possible.
+                        // It seems that Handler() has a lag to deliver a message, so if the onClose
+                        // is sent to master and just after that the other peer closes the socket,
+                        // BufferedInputReader.read() will throw an exception which results in
+                        // our code sending a ConnectionLost() message to master.
+                        mState = STATE_CLOSED;
 
                     } else if (mFrameHeader.mOpcode == 9) {
                         // dispatch WS ping
@@ -665,16 +671,13 @@ class WebSocketReader extends Thread {
 
                 } else if (mState == STATE_CLOSED) {
 
-                    notify(new WebSocketMessage.Close(1000)); // Connection has been closed normally
                     mStopped = true;
 
                 } else if (len < 0) {
 
-                    if (mState != STATE_CLOSED) {
-                        if (DEBUG) Log.d(TAG, "run() : ConnectionLost");
+                    if (DEBUG) Log.d(TAG, "run() : ConnectionLost");
 
-                        notify(new WebSocketMessage.ConnectionLost());
-                    }
+                    notify(new WebSocketMessage.ConnectionLost());
 
                     mStopped = true;
                 }
