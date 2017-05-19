@@ -688,7 +688,7 @@ class WebSocketReader extends Thread {
 
             // BufferedInputStream throws when the socket is closed,
             // eat the exception if we are already in STATE_CLOSED.
-            if (mState != STATE_CLOSED) {
+            if (mState != STATE_CLOSED && !mSocket.isClosed()) {
                 if (DEBUG) Log.d(TAG, "run() : SocketException (" + e.toString() + ")");
 
                 // wrap the exception and notify master

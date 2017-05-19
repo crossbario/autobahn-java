@@ -118,7 +118,6 @@ public class TestSuiteClientActivity extends AppCompatActivity implements View.O
     }
 
     private void runTest() throws WebSocketException {
-        final boolean[] receivedClose = new boolean[1];
         final WebSocketConnection webSocket = new WebSocketConnection();
         webSocket.connect(mWsUri.getText() + "/runCase?case=" + currentCase + "&agent=" + mAgent.getText(),
                 new WebSocketConnectionHandler() {
@@ -140,14 +139,9 @@ public class TestSuiteClientActivity extends AppCompatActivity implements View.O
 
                     @Override
                     public void onClose(int code, String reason) {
-                        // XXX om26er. Temporary workaround a bug where onClose is called multiple times,
-                        // causing the test run counter to go haywire.
-                        if (!receivedClose[0]) {
-                            receivedClose[0] = true;
-                            mStatusLine.setText("Test case " + currentCase + "/" + lastCase + " finished.");
-                            currentCase += 1;
-                            processNext();
-                        }
+                        mStatusLine.setText("Test case " + currentCase + "/" + lastCase + " finished.");
+                        currentCase += 1;
+                        processNext();
                     }
                 }, mOptions);
     }
