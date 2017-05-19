@@ -157,6 +157,7 @@ public class WebSocketMessage {
 
         public int mCode;
         public String mReason;
+        // Not to be delivered on the wire, only for local use.
         public boolean mIsReply;
 
         Close() {
