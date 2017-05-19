@@ -6,7 +6,7 @@ android {
     useLibrary 'org.apache.http.legacy'
 
     defaultConfig {
-        minSdkVersion 14
+        minSdkVersion 9
         targetSdkVersion 25
     }
 
@@ -16,9 +16,4 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
-}
-
-dependencies {
-    compile 'org.codehaus.jackson:jackson-core-asl:1.9.7'
-    compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.7'
 }

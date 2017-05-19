@@ -96,7 +96,7 @@ public class WebSocketConnection implements WebSocket {
 
                 // before doing any data transfer on the socket, set socket
                 // options
-//                mSocket.setSoTimeout(mOptions.getSocketReceiveTimeout());
+                mSocket.setSoTimeout(mOptions.getSocketReceiveTimeout());
                 mSocket.setTcpNoDelay(mOptions.getTcpNoDelay());
 
             } catch (IOException e) {
