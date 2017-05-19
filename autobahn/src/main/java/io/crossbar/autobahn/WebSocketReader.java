@@ -655,7 +655,7 @@ class WebSocketReader extends Thread {
             do {
                 // blocking read on socket
                 int len = 0;
-                if (mBufferedStream.available() > 1) {
+                if (mBufferedStream.available() > 0) {
                     len = mBufferedStream.read(mMessageData, mPosition, mMessageData.length - mPosition);
                     mPosition += len;
                 }
