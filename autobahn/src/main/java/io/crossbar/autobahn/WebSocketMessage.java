@@ -26,7 +26,9 @@
 
 package io.crossbar.autobahn;
 
-import java.util.HashMap;
+import org.apache.http.message.BasicNameValuePair;
+
+import java.util.List;
 
 /**
  * WebSockets message classes.
@@ -51,7 +53,7 @@ public class WebSocketMessage {
         public String mQuery;
         public String mOrigin;
         public String[] mSubprotocols;
-        public HashMap<String, String> mHeaderList;
+        public List<BasicNameValuePair> mHeaderList;
 
         ClientHandshake(String host) {
             mHost = host;
