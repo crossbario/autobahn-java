@@ -109,11 +109,11 @@ public class WebSocketConnection implements WebSocket {
 
                 try {
 
-                    // create & start WebSocket writer
-                    createWriter();
-
                     // create & start WebSocket reader
                     createReader();
+
+                    // create & start WebSocket writer
+                    createWriter();
 
                     // start WebSockets handshake
                     WebSocketMessage.ClientHandshake hs = new WebSocketMessage.ClientHandshake(
@@ -443,7 +443,8 @@ public class WebSocketConnection implements WebSocket {
                     final int crossbarCloseCode = (close.mCode == 1000) ? ConnectionHandler.CLOSE_NORMAL : ConnectionHandler.CLOSE_CONNECTION_LOST;
 
                     if (mActive) {
-                        mWriter.forward(new WebSocketMessage.Close(1000));
+                        // We have received a close frame, lets clean.
+                        disconnect();
                     } else {
                         // we've initiated disconnect, so ready to close the channel
                         try {

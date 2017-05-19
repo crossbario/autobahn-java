@@ -69,6 +69,12 @@ public class WebSocketWriter extends Handler {
     /// The send buffer that holds data to send on socket.
     private BufferedOutputStream mBufferedOutputStream;
 
+    /// The tcp socket
+    private Socket mSocket;
+
+    /// Is Active.
+    private boolean mActive;
+
 
     /**
      * Create new WebSockets background writer.
@@ -86,7 +92,9 @@ public class WebSocketWriter extends Handler {
         mLooper = looper;
         mMaster = master;
         mOptions = options;
+        mSocket = socket;
         mBufferedOutputStream = new BufferedOutputStream(socket.getOutputStream(), options.getMaxFramePayloadSize() + 14);
+        mActive = true;
 
         if (DEBUG) Log.d(TAG, "created");
     }
@@ -126,6 +134,11 @@ public class WebSocketWriter extends Handler {
      *                this class).
      */
     public void forward(Object message) {
+        // We have already quit, we are no longer sending messages.
+        if (!mActive) {
+            if (DEBUG) Log.d(TAG, "We have already quite, not processing further messages");
+            return;
+        }
         Message msg = obtainMessage();
         msg.obj = message;
         sendMessage(msg);
@@ -420,7 +433,9 @@ public class WebSocketWriter extends Handler {
             processMessage(msg.obj);
 
             // send out buffered data
-            mBufferedOutputStream.flush();
+            if (mActive && mSocket.isConnected()) {
+                mBufferedOutputStream.flush();
+            }
 
         } catch (SocketException e) {
 
@@ -478,10 +493,9 @@ public class WebSocketWriter extends Handler {
         } else if (msg instanceof WebSocketMessage.Quit) {
 
             mLooper.quit();
+            mActive = false;
 
             if (DEBUG) Log.d(TAG, "ended");
-
-            return;
 
         } else {
 
