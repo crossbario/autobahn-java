@@ -170,6 +170,7 @@ public class WebSocketMessage {
             mReason = null;
         }
 
+        // For local use only.
         Close(int code, boolean isReply) {
             mIsReply = isReply;
         }
@@ -177,12 +178,6 @@ public class WebSocketMessage {
         Close(int code, String reason) {
             mCode = code;
             mReason = reason;
-        }
-
-        Close(int code, String reason, boolean isReply) {
-            mCode = code;
-            mReason = reason;
-            mIsReply = isReply;
         }
     }
 
