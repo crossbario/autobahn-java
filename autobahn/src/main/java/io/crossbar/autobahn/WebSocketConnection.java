@@ -173,11 +173,11 @@ public class WebSocketConnection implements WebSocket {
     private void closeReaderThread() {
         if (mReader != null) {
             mReader.quit();
-            try {
-                mReader.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                mReader.join();
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
         } else {
             if (DEBUG) Log.d(TAG, "mReader already NULL");
         }
