@@ -136,7 +136,7 @@ public class WebSocketWriter extends Handler {
     public void forward(Object message) {
         // We have already quit, we are no longer sending messages.
         if (!mActive) {
-            if (DEBUG) Log.d(TAG, "We have already quite, not processing further messages");
+            if (DEBUG) Log.d(TAG, "We have already quit, not processing further messages");
             return;
         }
         Message msg = obtainMessage();
@@ -437,6 +437,16 @@ public class WebSocketWriter extends Handler {
             if (mActive && mSocket.isConnected() && !mSocket.isClosed()) {
                 mBufferedOutputStream.flush();
             }
+
+            // Check if the message that we sent was a close frame and was a reply
+            // to a closing handshake, if so, then notify master to close the socket.
+            if (msg.obj instanceof WebSocketMessage.Close) {
+                WebSocketMessage.Close closeMessage = (WebSocketMessage.Close) msg.obj;
+                if (closeMessage.mIsReply) {
+                    notify(closeMessage);
+                }
+            }
+
 
         } catch (SocketException e) {
 

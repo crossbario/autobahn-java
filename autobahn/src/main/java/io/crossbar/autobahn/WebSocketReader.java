@@ -673,6 +673,7 @@ class WebSocketReader extends Thread {
                     if (DEBUG) Log.d(TAG, "run() : ConnectionLost");
 
                     notify(new WebSocketMessage.ConnectionLost());
+
                     mStopped = true;
                 }
             } while (!mStopped);

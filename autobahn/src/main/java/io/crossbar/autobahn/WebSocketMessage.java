@@ -157,6 +157,7 @@ public class WebSocketMessage {
 
         public int mCode;
         public String mReason;
+        public boolean mIsReply;
 
         Close() {
             mCode = -1;
@@ -168,9 +169,19 @@ public class WebSocketMessage {
             mReason = null;
         }
 
+        Close(int code, boolean isReply) {
+            mIsReply = isReply;
+        }
+
         Close(int code, String reason) {
             mCode = code;
             mReason = reason;
+        }
+
+        Close(int code, String reason, boolean isReply) {
+            mCode = code;
+            mReason = reason;
+            mIsReply = isReply;
         }
     }
 
