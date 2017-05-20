@@ -1,13 +1,17 @@
-# AutobahnJava
+# Autobahn|Java
 
-AutobahnJava is a subproject of the [Autobahn project](http://crossbar.io/autobahn/) and provides an open-source client implementation
+Autobahn|Java is a subproject of the [Autobahn project](http://crossbar.io/autobahn/) and provides an open-source client implementations for
 
 * **[The WebSocket Protocol](http://tools.ietf.org/html/rfc6455)**
 * **[The Web Application Messaging Protocol (WAMP)](http://wamp.ws/)**
 
-for Android/Dalvik and Netty/JVM based applications.
+running on Android/Dalvik and Netty/JVM.
 
-The WebSocket layer is using a callback based user API, while the WAMP layer is using Java CompletableFuture for WAMP actions (call, register, publish and subscribe) and the Observer pattern for WAMP session, subscription and registration lifecycle events.
+The WebSocket layer is using a callback based user API.
+
+The WAMP layer is using Java CompletableFuture for WAMP actions (call, register, publish and subscribe) and the Observer pattern for WAMP session, subscription and registration lifecycle events.
+
+The library is MIT licensed, maintained by the Crossbar.io Project, tested using the AutobahnTestsuite and published as a JAR to Maven and as a Docker toolchain image to Dockerhub.
 
 
 ## Show me some code
