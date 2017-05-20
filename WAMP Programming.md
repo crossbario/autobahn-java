@@ -152,14 +152,14 @@ public class Main {
         session.registerConnectedListener(
 
             // when the session becomes CONNECTED, trigger joining ..
-            (channel) -> session.join(auth_requests)
+            (connected_details) -> session.join(auth_requests)
         );
 
         // register a listener for the session becoming JOINED on a realm
         session.registerJoinedListener(
 
             // when the session becomes JOINED, register a procedure ..
-            (session_details) -> session.register(
+            (joined_details) -> session.register(
                 "com.example.add2",
                 (args, kwargs, details) -> return args[0] + args[1]
             )
@@ -169,7 +169,43 @@ public class Main {
         session.registerReadyListener(
 
             // when the session becomes READY, log a message.
-            (session_details) -> System.out.println("component ready!")
+            (ready_details) -> System.out.println("component ready: " + ready_details.to_string())
+        );
+
+        // now actually connect the session to the channel, which will then
+        // trigger of a cascade of events and event handling code as above
+        session.connect(channel);
+    }
+}
+```
+
+## Handling Auto-reconnect
+
+```java
+public class Main {
+
+    public static void main (String[] args) {
+
+        // assume WAMP message channel and session are created magically
+        MessageChannel channel;
+        Session session;
+
+        // then, define a sequence of authentication requests
+        List<AuthRequest> auth_requests = new List([new AuthRequest("anonymous", "realm1")]);
+
+        // register a listener for the session becoming CONNECTED
+        session.registerConnectedListener(
+
+            // when the session becomes CONNECTED, trigger joining ..
+            (connected_details) -> session.join(auth_requests)
+        );
+
+        // register a listener for the session becoming DISCONNECTED
+        session.registerDisconnectedListener(
+
+            // when the session becomes DISCONNECTED, automatically reconnect ..
+            (disconnected_details) -> session.connect(channel)
+            )
         );
 
         // now actually connect the session to the channel, which will then
