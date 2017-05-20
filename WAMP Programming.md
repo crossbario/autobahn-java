@@ -134,7 +134,7 @@ public class Session {
 }
 ```
 
-## Usage
+## Basic Usage
 
 ```java
 public class Main {
@@ -146,7 +146,7 @@ public class Main {
         Session session;
 
         // then, define a sequence of authentication requests
-        List<AuthRequest> auth_requests = new List([new AuthRequest("anonymous", "realm1")]);
+        List<AuthRequest> auth_requests = new List([new AnonymousAuthRequest("anonymous", "realm1")]);
 
         // register a listener for the session becoming CONNECTED
         session.registerConnectedListener(
@@ -161,7 +161,7 @@ public class Main {
             // when the session becomes JOINED, register a procedure ..
             (joined_details) -> session.register(
                 "com.example.add2",
-                (args, kwargs, details) -> return args[0] + args[1]
+                (args, kwargs, details) -> return (args[0] + args[1], null, null)
             )
         );
 
@@ -181,6 +181,10 @@ public class Main {
 
 ## Handling Auto-reconnect
 
+The following shows a rough sketch of how user controller auto-reconnect of a (disconnected, previously connected) message channel might look like.
+
+The user code register a listener for observing the session moving into the DISCONNECTED state. When that happens, the user connect will trigger a reconnect on the original message channel
+
 ```java
 public class Main {
 
@@ -191,21 +195,44 @@ public class Main {
         Session session;
 
         // then, define a sequence of authentication requests
-        List<AuthRequest> auth_requests = new List([new AuthRequest("anonymous", "realm1")]);
+        List<AuthRequest> auth_requests = new List([new AnonymousAuthRequest("anonymous", "realm1")]);
 
         // register a listener for the session becoming CONNECTED
         session.registerConnectedListener(
 
-            // when the session becomes CONNECTED, trigger joining ..
-            (connected_details) -> session.join(auth_requests)
+            // when the session becomes CONNECTED, trigger joining
+            (connected) -> this.join(auth_requests)
+        );
+
+        // register a listener for the session becoming JOINED on a realm
+        session.registerJoinedListener(
+
+            // when the session becomes JOINED, log a message
+            (joined) -> System.out.println("session joined: " + joined.to_string())
+        );
+
+        // register a listener for the session becoming READY
+        session.registerReadyListener(
+
+            // when the session becomes READY, log a message
+            (ready) -> System.out.println("component ready: " + ready.to_string())
         );
 
         // register a listener for the session becoming DISCONNECTED
         session.registerDisconnectedListener(
 
-            // when the session becomes DISCONNECTED, automatically reconnect ..
-            (disconnected_details) -> session.connect(channel)
-            )
+            new DisconnectedListener() {
+
+                @Override
+                public void onDisconnected (Disconnected disconnected) {
+
+                    if (disconnected.connection_success > 0 && disconnected.reconnection_attempts < 10) {
+                        this.connect(disconnected.channel);
+                    } else {
+                        System.out.println("Giving up reconnecting!");
+                    }
+                }
+            }
         );
 
         // now actually connect the session to the channel, which will then
