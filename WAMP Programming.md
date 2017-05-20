@@ -19,6 +19,15 @@ Here is an example:
 
 
 ```java
+/**
+ * Listener for observing the CONNECTED state of a session.
+ *
+ * This is modeled following this https://dzone.com/articles/the-observer-pattern-using-modern-java
+ */
+public interface ConnectedListener {
+    public void onChannelConnected (MessageChannel channel);
+}
+
 public class Main {
 
     public static void main (String[] args) {
@@ -53,5 +62,72 @@ public class Main {
         // our listener as we have explicitly unregister that listener
         session.connect(channel2);
     }
+}
+```
+
+## WAMP Session
+
+```console
+public class Session {
+
+    void connect(Channel channel);
+
+    Channel get_channel();
+
+    void disconnect();
+
+    int get_state() {
+        // CONNECTED
+        // CONNECTED_RESUMING
+        // DISCONNECTED
+        // DISCONNECTED_RESUMABLE
+        // HELLO_SENT
+        // AUTHENTICATE_SENT
+        // JOINED
+        // READY
+        // GOODBYE_SENT
+        // ABORT_SENT
+    }
+}
+```
+
+
+## WAMP Actions
+
+```console
+public class Session {
+
+    /**
+     * Publish an event to a topic.
+     *
+     * @param topic     The URI of the topic to publish on.
+     * @param args      Positional arguments (payload) of the event publish.
+     * @param kwargs    Keyword arguments (payload) of the event to publish.
+     * @param options   Publication options.
+     * @return          A CompletableFuture that resolves to an instance of Publication on success.
+     */
+    CompletableFuture<Publication> publish(String topic,
+                                           List<Object> args,
+                                           Map<String, Object> kwargs,
+                                           PublishOptions options);
+
+    CompletableFuture<Subscription> subscribe(String topic,
+                                              SubscribeOptions options);
+
+    /**
+     * Issue a call to a procedure.
+     *
+     * @param procedure     The URI of the procedure to call.
+     * @param args          Positional arguments (payload) to the call issued.
+     * @param kwargs        Keyword arguments (payload) to the call issued.
+     * @return              A CompletableFuture that resolves to an instance of CallResult on success.
+     */
+    CompletableFuture<CallResult> call(String procedure,
+                                       List<Object> args,
+                                       Map<String, Object> kwargs,
+                                       CallOptions options);
+
+    CompletableFuture<Registration> register(String procedure,
+                                             RegisterOptions options);
 }
 ```
