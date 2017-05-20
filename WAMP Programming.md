@@ -258,6 +258,13 @@ public class Main {
         // then, define a sequence of authentication requests
         List<AuthRequest> auth_requests = new List([new AnonymousAuthRequest("anonymous", "realm1")]);
 
+        // serializers we want to run
+        Serializer serializers = new List([new CborSerializer()]);
+
+        // creating a WebSocket channel
+        MessageChannel channel = new WebSocketChannel("wss://demo.crossbar.io", "realm1", serializers);
+
+
         // register a listener for the session becoming CONNECTED
         session.registerSessionConnectedListener(
 
@@ -282,30 +289,7 @@ public class Main {
             (ready) -> System.out.println("component ready: " + ready.to_string())
         );
 
-        // register a listener for the session becoming DISCONNECTED
-        session.registerSessionDisconnectedListener(
-
-            new SessionDisconnectedListener() {
-
-                @Override
-                public void on (SessionDisconnected disconnected) {
-
-                    if (disconnected.connection_success > 0 && disconnected.reconnection_attempts < 10) {
-                        disconnected.channel.connect();
-                    } else {
-                        System.out.println("Giving up reconnecting!");
-                    }
-                }
-            }
-        );
-
-        // serializers we want to run
-        Serializer serializers = new List([new CborSerializer()]);
-
-        // creating a WebSocket channel
-        MessageChannel channel = new WebSocketChannel("wss://demo.crossbar.io", "realm1", serializers);
-
-        // register a listener for the session becoming DISCONNECTED
+        // register a listener for the channel becoming CONNECTED
         channel.registerChannelConnectedListener(
 
             new ChannelConnectedListener() {
@@ -315,6 +299,23 @@ public class Main {
                     // now actually connect the session to the channel, which will then
                     // trigger of cascade of events and event handling code as above
                     session.connect(this);
+                }
+            }
+        );
+
+        // register a listener for the channel becoming DISCONNECTED
+        channel.registerChannelDisconnectedListener(
+
+            new ChannelDisconnectedListener() {
+
+                @Override
+                public void on (ChannelDisconnected disconnected) {
+
+                    if (disconnected.connection_success > 0 && disconnected.reconnection_attempts < 10) {
+                        this.connect();
+                    } else {
+                        System.out.println("Giving up reconnecting!");
+                    }
                 }
             }
         );
