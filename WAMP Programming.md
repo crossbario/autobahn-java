@@ -241,3 +241,81 @@ public class Main {
     }
 }
 ```
+
+## Complete Example
+
+```java
+public class Main {
+
+    public static void main (String[] args) {
+
+        // creating a session can be done on the green field
+        Session session = new Session();
+
+        // then, define a sequence of authentication requests
+        List<AuthRequest> auth_requests = new List([new AnonymousAuthRequest("anonymous", "realm1")]);
+
+        // register a listener for the session becoming CONNECTED
+        session.registerSessionConnectedListener(
+
+            // when the session becomes CONNECTED, trigger joining
+            (connected) -> this.join(auth_requests)
+        );
+
+        // register a listener for the session becoming JOINED on a realm
+        session.registerJoinedListener(
+
+            // when the session becomes JOINED, log a message
+            (joined) -> System.out.println("session joined: " + joined.to_string())
+        );
+
+        // register a listener for the session becoming READY
+        session.registerReadyListener(
+
+            // when the session becomes READY, log a message
+            (ready) -> System.out.println("component ready: " + ready.to_string())
+        );
+
+        // register a listener for the session becoming DISCONNECTED
+        session.registerSessionDisconnectedListener(
+
+            new SessionDisconnectedListener() {
+
+                @Override
+                public void on (SessionDisconnected disconnected) {
+
+                    if (disconnected.connection_success > 0 && disconnected.reconnection_attempts < 10) {
+                        disconnected.channel.connect();
+                    } else {
+                        System.out.println("Giving up reconnecting!");
+                    }
+                }
+            }
+        );
+
+        // serializers we want to run
+        Serializer serializers = new List([new CborSerializer()]);
+
+        // creating a WebSocket channel
+        MessageChannel channel = new WebSocketChannel("wss://demo.crossbar.io", "realm1", serializers);
+
+        // register a listener for the session becoming DISCONNECTED
+        channel.registerChannelConnectedListener(
+
+            new ChannelConnectedListener() {
+
+                @Override
+                public void on (ChannelConnected connected) {
+                    // now actually connect the session to the channel, which will then
+                    // trigger of cascade of events and event handling code as above
+                    session.connect(this);
+                }
+            }
+        );
+
+        // now actually connect the channel, which will then trigger a cascade of events
+        // and event handling code as above
+        channel.connect();
+    }
+}
+```
