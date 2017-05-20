@@ -43,8 +43,10 @@ public class Main {
         ConnectedListener listener = session.registerConnectedListener(
 
             (channel) -> System.out.println(
-                "Session connected to WAMP message channel using protocol " +
-                channel.protocol.getName() + "'")
+                "Session connected to WAMP message channel:\n" +
+                "protocol='" + channel.protocol.getName() + "'\n" +
+                "serializer='" + channel.serializer.getName() + "'"
+            )
         );
 
         // assume "channel" is a WAMP channel object created magically
@@ -56,7 +58,7 @@ public class Main {
 
         // now disconnect the session from the current channel (because otherwise,
         // we can't connect it to a different one - see below)
-        session.disconnect();
+        session.disconnect("wamp.exit.normal", "Bye, bye! Will be back later.");
 
         // now connect the session to a different channel. this will NOT fire
         // our listener as we have explicitly unregister that listener
@@ -129,5 +131,50 @@ public class Session {
 
     CompletableFuture<Registration> register(String procedure,
                                              RegisterOptions options);
+}
+```
+
+## Usage
+
+```java
+public class Main {
+
+    public static void main (String[] args) {
+
+        // assume WAMP message channel and session are created magically
+        MessageChannel channel;
+        Session session;
+
+        // then, define a sequence of authentication requests
+        List<AuthRequest> auth_requests = new List([new AuthRequest("anonymous", "realm1")]);
+
+        // register a listener for the session becoming CONNECTED
+        session.registerConnectedListener(
+
+            // when the session becomes CONNECTED, trigger joining ..
+            (channel) -> session.join(auth_requests)
+        );
+
+        // register a listener for the session becoming JOINED on a realm
+        session.registerJoinedListener(
+
+            // when the session becomes JOINED, register a procedure ..
+            (session_details) -> session.register(
+                "com.example.add2",
+                (args, kwargs, details) -> return args[0] + args[1]
+            )
+        );
+
+        // register a listener for the session becoming READY
+        session.registerReadyListener(
+
+            // when the session becomes READY, log a message.
+            (session_details) -> System.out.println("component ready!")
+        );
+
+        // now actually connect the session to the channel, which will then
+        // trigger of a cascade of events and event handling code as above
+        session.connect(channel);
+    }
 }
 ```
