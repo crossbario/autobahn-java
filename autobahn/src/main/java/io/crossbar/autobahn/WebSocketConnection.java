@@ -170,25 +170,22 @@ public class WebSocketConnection implements WebSocket {
     }
 
 
-    private void closeReaderThread() {
+    private void closeReaderThread(boolean waitForQuit) {
         if (mReader != null) {
             mReader.quit();
-//            try {
-//                mReader.join();
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
+            if (waitForQuit) {
+                try {
+                    mReader.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         } else {
             if (DEBUG) Log.d(TAG, "mReader already NULL");
         }
     }
 
-
-    private void failConnection(int code, String reason) {
-        if (DEBUG) Log.d(TAG, "fail connection [code = " + code + ", reason = " + reason);
-
-        closeReaderThread();
-
+    private void closeWriterThread() {
         if (mWriter != null) {
             //mWriterThread.getLooper().quit();
             mWriter.forward(new WebSocketMessage.Quit());
@@ -201,6 +198,15 @@ public class WebSocketConnection implements WebSocket {
         } else {
             if (DEBUG) Log.d(TAG, "mWriter already NULL");
         }
+    }
+
+
+    private void failConnection(int code, String reason) {
+        if (DEBUG) Log.d(TAG, "fail connection [code = " + code + ", reason = " + reason);
+
+        closeReaderThread(false);
+
+        closeWriterThread();
 
         if (isConnected()) {
             try {
@@ -212,6 +218,8 @@ public class WebSocketConnection implements WebSocket {
         } else {
             if (DEBUG) Log.d(TAG, "mTransportChannel already NULL");
         }
+
+        closeReaderThread(true);
 
         onClose(code, reason);
 
@@ -294,7 +302,7 @@ public class WebSocketConnection implements WebSocket {
         // reset value
         onCloseCalled = false;
 
-        // use asynch connector on short-lived background thread
+        // use async connector on short-lived background thread
         new WebSocketConnector().start();
     }
 
@@ -385,6 +393,26 @@ public class WebSocketConnection implements WebSocket {
         onCloseCalled = true;
     }
 
+    private void closeAndCleanup() {
+        // Close the reader thread but don't wait for it to quit because
+        // the blocking call to BufferedInputStream.read() can take a
+        // a few seconds in some cases to unblock. We call this method later
+        // a few lines below *after* we close the socket, because as soon as
+        // the Socket.close() is called, BufferedInputStream.read() throws.
+        // So this gives us quick cleaning of resources.
+        closeReaderThread(false);
+        closeWriterThread();
+        if (isConnected()) {
+            try {
+                mSocket.close();
+            } catch (IOException e) {
+                if (DEBUG) e.printStackTrace();
+            }
+        }
+        closeReaderThread(true);
+        onCloseCalled = false;
+    }
+
 
     /**
      * Create master message handler.
@@ -397,6 +425,8 @@ public class WebSocketConnection implements WebSocket {
                 // We have received the closing handshake and replied to it, discard
                 // anything received after that.
                 if (onCloseCalled) {
+                    if (DEBUG) Log.d(TAG, "onClose called already, ignore message.");
+
                     return;
                 }
 
@@ -451,26 +481,23 @@ public class WebSocketConnection implements WebSocket {
 
                     WebSocketMessage.Close close = (WebSocketMessage.Close) msg.obj;
 
-                    if (DEBUG) Log.d(TAG, "WebSockets Close received (" + close.mCode + " - " + close.mReason + ")");
-
                     final int crossbarCloseCode = (close.mCode == 1000) ? ConnectionHandler.CLOSE_NORMAL : ConnectionHandler.CLOSE_CONNECTION_LOST;
 
-                    if (mActive) {
+                    if (close.mIsReply) {
+                        if (DEBUG) Log.d(TAG, "WebSockets Close received (" + close.mCode + " - " + close.mReason + ")");
+                        closeAndCleanup();
+                        onClose(crossbarCloseCode, close.mReason);
+                    } else if (mActive) {
                         // We have received a close frame, lets clean.
-                        closeReaderThread();
-                        mWriter.forward(new WebSocketMessage.Close(1000));
+                        closeReaderThread(false);
+                        mWriter.forward(new WebSocketMessage.Close(1000, true));
                         mActive = false;
                     } else {
+                        if (DEBUG) Log.d(TAG, "WebSockets Close received (" + close.mCode + " - " + close.mReason + ")");
                         // we've initiated disconnect, so ready to close the channel
-                        closeReaderThread();
-                        try {
-                            mSocket.close();
-                        } catch (IOException e) {
-                            if (DEBUG) e.printStackTrace();
-                        }
+                        closeAndCleanup();
+                        onClose(crossbarCloseCode, close.mReason);
                     }
-
-                    onClose(crossbarCloseCode, close.mReason);
 
                 } else if (msg.obj instanceof WebSocketMessage.ServerHandshake) {
 

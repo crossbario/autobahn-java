@@ -157,6 +157,8 @@ public class WebSocketMessage {
 
         public int mCode;
         public String mReason;
+        // Not to be delivered on the wire, only for local use.
+        public boolean mIsReply;
 
         Close() {
             mCode = -1;
@@ -168,8 +170,20 @@ public class WebSocketMessage {
             mReason = null;
         }
 
+        // For local use only.
+        Close(int code, boolean isReply) {
+            mCode = code;
+            mIsReply = isReply;
+        }
+
         Close(int code, String reason) {
             mCode = code;
+            mReason = reason;
+        }
+
+        Close(int code, String reason, boolean isReply) {
+            mCode = code;
+            mIsReply = isReply;
             mReason = reason;
         }
     }
