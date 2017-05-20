@@ -244,6 +244,9 @@ public class Main {
 
 ## Complete Example
 
+The following is a sketch of a complete WAMP client using the low-level user API if the library. It creates a session and registers lifecycle event handlers. When the session becomes JOINED, a WAMP procedure is registered. When the underlying transport channel is lost, the channel is automatically reconnected.
+
+
 ```java
 public class Main {
 
@@ -262,11 +265,14 @@ public class Main {
             (connected) -> this.join(auth_requests)
         );
 
-        // register a listener for the session becoming JOINED on a realm
+        // register a listener for the session becoming JOINED
         session.registerJoinedListener(
 
-            // when the session becomes JOINED, log a message
-            (joined) -> System.out.println("session joined: " + joined.to_string())
+            // when the session becomes JOINED, register a procedure ..
+            (joined_details) -> session.register(
+                "com.example.add2",
+                (args, kwargs, details) -> return (args[0] + args[1], null, null)
+            )
         );
 
         // register a listener for the session becoming READY
