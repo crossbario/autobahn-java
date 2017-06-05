@@ -9,7 +9,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="#ffffff"
-        android:textSize="24dip"
+        android:textSize="24sp"
         android:textStyle="bold"
         android:gravity="center"
         android:paddingBottom="16dip"
@@ -53,7 +53,7 @@
 	    android:textColor="@color/lightgrey"
         android:id="@+id/statusline"
         android:text="Ready."
-        android:textSize="14dip"
+        android:textSize="14sp"
         android:layout_marginBottom="24dip"/>
     <TextView
         android:id="@+id/textView3"

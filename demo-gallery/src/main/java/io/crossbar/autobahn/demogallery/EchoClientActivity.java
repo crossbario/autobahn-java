@@ -29,6 +29,7 @@ package io.crossbar.autobahn.demogallery;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -45,7 +46,7 @@ import io.crossbar.autobahn.WebSocketConnection;
 import io.crossbar.autobahn.WebSocketException;
 import io.crossbar.autobahn.WebSocketConnectionHandler;
 
-public class EchoClientActivity extends Activity {
+public class EchoClientActivity extends AppCompatActivity {
 
     static final String TAG = "io.crossbar.autobahn.echo";
     private static final String PREFS_NAME = "AutobahnAndroidEcho";
@@ -145,7 +146,7 @@ public class EchoClientActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        setContentView(R.layout.activity_websocket_echo_client);
 
         mHostname = (EditText) findViewById(R.id.hostname);
         mPort = (EditText) findViewById(R.id.port);
@@ -174,24 +175,5 @@ public class EchoClientActivity extends Activity {
         if (mConnection.isConnected()) {
             mConnection.disconnect();
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.quit:
-                finish();
-                break;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-        return true;
     }
 }

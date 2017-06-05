@@ -38,20 +38,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Button buttonWebSocketGallery = (Button) findViewById(R.id.button_websocket_gallery);
-        Button buttonWAMPGallery = (Button) findViewById(R.id.button_wamp_gallery);
-        buttonWebSocketGallery.setOnClickListener(this);
-        buttonWAMPGallery.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.button_websocket_gallery:
-                startActivity(new Intent(getApplicationContext(), EchoClientActivity.class));
-                break;
-            case R.id.button_wamp_gallery:
+            case R.id.button_test_suite_client:
                 startActivity(new Intent(getApplicationContext(), TestSuiteClientActivity.class));
+                break;
+            case R.id.button_websocket_echo_client:
+                startActivity(new Intent(getApplicationContext(), EchoClientActivity.class));
                 break;
         }
     }
