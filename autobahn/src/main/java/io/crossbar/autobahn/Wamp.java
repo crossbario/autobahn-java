@@ -168,7 +168,7 @@ public class CallResult {
     public ?? details;
 }
 
-public class PublicationResult {
+public class Publication {
 }
 
 
