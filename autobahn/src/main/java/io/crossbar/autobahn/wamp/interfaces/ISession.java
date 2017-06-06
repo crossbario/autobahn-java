@@ -6,9 +6,9 @@ import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
-import io.crossbar.autobahn.wamp.types.IEndpoint;
-import io.crossbar.autobahn.wamp.types.ISubscribeHandler;
-import io.crossbar.autobahn.wamp.types.PublicationResult;
+import io.crossbar.autobahn.wamp.types.IInvocationHandler;
+import io.crossbar.autobahn.wamp.types.IEventHandler;
+import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.PublishOptions;
 import io.crossbar.autobahn.wamp.types.RegisterOptions;
 import io.crossbar.autobahn.wamp.types.Registration;
@@ -17,14 +17,14 @@ import io.crossbar.autobahn.wamp.types.Subscription;
 
 public interface ISession {
 
-    CompletableFuture<Subscription> subscribe(ISubscribeHandler handler, String topic, SubscribeOptions options);
+    CompletableFuture<Subscription> subscribe(String topic, IEventHandler handler, SubscribeOptions options);
 
-    CompletableFuture<PublicationResult> publish(String topic,
-                                                 List<Object> args,
-                                                 Map<String, Object> kwargs,
-                                                 PublishOptions options);
+    CompletableFuture<Publication> publish(String topic,
+                                           List<Object> args,
+                                           Map<String, Object> kwargs,
+                                           PublishOptions options);
 
-    CompletableFuture<Registration> register(IEndpoint endpoint, String procedure, RegisterOptions options);
+    CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint, RegisterOptions options);
 
     CompletableFuture<CallResult> call(String procedure,
                                        List<Object> args,

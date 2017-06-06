@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.types.CallResult;
-import io.crossbar.autobahn.wamp.types.PublicationResult;
+import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.Subscription;
 
@@ -20,7 +20,7 @@ public class Playground {
         mSession = new Session();
 
         // Subscribe to a topic
-        CompletableFuture<Subscription> subscription = mSession.subscribe(this::onHello, PROCEDURE, null);
+        CompletableFuture<Subscription> subscription = mSession.subscribe(PROCEDURE, this::onHello, null);
 
         // Publish to a topic
         List<Object> args = new ArrayList<>();
@@ -30,10 +30,10 @@ public class Playground {
         kwargs.put("Name", "Crossbar.io");
         kwargs.put("Protocol", "WAMP");
         kwargs.put("ProtocolVersion", 1);
-        CompletableFuture<PublicationResult> publicationResult = mSession.publish(PROCEDURE, args, kwargs, null);
+        CompletableFuture<Publication> publicationResult = mSession.publish(PROCEDURE, args, kwargs, null);
 
         // Register a procedure.
-        CompletableFuture<Registration> registration = mSession.register(this::add2, PROCEDURE, null);
+        CompletableFuture<Registration> registration = mSession.register(PROCEDURE, this::add2, null);
 
         // Call a procedure
         List<Object> args1 = new ArrayList<>();
@@ -42,7 +42,7 @@ public class Playground {
         CompletableFuture<CallResult> callResult = mSession.call(PROCEDURE, args1, null, null);
     }
 
-    private String onHello(List<Object> args, Map<String, Object> kwargs){
+    private Void onHello(List<Object> args, Map<String, Object> kwargs){
         System.out.println(String.format("Got event: %s", args.toString()));
         return null;
     }

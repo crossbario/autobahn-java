@@ -1,4 +1,4 @@
 package io.crossbar.autobahn.wamp.types;
 
-public class PublicationResult {
+public class Publication {
 }
