@@ -18,7 +18,9 @@ public class Playground {
 
     public Playground() {
         mSession = new Session();
+    }
 
+    private void showMePubSubPattern() {
         // Subscribe to a topic
         CompletableFuture<Subscription> subscription = mSession.subscribe(PROCEDURE, this::onHello, null);
 
@@ -40,6 +42,24 @@ public class Playground {
         args1.add(1);
         args1.add(2);
         CompletableFuture<CallResult> callResult = mSession.call(PROCEDURE, args1, null, null);
+    }
+
+    private void showMeObserverPattern() {
+        Session.OnJoinListener onJoinListener = mSession.registerOnJoinListener(
+                details -> System.out.println("play with join details here"));
+        mSession.unregisterOnJoinListener(onJoinListener);
+
+        Session.OnLeaveListener onLeaveListener = mSession.registerOnLeaveListener(
+                details -> System.out.println("play with close details here"));
+        mSession.unregisterOnLeaveListener(onLeaveListener);
+
+        Session.OnConnectListener onConnectListener = mSession.registerOnConnectListener(
+                () -> System.out.println("Do stuff after connect."));
+        mSession.unregisterOnConnectListener(onConnectListener);
+
+        Session.OnDisconnectListener onDisconnectListener = mSession.registerOnDisconnectListener(
+                () -> System.out.println("Do stuff after disconnect."));
+        mSession.unregisterOnDisconnectListener(onDisconnectListener);
     }
 
     private Void onHello(List<Object> args, Map<String, Object> kwargs){
