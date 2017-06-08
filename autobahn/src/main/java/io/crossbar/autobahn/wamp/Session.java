@@ -22,6 +22,9 @@ import io.crossbar.autobahn.wamp.types.Subscription;
 
 public class Session implements ISession {
 
+    private ITransport mTransport;
+    private IPayloadCodec mPayloadCodec;
+
     private final ArrayList<OnJoinListener> mOnJoinListeners;
     private final ArrayList<OnLeaveListener> mOnLeaveListeners;
     private final ArrayList<OnConnectListener> mOnConnectListeners;
@@ -81,12 +84,14 @@ public class Session implements ISession {
 
     @Override
     public void disconnect() {
-
+        if (mTransport != null) {
+            mTransport.close();
+        }
     }
 
     @Override
     public boolean isConnected() {
-        return false;
+        return mTransport != null;
     }
 
     @Override
@@ -101,17 +106,17 @@ public class Session implements ISession {
 
     @Override
     public void setPayloadCodec(IPayloadCodec payloadCodec) {
-
+        mPayloadCodec = payloadCodec;
     }
 
     @Override
     public IPayloadCodec getPayloadCodec() {
-        return null;
+        return mPayloadCodec;
     }
 
     @Override
     public void attachTransport(ITransport transport) {
-
+        mTransport = transport;
     }
 
     public OnJoinListener addOnJoinListener(OnJoinListener listener) {
