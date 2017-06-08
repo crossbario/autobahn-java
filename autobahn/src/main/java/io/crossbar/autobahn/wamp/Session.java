@@ -69,7 +69,8 @@ public class Session implements ISession {
     }
 
     @Override
-    public void join(String realm, List<String> authMethods, String authID, String authRole, Map<String, Object> authExtra, boolean resumable, int resumeSession, String resumeToken) {
+    public void join(String realm, List<String> authMethods, String authID, String authRole,
+                     Map<String, Object> authExtra, boolean resumable, int resumeSession, String resumeToken) {
 
     }
 
