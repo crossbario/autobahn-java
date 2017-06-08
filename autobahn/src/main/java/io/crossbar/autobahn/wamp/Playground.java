@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.Registration;
@@ -18,6 +19,40 @@ public class Playground {
 
     public Playground() {
         mSession = new Session();
+    }
+
+    private void showTransportAttachment() {
+        class AFakeTransport implements ITransport {
+
+            @Override
+            public void send() {
+
+            }
+
+            @Override
+            public boolean isOpen() {
+                return false;
+            }
+
+            @Override
+            public void close() {
+
+            }
+
+            @Override
+            public void abort() {
+
+            }
+
+            @Override
+            public int getChannelID() {
+                return 0;
+            }
+        }
+
+        AFakeTransport transport = new AFakeTransport();
+
+        mSession.attachTransport(transport);
     }
 
     private void showMePubSubPattern() {
@@ -45,21 +80,29 @@ public class Playground {
     }
 
     private void showMeObserverPattern() {
-        Session.OnJoinListener onJoinListener = mSession.registerOnJoinListener(
+        Session.OnJoinListener onJoinListener = mSession.addOnJoinListener(
                 details -> System.out.println("play with join details here"));
-        mSession.unregisterOnJoinListener(onJoinListener);
+        mSession.removeOnJoinListener(onJoinListener);
 
-        Session.OnLeaveListener onLeaveListener = mSession.registerOnLeaveListener(
+        Session.OnLeaveListener onLeaveListener = mSession.addOnLeaveListener(
                 details -> System.out.println("play with close details here"));
-        mSession.unregisterOnLeaveListener(onLeaveListener);
+        mSession.removeOnLeaveListener(onLeaveListener);
 
-        Session.OnConnectListener onConnectListener = mSession.registerOnConnectListener(
+        Session.OnConnectListener onConnectListener = mSession.addOnConnectListener(
                 () -> System.out.println("Do stuff after connect."));
-        mSession.unregisterOnConnectListener(onConnectListener);
+        mSession.removeOnConnectListener(onConnectListener);
 
-        Session.OnDisconnectListener onDisconnectListener = mSession.registerOnDisconnectListener(
+        Session.OnDisconnectListener onDisconnectListener = mSession.addOnDisconnectListener(
                 () -> System.out.println("Do stuff after disconnect."));
-        mSession.unregisterOnDisconnectListener(onDisconnectListener);
+        mSession.removeOnDisconnectListener(onDisconnectListener);
+
+        Session.OnChallengeListener onChallengeListener = mSession.addOnChallengeListener(
+                challenge -> System.out.println("play with challenge here."));
+        mSession.removeOnChallengeListener(onChallengeListener);
+
+        Session.OnUserErrorListener onUserErrorListener = mSession.addOnUserErrorListener(
+                message -> System.out.println("play with user error here."));
+        mSession.removeOnUserErrorListener(onUserErrorListener);
     }
 
     private Void onHello(List<Object> args, Map<String, Object> kwargs){

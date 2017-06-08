@@ -5,5 +5,5 @@ import java.util.Map;
 
 @FunctionalInterface
 public interface IEventHandler<R> {
-    R onHandle(List<Object> args, Map<String, Object> kwargs);
+    R run(List<Object> args, Map<String, Object> kwargs);
 }

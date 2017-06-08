@@ -1,12 +1,14 @@
 package io.crossbar.autobahn.wamp;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import io.crossbar.autobahn.wamp.interfaces.IPayloadCodec;
 import io.crossbar.autobahn.wamp.interfaces.ISession;
+import io.crossbar.autobahn.wamp.interfaces.ITransport;
+import io.crossbar.autobahn.wamp.types.ComponentConfig;
 import io.crossbar.autobahn.wamp.types.IInvocationHandler;
 import io.crossbar.autobahn.wamp.types.IEventHandler;
 import io.crossbar.autobahn.wamp.types.CallOptions;
@@ -20,16 +22,33 @@ import io.crossbar.autobahn.wamp.types.Subscription;
 
 public class Session implements ISession {
 
-    private final ArrayList<OnJoinListener> mOnJoinListeners;
-    private final ArrayList<OnLeaveListener> mOnLeaveListeners;
-    private final ArrayList<OnConnectListener> mOnConnectListeners;
-    private final ArrayList<OnDisconnectListener> mOnDisconnectListeners;
+    private ITransport mTransport;
+    private IPayloadCodec mPayloadCodec;
+
+    private ArrayList<OnJoinListener> mOnJoinListeners;
+    private ArrayList<OnLeaveListener> mOnLeaveListeners;
+    private ArrayList<OnConnectListener> mOnConnectListeners;
+    private ArrayList<OnDisconnectListener> mOnDisconnectListeners;
+    private ArrayList<OnChallengeListener> mOnChallengeListeners;
+    private ArrayList<OnUserErrorListener> mOnUserErrorListeners;
+
+    private boolean mGoodbyeSend;
+    private String mRealm;
+
+    private ComponentConfig mComponentConfig;
 
     public Session() {
         mOnJoinListeners = new ArrayList<>();
         mOnLeaveListeners = new ArrayList<>();
         mOnConnectListeners = new ArrayList<>();
         mOnDisconnectListeners = new ArrayList<>();
+        mOnChallengeListeners = new ArrayList<>();
+        mOnUserErrorListeners = new ArrayList<>();
+    }
+
+    public Session(ComponentConfig config) {
+        this();
+        mComponentConfig = config;
     }
 
     @Override
@@ -46,7 +65,6 @@ public class Session implements ISession {
     @Override
     public CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint,
                                                     RegisterOptions options) {
-        endpoint.get(new ArrayList<>(), new HashMap<>());
         return null;
     }
 
@@ -56,48 +74,117 @@ public class Session implements ISession {
         return null;
     }
 
-    public OnJoinListener registerOnJoinListener(OnJoinListener listener) {
+    @Override
+    public void join(String realm, List<String> authMethods, String authID, String authRole,
+                     Map<String, Object> authExtra, boolean resumable, int resumeSession, String resumeToken) {
+
+    }
+
+    @Override
+    public void leave(String reason, String message) {
+
+    }
+
+    @Override
+    public void disconnect() {
+        if (mTransport != null) {
+            mTransport.close();
+        }
+    }
+
+    @Override
+    public boolean isConnected() {
+        return mTransport != null;
+    }
+
+    @Override
+    public boolean isAttached() {
+        return false;
+    }
+
+    @Override
+    public void define(Exception exception, String error) {
+
+    }
+
+    @Override
+    public void setPayloadCodec(IPayloadCodec payloadCodec) {
+        mPayloadCodec = payloadCodec;
+    }
+
+    @Override
+    public IPayloadCodec getPayloadCodec() {
+        return mPayloadCodec;
+    }
+
+    @Override
+    public void attachTransport(ITransport transport) {
+        mTransport = transport;
+    }
+
+    public OnJoinListener addOnJoinListener(OnJoinListener listener) {
         mOnJoinListeners.add(listener);
         return listener;
     }
 
-    public void unregisterOnJoinListener(OnJoinListener listener) {
+    public void removeOnJoinListener(OnJoinListener listener) {
         if (mOnJoinListeners.contains(listener)) {
             mOnJoinListeners.remove(listener);
         }
     }
 
-    public OnLeaveListener registerOnLeaveListener(OnLeaveListener listener) {
+    public OnLeaveListener addOnLeaveListener(OnLeaveListener listener) {
         mOnLeaveListeners.add(listener);
         return listener;
-
     }
 
-    public void unregisterOnLeaveListener(OnLeaveListener listener) {
+    public void removeOnLeaveListener(OnLeaveListener listener) {
         if (mOnLeaveListeners.contains(listener)) {
             mOnLeaveListeners.remove(listener);
         }
     }
 
-    public OnConnectListener registerOnConnectListener(OnConnectListener listener) {
+    public OnConnectListener addOnConnectListener(OnConnectListener listener) {
         mOnConnectListeners.add(listener);
         return listener;
     }
 
-    public void unregisterOnConnectListener(OnConnectListener listener) {
+    public void removeOnConnectListener(OnConnectListener listener) {
         if (mOnConnectListeners.contains(listener)) {
             mOnConnectListeners.remove(listener);
         }
     }
 
-    public OnDisconnectListener registerOnDisconnectListener(OnDisconnectListener listener) {
+    public OnDisconnectListener addOnDisconnectListener(OnDisconnectListener listener) {
         mOnDisconnectListeners.add(listener);
         return listener;
     }
 
-    public void unregisterOnDisconnectListener(OnDisconnectListener listener) {
+    public void removeOnDisconnectListener(OnDisconnectListener listener) {
         if (mOnDisconnectListeners.contains(listener)) {
             mOnDisconnectListeners.remove(listener);
+        }
+    }
+
+    public OnChallengeListener addOnChallengeListener(OnChallengeListener listener) {
+        mOnChallengeListeners.add(listener);
+        return listener;
+    }
+
+    public void removeOnChallengeListener(OnChallengeListener listener) {
+        if (mOnChallengeListeners.contains(listener)) {
+            mOnChallengeListeners.remove(listener);
+        }
+    }
+
+    public OnUserErrorListener addOnUserErrorListener(OnUserErrorListener listener) {
+        mOnUserErrorListeners.add(listener);
+        return listener;
+    }
+
+    public void removeOnUserErrorListener(OnUserErrorListener listener) {
+        if (mOnUserErrorListeners.contains(listener)) {
+            mOnUserErrorListeners.remove(listener);
         }
     }
 }

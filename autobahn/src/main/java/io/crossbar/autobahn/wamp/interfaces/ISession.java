@@ -6,6 +6,7 @@ import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
+import io.crossbar.autobahn.wamp.types.Challenge;
 import io.crossbar.autobahn.wamp.types.CloseDetails;
 import io.crossbar.autobahn.wamp.types.IInvocationHandler;
 import io.crossbar.autobahn.wamp.types.IEventHandler;
@@ -33,6 +34,25 @@ public interface ISession {
                                        Map<String, Object> kwargs,
                                        CallOptions options);
 
+    void join(String realm, List<String> authMethods, String authID, String authRole, Map<String, Object> authExtra,
+              boolean resumable, int resumeSession, String resumeToken);
+
+    void leave(String reason, String message);
+
+    void disconnect();
+
+    boolean isConnected();
+
+    boolean isAttached();
+
+    void define(Exception exception, String error);
+
+    void setPayloadCodec(IPayloadCodec payloadCodec);
+
+    IPayloadCodec getPayloadCodec();
+
+    void attachTransport(ITransport transport);
+
     interface OnJoinListener {
         void onJoin(SessionDetails details);
     }
@@ -47,5 +67,14 @@ public interface ISession {
 
     interface OnDisconnectListener {
         void onDisconnect();
+    }
+
+    interface OnChallengeListener {
+        void onChallenge(Challenge challenge);
+    }
+
+    // FIXME: come up with an equivalent of txaio.IFailedFuture as first arg.
+    interface OnUserErrorListener {
+        void onUserError(String message);
     }
 }
