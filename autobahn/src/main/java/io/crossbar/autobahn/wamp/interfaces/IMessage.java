@@ -9,8 +9,6 @@ public interface IMessage {
 
     byte[] serialize(Serializer serializer);
 
-    void uncache();
-
     Message parse(List<Object> wmsg);
 
 }
