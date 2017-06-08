@@ -60,6 +60,14 @@ public class Playground {
         Session.OnDisconnectListener onDisconnectListener = mSession.addOnDisconnectListener(
                 () -> System.out.println("Do stuff after disconnect."));
         mSession.removeOnDisconnectListener(onDisconnectListener);
+
+        Session.OnChallengeListener onChallengeListener = mSession.addOnChallengeListener(
+                challenge -> System.out.println("play with challenge here."));
+        mSession.removeOnChallengeListener(onChallengeListener);
+
+        Session.OnUserErrorListener onUserErrorListener = mSession.addOnUserErrorListener(
+                message -> System.out.println("play with user error here."));
+        mSession.removeOnUserErrorListener(onUserErrorListener);
     }
 
     private Void onHello(List<Object> args, Map<String, Object> kwargs){
