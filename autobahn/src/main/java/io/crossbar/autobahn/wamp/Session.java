@@ -56,46 +56,46 @@ public class Session implements ISession {
         return null;
     }
 
-    public OnJoinListener registerOnJoinListener(OnJoinListener listener) {
+    public OnJoinListener addOnJoinListener(OnJoinListener listener) {
         mOnJoinListeners.add(listener);
         return listener;
     }
 
-    public void unregisterOnJoinListener(OnJoinListener listener) {
+    public void removeOnJoinListener(OnJoinListener listener) {
         if (mOnJoinListeners.contains(listener)) {
             mOnJoinListeners.remove(listener);
         }
     }
 
-    public OnLeaveListener registerOnLeaveListener(OnLeaveListener listener) {
+    public OnLeaveListener addOnLeaveListener(OnLeaveListener listener) {
         mOnLeaveListeners.add(listener);
         return listener;
 
     }
 
-    public void unregisterOnLeaveListener(OnLeaveListener listener) {
+    public void removeOnLeaveListener(OnLeaveListener listener) {
         if (mOnLeaveListeners.contains(listener)) {
             mOnLeaveListeners.remove(listener);
         }
     }
 
-    public OnConnectListener registerOnConnectListener(OnConnectListener listener) {
+    public OnConnectListener addOnConnectListener(OnConnectListener listener) {
         mOnConnectListeners.add(listener);
         return listener;
     }
 
-    public void unregisterOnConnectListener(OnConnectListener listener) {
+    public void removeOnConnectListener(OnConnectListener listener) {
         if (mOnConnectListeners.contains(listener)) {
             mOnConnectListeners.remove(listener);
         }
     }
 
-    public OnDisconnectListener registerOnDisconnectListener(OnDisconnectListener listener) {
+    public OnDisconnectListener addOnDisconnectListener(OnDisconnectListener listener) {
         mOnDisconnectListeners.add(listener);
         return listener;
     }
 
-    public void unregisterOnDisconnectListener(OnDisconnectListener listener) {
+    public void removeOnDisconnectListener(OnDisconnectListener listener) {
         if (mOnDisconnectListeners.contains(listener)) {
             mOnDisconnectListeners.remove(listener);
         }

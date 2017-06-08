@@ -45,21 +45,21 @@ public class Playground {
     }
 
     private void showMeObserverPattern() {
-        Session.OnJoinListener onJoinListener = mSession.registerOnJoinListener(
+        Session.OnJoinListener onJoinListener = mSession.addOnJoinListener(
                 details -> System.out.println("play with join details here"));
-        mSession.unregisterOnJoinListener(onJoinListener);
+        mSession.removeOnJoinListener(onJoinListener);
 
-        Session.OnLeaveListener onLeaveListener = mSession.registerOnLeaveListener(
+        Session.OnLeaveListener onLeaveListener = mSession.addOnLeaveListener(
                 details -> System.out.println("play with close details here"));
-        mSession.unregisterOnLeaveListener(onLeaveListener);
+        mSession.removeOnLeaveListener(onLeaveListener);
 
-        Session.OnConnectListener onConnectListener = mSession.registerOnConnectListener(
+        Session.OnConnectListener onConnectListener = mSession.addOnConnectListener(
                 () -> System.out.println("Do stuff after connect."));
-        mSession.unregisterOnConnectListener(onConnectListener);
+        mSession.removeOnConnectListener(onConnectListener);
 
-        Session.OnDisconnectListener onDisconnectListener = mSession.registerOnDisconnectListener(
+        Session.OnDisconnectListener onDisconnectListener = mSession.addOnDisconnectListener(
                 () -> System.out.println("Do stuff after disconnect."));
-        mSession.unregisterOnDisconnectListener(onDisconnectListener);
+        mSession.removeOnDisconnectListener(onDisconnectListener);
     }
 
     private Void onHello(List<Object> args, Map<String, Object> kwargs){
