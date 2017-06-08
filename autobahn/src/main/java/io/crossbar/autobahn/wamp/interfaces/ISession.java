@@ -51,6 +51,8 @@ public interface ISession {
 
     IPayloadCodec getPayloadCodec();
 
+    void attachTransport(ITransport transport);
+
     interface OnJoinListener {
         void onJoin(SessionDetails details);
     }

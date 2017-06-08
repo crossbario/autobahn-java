@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.Registration;
@@ -18,6 +19,40 @@ public class Playground {
 
     public Playground() {
         mSession = new Session();
+    }
+
+    private void showTransportAttachment() {
+        class AFakeTransport implements ITransport {
+
+            @Override
+            public void send() {
+
+            }
+
+            @Override
+            public boolean isOpen() {
+                return false;
+            }
+
+            @Override
+            public void close() {
+
+            }
+
+            @Override
+            public void abort() {
+
+            }
+
+            @Override
+            public int getChannelID() {
+                return 0;
+            }
+        }
+
+        AFakeTransport transport = new AFakeTransport();
+
+        mSession.attachTransport(transport);
     }
 
     private void showMePubSubPattern() {

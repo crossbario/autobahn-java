@@ -1,13 +1,13 @@
 package io.crossbar.autobahn.wamp;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.interfaces.IPayloadCodec;
 import io.crossbar.autobahn.wamp.interfaces.ISession;
+import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.types.ComponentConfig;
 import io.crossbar.autobahn.wamp.types.IInvocationHandler;
 import io.crossbar.autobahn.wamp.types.IEventHandler;
@@ -106,6 +106,11 @@ public class Session implements ISession {
     @Override
     public IPayloadCodec getPayloadCodec() {
         return null;
+    }
+
+    @Override
+    public void attachTransport(ITransport transport) {
+
     }
 
     public OnJoinListener addOnJoinListener(OnJoinListener listener) {
