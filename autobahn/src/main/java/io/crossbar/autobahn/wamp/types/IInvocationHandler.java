@@ -5,6 +5,5 @@ import java.util.Map;
 
 @FunctionalInterface
 public interface IInvocationHandler<R> {
-    // Tentative name, to be changed.
-    R get(List<Object> args, Map<String, Object> kwargs);
+    R run(List<Object> args, Map<String, Object> kwargs);
 }

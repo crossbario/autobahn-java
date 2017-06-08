@@ -59,7 +59,6 @@ public class Session implements ISession {
     @Override
     public CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint,
                                                     RegisterOptions options) {
-        endpoint.get(new ArrayList<>(), new HashMap<>());
         return null;
     }
 
