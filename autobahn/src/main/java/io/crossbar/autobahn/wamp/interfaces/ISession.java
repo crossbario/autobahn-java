@@ -47,10 +47,6 @@ public interface ISession {
 
     void define(Exception exception, String error);
 
-    void setPayloadCodec(IPayloadCodec payloadCodec);
-
-    IPayloadCodec getPayloadCodec();
-
     void attachTransport(ITransport transport);
 
     interface OnJoinListener {
