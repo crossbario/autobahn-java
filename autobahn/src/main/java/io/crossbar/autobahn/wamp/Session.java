@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import io.crossbar.autobahn.wamp.interfaces.IPayloadCodec;
 import io.crossbar.autobahn.wamp.interfaces.ISession;
+import io.crossbar.autobahn.wamp.types.ComponentConfig;
 import io.crossbar.autobahn.wamp.types.IInvocationHandler;
 import io.crossbar.autobahn.wamp.types.IEventHandler;
 import io.crossbar.autobahn.wamp.types.CallOptions;
@@ -24,12 +26,23 @@ public class Session implements ISession {
     private final ArrayList<OnLeaveListener> mOnLeaveListeners;
     private final ArrayList<OnConnectListener> mOnConnectListeners;
     private final ArrayList<OnDisconnectListener> mOnDisconnectListeners;
+    private final ArrayList<OnChallengeListener> mOnChallengeListeners;
+    private final ArrayList<OnUserErrorListener> mOnUserErrorListeners;
+
+    private ComponentConfig mComponentConfig;
 
     public Session() {
         mOnJoinListeners = new ArrayList<>();
         mOnLeaveListeners = new ArrayList<>();
         mOnConnectListeners = new ArrayList<>();
         mOnDisconnectListeners = new ArrayList<>();
+        mOnChallengeListeners = new ArrayList<>();
+        mOnUserErrorListeners = new ArrayList<>();
+    }
+
+    public Session(ComponentConfig config) {
+        this();
+        mComponentConfig = config;
     }
 
     @Override
@@ -53,6 +66,46 @@ public class Session implements ISession {
     @Override
     public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
                                               CallOptions options) {
+        return null;
+    }
+
+    @Override
+    public void join(String realm, List<String> authMethods, String authID, String authRole, Map<String, Object> authExtra, boolean resumable, int resumeSession, String resumeToken) {
+
+    }
+
+    @Override
+    public void leave(String reason, String message) {
+
+    }
+
+    @Override
+    public void disconnect() {
+
+    }
+
+    @Override
+    public boolean isConnected() {
+        return false;
+    }
+
+    @Override
+    public boolean isAttached() {
+        return false;
+    }
+
+    @Override
+    public void define(Exception exception, String error) {
+
+    }
+
+    @Override
+    public void setPayloadCodec(IPayloadCodec payloadCodec) {
+
+    }
+
+    @Override
+    public IPayloadCodec getPayloadCodec() {
         return null;
     }
 
@@ -98,6 +151,28 @@ public class Session implements ISession {
     public void removeOnDisconnectListener(OnDisconnectListener listener) {
         if (mOnDisconnectListeners.contains(listener)) {
             mOnDisconnectListeners.remove(listener);
+        }
+    }
+
+    public OnChallengeListener addOnChallengeListener(OnChallengeListener listener) {
+        mOnChallengeListeners.add(listener);
+        return listener;
+    }
+
+    public void removeOnChallengeListener(OnChallengeListener listener) {
+        if (mOnChallengeListeners.contains(listener)) {
+            mOnChallengeListeners.remove(listener);
+        }
+    }
+
+    public OnUserErrorListener addOnUserErrorListener(OnUserErrorListener listener) {
+        mOnUserErrorListeners.add(listener);
+        return listener;
+    }
+
+    public void removeOnUserErrorListener(OnUserErrorListener listener) {
+        if (mOnUserErrorListeners.contains(listener)) {
+            mOnUserErrorListeners.remove(listener);
         }
     }
 }
