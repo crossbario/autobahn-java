@@ -25,12 +25,15 @@ public class Session implements ISession {
     private ITransport mTransport;
     private IPayloadCodec mPayloadCodec;
 
-    private final ArrayList<OnJoinListener> mOnJoinListeners;
-    private final ArrayList<OnLeaveListener> mOnLeaveListeners;
-    private final ArrayList<OnConnectListener> mOnConnectListeners;
-    private final ArrayList<OnDisconnectListener> mOnDisconnectListeners;
-    private final ArrayList<OnChallengeListener> mOnChallengeListeners;
-    private final ArrayList<OnUserErrorListener> mOnUserErrorListeners;
+    private ArrayList<OnJoinListener> mOnJoinListeners;
+    private ArrayList<OnLeaveListener> mOnLeaveListeners;
+    private ArrayList<OnConnectListener> mOnConnectListeners;
+    private ArrayList<OnDisconnectListener> mOnDisconnectListeners;
+    private ArrayList<OnChallengeListener> mOnChallengeListeners;
+    private ArrayList<OnUserErrorListener> mOnUserErrorListeners;
+
+    private boolean mGoodbyeSend;
+    private String mRealm;
 
     private ComponentConfig mComponentConfig;
 
