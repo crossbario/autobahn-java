@@ -127,7 +127,6 @@ public class Session implements ISession {
     public OnLeaveListener addOnLeaveListener(OnLeaveListener listener) {
         mOnLeaveListeners.add(listener);
         return listener;
-
     }
 
     public void removeOnLeaveListener(OnLeaveListener listener) {
