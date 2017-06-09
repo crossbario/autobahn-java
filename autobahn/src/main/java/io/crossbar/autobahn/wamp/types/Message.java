@@ -11,11 +11,6 @@ public class Message implements IMessage {
     }
 
     @Override
-    public void uncache() {
-
-    }
-
-    @Override
     public Message parse(List<Object> wmsg) {
         return null;
     }

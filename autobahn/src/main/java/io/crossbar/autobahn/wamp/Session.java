@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import io.crossbar.autobahn.wamp.interfaces.IPayloadCodec;
 import io.crossbar.autobahn.wamp.interfaces.ISession;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.types.ComponentConfig;
@@ -23,7 +22,6 @@ import io.crossbar.autobahn.wamp.types.Subscription;
 public class Session implements ISession {
 
     private ITransport mTransport;
-    private IPayloadCodec mPayloadCodec;
 
     private ArrayList<OnJoinListener> mOnJoinListeners;
     private ArrayList<OnLeaveListener> mOnLeaveListeners;
@@ -105,16 +103,6 @@ public class Session implements ISession {
     @Override
     public void define(Exception exception, String error) {
 
-    }
-
-    @Override
-    public void setPayloadCodec(IPayloadCodec payloadCodec) {
-        mPayloadCodec = payloadCodec;
-    }
-
-    @Override
-    public IPayloadCodec getPayloadCodec() {
-        return mPayloadCodec;
     }
 
     @Override
