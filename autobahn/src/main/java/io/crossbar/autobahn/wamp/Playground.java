@@ -8,7 +8,6 @@ import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.types.CallResult;
-import io.crossbar.autobahn.wamp.types.Hello;
 import io.crossbar.autobahn.wamp.types.Message;
 import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.Registration;
