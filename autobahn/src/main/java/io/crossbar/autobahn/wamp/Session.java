@@ -77,10 +77,10 @@ public class Session implements ISession {
     @Override
     public void join(String realm, List<String> authMethods, String authID, String authRole,
                      Map<String, Object> authExtra, boolean resumable, int resumeSession, String resumeToken) {
+        mRealm = realm;
         Map<String, Map> roles = new HashMap<>();
         roles.put("publisher", new HashMap<>());
-        Hello hello = new Hello(realm, roles);
-        mTransport.send(hello);
+        mTransport.send(new Hello(realm, roles));
 
     }
 
