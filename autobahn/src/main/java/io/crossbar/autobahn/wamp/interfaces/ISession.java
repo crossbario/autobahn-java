@@ -6,10 +6,9 @@ import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
-import io.crossbar.autobahn.wamp.types.Challenge;
 import io.crossbar.autobahn.wamp.types.CloseDetails;
-import io.crossbar.autobahn.wamp.types.IInvocationHandler;
 import io.crossbar.autobahn.wamp.types.IEventHandler;
+import io.crossbar.autobahn.wamp.types.IInvocationHandler;
 import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.PublishOptions;
 import io.crossbar.autobahn.wamp.types.RegisterOptions;
@@ -39,15 +38,7 @@ public interface ISession {
 
     void leave(String reason, String message);
 
-    void disconnect();
-
     boolean isConnected();
-
-    boolean isAttached();
-
-    void define(Exception exception, String error);
-
-    void attachTransport(ITransport transport);
 
     interface OnJoinListener {
         void onJoin(SessionDetails details);
@@ -63,10 +54,6 @@ public interface ISession {
 
     interface OnDisconnectListener {
         void onDisconnect();
-    }
-
-    interface OnChallengeListener {
-        void onChallenge(Challenge challenge);
     }
 
     // FIXME: come up with an equivalent of txaio.IFailedFuture as first arg.

@@ -27,7 +27,6 @@ public class Playground implements ITransportHandler {
         List<String> protocols = new ArrayList<>();
         protocols.add("wamp.2.cbor");
         transport.connect("ws://192.168.1.3:8080/ws", protocols, this);
-        mSession.attachTransport(transport);
         mSession.join("realm1", null, null, null, null, false, 0, null);
     }
 
@@ -72,10 +71,6 @@ public class Playground implements ITransportHandler {
                 () -> System.out.println("Do stuff after disconnect."));
         mSession.removeOnDisconnectListener(onDisconnectListener);
 
-        Session.OnChallengeListener onChallengeListener = mSession.addOnChallengeListener(
-                challenge -> System.out.println("play with challenge here."));
-        mSession.removeOnChallengeListener(onChallengeListener);
-
         Session.OnUserErrorListener onUserErrorListener = mSession.addOnUserErrorListener(
                 message -> System.out.println("play with user error here."));
         mSession.removeOnUserErrorListener(onUserErrorListener);
@@ -90,20 +85,24 @@ public class Playground implements ITransportHandler {
         return (int) args.get(0) + (int) args.get(1);
     }
 
+
     @Override
-    public void onOpen(ITransport transport) {
-        System.out.println("OPEN");
-        System.out.println(transport);
+    public void onConnect(ITransport transport) {
+
     }
 
     @Override
     public void onMessage(Message message) {
-        System.out.println("MESSS");
-        System.out.println(message);
+
     }
 
     @Override
-    public void onClose(boolean wasClean) {
+    public void onDisconnect(boolean wasClean) {
 
+    }
+
+    @Override
+    public boolean isConnected() {
+        return false;
     }
 }

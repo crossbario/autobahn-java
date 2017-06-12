@@ -59,7 +59,6 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
         if (!mHandshaker.isHandshakeComplete()) {
             mHandshaker.finishHandshake(ch, (FullHttpResponse) msg);
             mHandshakeFuture.setSuccess();
-            mTransportHandler.onOpen(mTransport);
             return;
         }
 
@@ -83,8 +82,6 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
             }
         } else if (frame instanceof CloseWebSocketFrame) {
             ch.close();
-            // FIXME: determine wasClean from CloseWebSocketFrame.statusCode()
-            mTransportHandler.onClose(true);
         }
     }
 
