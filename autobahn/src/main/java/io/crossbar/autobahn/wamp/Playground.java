@@ -1,4 +1,4 @@
-package io.crossbar.autobahn.wamp;
+package io.crossbar.autobahn.demogallery;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,15 +6,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import io.crossbar.autobahn.wamp.NettyTransport;
+import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
+import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.Message;
 import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.Subscription;
 
-public class Playground {
-
+public class Playground implements ITransportHandler {
     private Session mSession;
     private static final String PROCEDURE = "com.myapp.hello";
 
@@ -22,38 +24,13 @@ public class Playground {
         mSession = new Session();
     }
 
-    private void showTransportAttachment() {
-        class AFakeTransport implements ITransport {
-
-            @Override
-            public void send(Message message) {
-
-            }
-
-            @Override
-            public boolean isOpen() {
-                return false;
-            }
-
-            @Override
-            public void close() {
-
-            }
-
-            @Override
-            public void abort() {
-
-            }
-
-            @Override
-            public int getChannelID() {
-                return 0;
-            }
-        }
-
-        AFakeTransport transport = new AFakeTransport();
-
+    public void showTransportAttachment() {
+        NettyTransport transport = new NettyTransport();
+        List<String> protocols = new ArrayList<>();
+        protocols.add("wamp.2.cbor");
+        transport.connect("ws://192.168.1.3:8080/ws", protocols, this);
         mSession.attachTransport(transport);
+        mSession.join("realm1", null, null, null, null, false, 0, null);
     }
 
     private void showMePubSubPattern() {
@@ -113,5 +90,22 @@ public class Playground {
 
     private int add2(List<Object> args, Map<String, Object> kwargs) {
         return (int) args.get(0) + (int) args.get(1);
+    }
+
+    @Override
+    public void onOpen(ITransport transport) {
+        System.out.println("OPEN");
+        System.out.println(transport);
+    }
+
+    @Override
+    public void onMessage(Message message) {
+        System.out.println("MESSS");
+        System.out.println(message);
+    }
+
+    @Override
+    public void onClose(boolean wasClean) {
+
     }
 }

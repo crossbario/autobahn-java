@@ -7,17 +7,10 @@ import java.util.Map;
 
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 
-public class Hello {
+public class Hello extends Message {
 
     private String mRealm;
     private Map<String, Map> mRoles;
-    private List<String> mAuthMethods;
-    private String mAuthID;
-    private String mAuthRole;
-    private Map<String, Object> mAuthExtra;
-    private boolean mResumable;
-    private String mResumeSession;
-    private String mResumeToken;
 
     public static final int MESSAGE_TYPE = 1;
 
@@ -45,20 +38,11 @@ public class Hello {
         Map<String, Object> details = (Map<String, Object>) wmsg.get(2);
         Map<String, Map> roles = (Map<String, Map>) details.get("roles");
 
-        return new Hello(realm, roles, null, null, null, null, false, null, null);
+        return new Hello(realm, roles);
     }
 
-    public Hello(String realm, Map<String, Map> roles, List<String> authMethods, String authID,
-                 String authRole, Map<String, Object> authExtra, boolean resumable, String resumeSession,
-                 String resumeToken) {
+    public Hello(String realm, Map<String, Map> roles) {
         mRealm = realm;
         mRoles = roles;
-        mAuthMethods = authMethods;
-        mAuthID = authID;
-        mAuthRole = authRole;
-        mAuthExtra = authExtra;
-        mResumable = resumable;
-        mResumeSession = resumeSession;
-        mResumeToken = resumeToken;
     }
 }
