@@ -8,6 +8,8 @@ import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.interfaces.ISession;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
+import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
+
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.ComponentConfig;
@@ -21,7 +23,8 @@ import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.SubscribeOptions;
 import io.crossbar.autobahn.wamp.types.Subscription;
 
-public class Session implements ISession {
+
+public class Session implements ISession, ITransportHandler {
 
     private ITransport mTransport;
 
@@ -49,6 +52,32 @@ public class Session implements ISession {
     public Session(ComponentConfig config) {
         this();
         mComponentConfig = config;
+    }
+
+    @Override
+    public void onConnect(ITransport transport) {
+        if (mTransport != null) {
+            throw new Exception("already connected");
+        }
+        mTransport = transport;
+    }
+
+    @Override
+    public void onMessage(Message message) {
+        // process the incoming WAMP message
+    }
+
+    @Override
+    public void onDisconnect(boolean wasClean) {
+        if (mTransport == null) {
+            throw new Exception("not connected");
+        }
+        mTransport = null;
+    }
+
+    @Override
+    public boolean isConnected() {
+        return mTransport != null;
     }
 
     @Override
@@ -81,39 +110,10 @@ public class Session implements ISession {
         Map<String, Map> roles = new HashMap<>();
         roles.put("publisher", new HashMap<>());
         mTransport.send(new Hello(realm, roles));
-
     }
 
     @Override
     public void leave(String reason, String message) {
-
-    }
-
-    @Override
-    public void disconnect() {
-        if (mTransport != null) {
-            mTransport.close();
-        }
-    }
-
-    @Override
-    public boolean isConnected() {
-        return mTransport != null;
-    }
-
-    @Override
-    public boolean isAttached() {
-        return false;
-    }
-
-    @Override
-    public void define(Exception exception, String error) {
-
-    }
-
-    @Override
-    public void attachTransport(ITransport transport) {
-        mTransport = transport;
     }
 
     public OnJoinListener addOnJoinListener(OnJoinListener listener) {

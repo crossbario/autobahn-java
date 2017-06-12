@@ -7,9 +7,11 @@ import io.crossbar.autobahn.wamp.types.Message;
 // FIXME: data types to be discussed/changed.
 public interface ITransport {
 
-    void connect(String url, List<String> subProtocols, ITransportHandler transportHandler);
-
+    // this is the only method needed by Session ..
     void send(Message message);
+
+    // .. not sure about the following, we'll see
+    void connect(String url, List<String> subProtocols, ITransportHandler transportHandler);
 
     boolean isOpen();
 
