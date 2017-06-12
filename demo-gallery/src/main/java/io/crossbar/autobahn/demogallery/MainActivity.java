@@ -31,13 +31,15 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
+import io.crossbar.autobahn.wamp.Playground;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        io.crossbar.autobahn.demogallery.Playground playground = new io.crossbar.autobahn.demogallery.Playground();
+        Playground playground = new Playground();
         playground.showTransportAttachment();
     }
 

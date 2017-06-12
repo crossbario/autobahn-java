@@ -1,25 +1,41 @@
-apply plugin: 'com.android.library'
-android {
-    compileSdkVersion 26
-    buildToolsVersion "25.0.2"
-    useLibrary 'org.apache.http.legacy'
+String PLUGIN_ANDROID = "com.android.library"
+String PLUGIN_JAVA = "java"
 
-    defaultConfig {
-        minSdkVersion 24
-        targetSdkVersion 26
-    }
+apply plugin: PLUGIN_ANDROID
 
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+if (plugins.hasPlugin(PLUGIN_ANDROID)) {
+    android {
+        compileSdkVersion 26
+        buildToolsVersion "25.0.2"
+        useLibrary 'org.apache.http.legacy'
+
+        defaultConfig {
+            minSdkVersion 24
+            targetSdkVersion 26
+        }
+
+        buildTypes {
+            release {
+                minifyEnabled false
+                proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            }
+        }
+
+        compileOptions {
+            sourceCompatibility JavaVersion.VERSION_1_8
+            targetCompatibility JavaVersion.VERSION_1_8
         }
     }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+} else if (plugins.hasPlugin(PLUGIN_JAVA)) {
+    sourceSets {
+        main {
+            java {
+                include 'io/crossbar/autobahn/wamp/**'
+            }
+        }
     }
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 dependencies {

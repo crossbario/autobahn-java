@@ -1,4 +1,4 @@
-package io.crossbar.autobahn.demogallery;
+package io.crossbar.autobahn.wamp;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import io.crossbar.autobahn.wamp.NettyTransport;
-import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.types.CallResult;
