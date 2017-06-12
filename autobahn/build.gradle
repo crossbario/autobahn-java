@@ -1,13 +1,12 @@
 apply plugin: 'com.android.library'
-
 android {
-    compileSdkVersion 25
+    compileSdkVersion 26
     buildToolsVersion "25.0.2"
     useLibrary 'org.apache.http.legacy'
 
     defaultConfig {
         minSdkVersion 24
-        targetSdkVersion 25
+        targetSdkVersion 26
     }
 
     buildTypes {
@@ -21,4 +20,12 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+}
+
+dependencies {
+    compile 'com.fasterxml.jackson.core:jackson-core:2.8.8'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.8.8'
+    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.8.8'
+    compile 'io.netty:netty-codec-http:4.1.2.Final'
+    compile 'io.netty:netty-handler:4.1.2.Final'
 }

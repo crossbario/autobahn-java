@@ -1,25 +1,27 @@
 package io.crossbar.autobahn.wamp.types;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 
-public class Hello {
+public class Hello extends Message {
 
     private String mRealm;
-    private List<String> mAuthMethods;
-    private String mAuthID;
-    private String mAuthRole;
-    private Map<String, Object> mAuthExtra;
-    private boolean mResumable;
-    private String mResumeSession;
-    private String mResumeToken;
+    private Map<String, Map> mRoles;
 
     public static final int MESSAGE_TYPE = 1;
 
-    public static byte[] marshal(Serializer serializer) {
-        return null;
+    public List<Object> marshal() {
+        List<Object> marshaled = new ArrayList<>();
+        marshaled.add(MESSAGE_TYPE);
+        marshaled.add(mRealm);
+        Map<String, Object> details = new HashMap<>();
+        details.put("roles", mRoles);
+        marshaled.add(details);
+        return marshaled;
     }
 
     public static Hello parse(List<Object> wmsg) {
@@ -33,22 +35,14 @@ public class Hello {
 
         String realm = (String) wmsg.get(1);
 
-        @SuppressWarnings("unchecked")
         Map<String, Object> details = (Map<String, Object>) wmsg.get(2);
+        Map<String, Map> roles = (Map<String, Map>) details.get("roles");
 
-        return new Hello(realm, null, null, null, null, false, null, null);
+        return new Hello(realm, roles);
     }
 
-    public Hello(String realm, List<String> authMethods, String authID, String authRole,
-                 Map<String, Object> authExtra, boolean resumable, String resumeSession,
-                 String resumeToken) {
+    public Hello(String realm, Map<String, Map> roles) {
         mRealm = realm;
-        mAuthMethods = authMethods;
-        mAuthID = authID;
-        mAuthRole = authRole;
-        mAuthExtra = authExtra;
-        mResumable = resumable;
-        mResumeSession = resumeSession;
-        mResumeToken = resumeToken;
+        mRoles = roles;
     }
 }

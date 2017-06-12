@@ -1,17 +1,19 @@
 package io.crossbar.autobahn.wamp;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.interfaces.ISession;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
-import io.crossbar.autobahn.wamp.types.ComponentConfig;
-import io.crossbar.autobahn.wamp.types.IInvocationHandler;
-import io.crossbar.autobahn.wamp.types.IEventHandler;
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
+import io.crossbar.autobahn.wamp.types.ComponentConfig;
+import io.crossbar.autobahn.wamp.types.Hello;
+import io.crossbar.autobahn.wamp.types.IEventHandler;
+import io.crossbar.autobahn.wamp.types.IInvocationHandler;
 import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.PublishOptions;
 import io.crossbar.autobahn.wamp.types.RegisterOptions;
@@ -75,6 +77,10 @@ public class Session implements ISession {
     @Override
     public void join(String realm, List<String> authMethods, String authID, String authRole,
                      Map<String, Object> authExtra, boolean resumable, int resumeSession, String resumeToken) {
+        mRealm = realm;
+        Map<String, Map> roles = new HashMap<>();
+        roles.put("publisher", new HashMap<>());
+        mTransport.send(new Hello(realm, roles));
 
     }
 
