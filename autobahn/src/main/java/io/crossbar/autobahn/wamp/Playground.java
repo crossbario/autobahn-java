@@ -12,6 +12,7 @@ import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.Message;
 import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.Registration;
+import io.crossbar.autobahn.wamp.types.SessionDetails;
 import io.crossbar.autobahn.wamp.types.Subscription;
 
 public class Playground implements ITransportHandler {
@@ -27,7 +28,7 @@ public class Playground implements ITransportHandler {
         List<String> protocols = new ArrayList<>();
         protocols.add("wamp.2.cbor");
         transport.connect("ws://192.168.1.3:8080/ws", protocols, this);
-        mSession.join("realm1", null, null, null, null, false, 0, null);
+        CompletableFuture<SessionDetails> joinedFuture = mSession.join("realm1", null);
     }
 
     private void showMePubSubPattern() {

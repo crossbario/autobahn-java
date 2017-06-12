@@ -33,8 +33,7 @@ public interface ISession {
                                        Map<String, Object> kwargs,
                                        CallOptions options);
 
-    void join(String realm, List<String> authMethods, String authID, String authRole, Map<String, Object> authExtra,
-              boolean resumable, int resumeSession, String resumeToken);
+    CompletableFuture<SessionDetails> join(String realm, List<String> authMethods);
 
     void leave(String reason, String message);
 

@@ -20,6 +20,7 @@ import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.PublishOptions;
 import io.crossbar.autobahn.wamp.types.RegisterOptions;
 import io.crossbar.autobahn.wamp.types.Registration;
+import io.crossbar.autobahn.wamp.types.SessionDetails;
 import io.crossbar.autobahn.wamp.types.SubscribeOptions;
 import io.crossbar.autobahn.wamp.types.Subscription;
 
@@ -104,12 +105,12 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
-    public void join(String realm, List<String> authMethods, String authID, String authRole,
-                     Map<String, Object> authExtra, boolean resumable, int resumeSession, String resumeToken) {
+    public CompletableFuture<SessionDetails> join(String realm, List<String> authMethods) {
         mRealm = realm;
         Map<String, Map> roles = new HashMap<>();
         roles.put("publisher", new HashMap<>());
         mTransport.send(new Hello(realm, roles));
+        return null;
     }
 
     @Override
