@@ -4,6 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 @FunctionalInterface
-public interface IInvocationHandler<R> {
-    R run(List<Object> args, Map<String, Object> kwargs);
+public interface IInvocationHandler {
+    CompletableFuture<InvocationResult> run(List<Object> args, Map<String, Object> kwargs, InvocationDetails details);
 }
