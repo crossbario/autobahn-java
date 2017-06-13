@@ -6,10 +6,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.types.CallResult;
-import io.crossbar.autobahn.wamp.interfaces.IMessage;
+import io.crossbar.autobahn.wamp.types.InvocationDetails;
 import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
@@ -84,7 +85,7 @@ public class Playground implements ITransportHandler {
         return null;
     }
 
-    private int add2(List<Object> args, Map<String, Object> kwargs) {
+    private int add2(List<Object> args, Map<String, Object> kwargs, InvocationDetails details) {
         return (int) args.get(0) + (int) args.get(1);
     }
 

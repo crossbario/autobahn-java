@@ -1,5 +1,6 @@
 package io.crossbar.autobahn.wamp.types;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -20,7 +21,7 @@ public class InvocationResult {
 
     /// Convenience constructor for single, positional returns.
     public InvocationResult(Object result) {
-        this.results = new List<Object> ();
+        this.results = new ArrayList<>();
         this.results.add(result);
     }
 
