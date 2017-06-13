@@ -25,6 +25,12 @@ public class WAMPClientNetty {
         } else {
             url = args[0];
         }
+
+        // TODO: parse the URL into: host, port and path
+        // effectively, we need a Java version of this
+        // https://github.com/crossbario/autobahn-python/blob/master/autobahn/websocket/util.py#L110
+
+        // instantiate and run our test client
         new EchoClient(url).start();
     }
 
@@ -44,10 +50,11 @@ public class WAMPClientNetty {
         CompletableFuture<SessionDetails> future = this.session.join("realm1", auths);
 
         // we wait until opening handshake has finished: the session is now "joined"
+        // before the session hasn't joined, we can't do anything with the session anyways
         SessionDetails details = future.get();
         System.out.println("session joined under session ID " + details.id);
 
-        // register a procedure.
+        // register a procedure: this returns a registration object (asynchronously)
         this.session.register("com.example.add2", this.add2, null).thenApply(
             registration -> System.out.println("add2 registered under " + registration.id)
         );
@@ -56,7 +63,7 @@ public class WAMPClientNetty {
         // under our registered procedure "add2" forever
     }
 
-    private CompletableFuture<InvocationResult> add2(List<Object> args, Map<String, Object> kwargs) {
+    private CompletableFuture<InvocationResult> add2(List<Object> args, Map<String, Object> kwargs, InvocationDetails details) {
         System.out.println("add2 called");
         int result = (int) args.get(0) + (int) args.get(1);
         return new InvocationResult(result)
