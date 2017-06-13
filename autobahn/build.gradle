@@ -1,7 +1,17 @@
+apply plugin: getPlugin()
+
 String PLUGIN_ANDROID = "com.android.library"
 String PLUGIN_JAVA = "java"
 
-apply plugin: PLUGIN_ANDROID
+String getPlugin() {
+    String buildPlugin = project.properties.get("buildPlatform")
+    switch (buildPlugin) {
+        case "java":
+            return "java"
+        default:
+            return "com.android.library"
+    }
+}
 
 if (plugins.hasPlugin(PLUGIN_ANDROID)) {
     android {
