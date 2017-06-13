@@ -1,1 +1,6 @@
-include ':demo-gallery', ':autobahn'
+if (properties.get("buildPlatform") == "java") {
+    include ':autobahn'
+} else {
+    include ':demo-gallery'
+    include ':autobahn'
+}
