@@ -4,19 +4,20 @@ import java.util.List;
 import java.util.Map;
 
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
+import io.crossbar.autobahn.wamp.interfaces.IMessage;
 
-public class Welcome extends Message {
+public class Welcome implements IMessage {
 
     public static final int MESSAGE_TYPE = 2;
 
-    private long mSession;
-    private Map<String, Map> mRoles;
-    private String mRealm;
+    public final long session;
+    public final Map<String, Map> roles;
+    public final String realm;
 
     public Welcome(long session, Map<String, Map> roles, String realm) {
-        mSession = session;
-        mRoles = roles;
-        mRealm = realm;
+        this.session = session;
+        this.roles = roles;
+        this.realm = realm;
     }
 
     public static Welcome parse(List<Object> wmsg) {
@@ -28,7 +29,6 @@ public class Welcome extends Message {
             throw new ProtocolError(String.format("invalid message length %s for HELLO", wmsg.size()));
         }
 
-        System.out.println(wmsg);
         long session = (long) wmsg.get(1);
 
         Map<String, Object> details = (Map<String, Object>) wmsg.get(2);
@@ -36,5 +36,10 @@ public class Welcome extends Message {
         String realm = (String) details.get("realm");
 
         return new Welcome(session, roles, realm);
+    }
+
+    @Override
+    public List<Object> marshal() {
+        return null;
     }
 }

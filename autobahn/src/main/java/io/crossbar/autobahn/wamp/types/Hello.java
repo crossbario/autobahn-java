@@ -6,20 +6,22 @@ import java.util.List;
 import java.util.Map;
 
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
+import io.crossbar.autobahn.wamp.interfaces.IMessage;
 
-public class Hello extends Message {
+public class Hello implements IMessage {
 
-    private String mRealm;
-    private Map<String, Map> mRoles;
+    public final String realm;
+    public final Map<String, Map> roles;
 
     public static final int MESSAGE_TYPE = 1;
 
+    @Override
     public List<Object> marshal() {
         List<Object> marshaled = new ArrayList<>();
         marshaled.add(MESSAGE_TYPE);
-        marshaled.add(mRealm);
+        marshaled.add(realm);
         Map<String, Object> details = new HashMap<>();
-        details.put("roles", mRoles);
+        details.put("roles", roles);
         marshaled.add(details);
         return marshaled;
     }
@@ -42,7 +44,7 @@ public class Hello extends Message {
     }
 
     public Hello(String realm, Map<String, Map> roles) {
-        mRealm = realm;
-        mRoles = roles;
+        this.realm = realm;
+        this.roles = roles;
     }
 }
