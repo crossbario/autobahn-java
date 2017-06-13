@@ -15,7 +15,7 @@ import io.crossbar.autobahn.wamp.types.ComponentConfig;
 import io.crossbar.autobahn.wamp.types.Hello;
 import io.crossbar.autobahn.wamp.types.IEventHandler;
 import io.crossbar.autobahn.wamp.types.IInvocationHandler;
-import io.crossbar.autobahn.wamp.types.Message;
+import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.PublishOptions;
 import io.crossbar.autobahn.wamp.types.RegisterOptions;
@@ -23,6 +23,7 @@ import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
 import io.crossbar.autobahn.wamp.types.SubscribeOptions;
 import io.crossbar.autobahn.wamp.types.Subscription;
+import io.crossbar.autobahn.wamp.types.Welcome;
 
 
 public class Session implements ISession, ITransportHandler {
@@ -35,6 +36,7 @@ public class Session implements ISession, ITransportHandler {
     private ArrayList<OnDisconnectListener> mOnDisconnectListeners;
     private ArrayList<OnUserErrorListener> mOnUserErrorListeners;
 
+    private long mSessionID;
     private boolean mGoodbyeSent;
     private String mRealm;
 
@@ -63,7 +65,18 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
-    public void onMessage(Message message) {
+    public void onMessage(IMessage message) {
+        System.out.println(message);
+        if (mSessionID == 0) {
+            if (message instanceof Welcome) {
+                Welcome msg = (Welcome) message;
+                SessionDetails details = new SessionDetails(msg.realm, msg.session);
+                System.out.println("CONNECTEDDDDDDDDDDDDD");
+
+            }
+        } else {
+            // Session is already established.
+        }
         // process the incoming WAMP message
     }
 
@@ -107,6 +120,7 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public CompletableFuture<SessionDetails> join(String realm, List<String> authMethods) {
         mRealm = realm;
+        mGoodbyeSent = false;
         Map<String, Map> roles = new HashMap<>();
         roles.put("publisher", new HashMap<>());
         mTransport.send(new Hello(realm, roles));
@@ -115,6 +129,11 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public void leave(String reason, String message) {
+    }
+
+    // FIXME: Remove this method. Only there for testing purposes.
+    public void attach(ITransport transport) {
+        mTransport = transport;
     }
 
     public OnJoinListener addOnJoinListener(OnJoinListener listener) {

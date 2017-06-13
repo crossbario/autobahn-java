@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.types.CallResult;
-import io.crossbar.autobahn.wamp.types.Message;
+import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
@@ -28,6 +28,8 @@ public class Playground implements ITransportHandler {
         List<String> protocols = new ArrayList<>();
         protocols.add("wamp.2.cbor");
         transport.connect("ws://192.168.1.3:8080/ws", protocols, this);
+        mSession.addOnJoinListener( details -> System.out.println("play with join details here"));
+        mSession.attach(transport);
         CompletableFuture<SessionDetails> joinedFuture = mSession.join("realm1", null);
     }
 
@@ -93,7 +95,7 @@ public class Playground implements ITransportHandler {
     }
 
     @Override
-    public void onMessage(Message message) {
+    public void onMessage(IMessage message) {
 
     }
 

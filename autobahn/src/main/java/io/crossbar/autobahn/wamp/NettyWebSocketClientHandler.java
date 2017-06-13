@@ -1,11 +1,10 @@
 package io.crossbar.autobahn.wamp;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.util.List;
 
+import io.crossbar.autobahn.wamp.interfaces.IMessage;
+import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
-import io.crossbar.autobahn.wamp.types.Welcome;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -18,16 +17,18 @@ import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.util.CharsetUtil;
 
+import static io.crossbar.autobahn.wamp.types.MessageMap.MESSAGE_TYPE_MAP;
+
 public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
 
     private final WebSocketClientHandshaker mHandshaker;
     private final NettyTransport mTransport;
-    private final ObjectMapper mSerializer;
+    private final ISerializer mSerializer;
     private ChannelPromise mHandshakeFuture;
     private ITransportHandler mTransportHandler;
 
     public NettyWebSocketClientHandler(WebSocketClientHandshaker handshaker, NettyTransport transport,
-                                       ITransportHandler transportHandler, ObjectMapper serializer) {
+                                       ITransportHandler transportHandler, ISerializer serializer) {
         mHandshaker = handshaker;
         mTransport = transport;
         mTransportHandler = transportHandler;
@@ -74,15 +75,17 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
             BinaryWebSocketFrame binaryWebSocketFrame = (BinaryWebSocketFrame) frame;
             byte[] output = new byte[binaryWebSocketFrame.content().readableBytes()];
             binaryWebSocketFrame.content().readBytes(output);
-            List<Object> message = mSerializer.readValue(output, List.class);
-            int type = (int) message.get(0);
-            if (type == Welcome.MESSAGE_TYPE) {
-                Welcome welcome = Welcome.parse(message);
-                mTransportHandler.onMessage(welcome);
-            }
+            List<Object> message = mSerializer.unserialize(output, true);
+            mTransportHandler.onMessage(getMessageObject(message));
         } else if (frame instanceof CloseWebSocketFrame) {
             ch.close();
         }
+    }
+
+    private IMessage getMessageObject(List<Object> rawMessage) throws Exception {
+        int messageType = (int) rawMessage.get(0);
+        Class<? extends IMessage> messageKlass = MESSAGE_TYPE_MAP.get(messageType);
+        return (IMessage) messageKlass.getMethod("parse", List.class).invoke(null, rawMessage);
     }
 
     @Override

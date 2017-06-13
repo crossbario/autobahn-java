@@ -1,19 +1,17 @@
 package io.crossbar.autobahn.wamp;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
 import javax.net.ssl.SSLException;
 
+import io.crossbar.autobahn.wamp.interfaces.IMessage;
+import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
+import io.crossbar.autobahn.wamp.types.CBORSerializer;
 import io.crossbar.autobahn.wamp.types.Hello;
-import io.crossbar.autobahn.wamp.types.Message;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -39,10 +37,10 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 public class NettyTransport implements ITransport {
 
     private Channel mChannel;
-    private ObjectMapper mSerializer;
+    private ISerializer mSerializer;
 
     public NettyTransport() {
-        mSerializer = new ObjectMapper(new CBORFactory());
+        mSerializer = new CBORSerializer();
     }
 
     private int validateURIAndGetPort(URI uri) {
@@ -133,16 +131,11 @@ public class NettyTransport implements ITransport {
     }
 
     @Override
-    public void send(Message message) {
+    public void send(IMessage message) {
         if (message instanceof Hello) {
-            Hello hello = (Hello) message;
-            try {
-                byte[] data = mSerializer.writeValueAsBytes(hello.marshal());
-                WebSocketFrame frame = new BinaryWebSocketFrame(toByteBuf(data));
-                mChannel.writeAndFlush(frame);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
+            byte[] data = mSerializer.serialize(message.marshal());
+            WebSocketFrame frame = new BinaryWebSocketFrame(toByteBuf(data));
+            mChannel.writeAndFlush(frame);
         }
     }
 
