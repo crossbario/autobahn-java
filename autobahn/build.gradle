@@ -1,13 +1,12 @@
 apply plugin: getPlugin()
 
 String PLUGIN_ANDROID = "com.android.library"
-String PLUGIN_JAVA = "java"
 
 String getPlugin() {
     String buildPlugin = project.properties.get("buildPlatform")
     switch (buildPlugin) {
-        case "java":
-            return "java"
+        case "netty":
+            return "java-library-distribution"
         default:
             return "com.android.library"
     }
@@ -36,7 +35,7 @@ if (plugins.hasPlugin(PLUGIN_ANDROID)) {
             targetCompatibility JavaVersion.VERSION_1_8
         }
     }
-} else if (plugins.hasPlugin(PLUGIN_JAVA)) {
+} else {
     sourceSets {
         main {
             java {
@@ -44,14 +43,26 @@ if (plugins.hasPlugin(PLUGIN_ANDROID)) {
             }
         }
     }
+    distributions {
+        main {
+            baseName = 'autobahn'
+        }
+    }
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 dependencies {
-    compile 'com.fasterxml.jackson.core:jackson-core:2.8.8'
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.8.8'
-    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.8.8'
-    compile 'io.netty:netty-codec-http:4.1.2.Final'
-    compile 'io.netty:netty-handler:4.1.2.Final'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.8.8'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.8.8'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.8.8'
+    implementation 'io.netty:netty-codec-http:4.1.2.Final'
+    implementation 'io.netty:netty-handler:4.1.2.Final'
+    if (!plugins.hasPlugin(PLUGIN_ANDROID)) {
+        runtime 'com.fasterxml.jackson.core:jackson-core:2.8.8'
+        runtime 'com.fasterxml.jackson.core:jackson-databind:2.8.8'
+        runtime 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.8.8'
+        runtime 'io.netty:netty-codec-http:4.1.2.Final'
+        runtime 'io.netty:netty-handler:4.1.2.Final'
+    }
 }
