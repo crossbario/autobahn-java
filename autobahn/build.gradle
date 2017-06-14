@@ -1,7 +1,6 @@
 apply plugin: getPlugin()
 
 String PLUGIN_ANDROID = "com.android.library"
-String PLUGIN_JAVA = "java"
 
 String getPlugin() {
     String buildPlugin = project.properties.get("buildPlatform")
@@ -36,14 +35,14 @@ if (plugins.hasPlugin(PLUGIN_ANDROID)) {
             targetCompatibility JavaVersion.VERSION_1_8
         }
     }
-} else if (plugins.hasPlugin(PLUGIN_JAVA)) {
-    sourceSets {
-        main {
-            java {
-                include 'io/crossbar/autobahn/wamp/**'
-            }
-        }
-    }
+} else {
+//    sourceSets {
+//        main {
+//            java {
+//                include 'io/crossbar/autobahn/wamp/**'
+//            }
+//        }
+//    }
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
