@@ -7,7 +7,7 @@ Autobahn|Java is a subproject of the [Autobahn project](http://crossbar.io/autob
 * **[The WebSocket Protocol](http://tools.ietf.org/html/rfc6455)**
 * **[The Web Application Messaging Protocol (WAMP)](http://wamp.ws/)**
 
-running on Android/Dalvik and Netty/JVM.
+running on Android and Netty/JVM.
 
 The WebSocket layer is using a callback based user API.
 
