@@ -1,6 +1,2 @@
-if (properties.get("buildPlatform") == "netty") {
-    include ':autobahn'
-} else {
-    include ':demo-gallery'
-    include ':autobahn'
-}
+include ':demo-gallery'
+include ':autobahn'
