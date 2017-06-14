@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 26
-    buildToolsVersion "25.0.2"
+    buildToolsVersion "26.0.0"
 
     packagingOptions {
         exclude 'META-INF/LICENSE'
@@ -29,6 +29,6 @@ android {
 }
 
 dependencies {
-    compile project(path: ':autobahn')
-    compile 'com.android.support:appcompat-v7:25.3.1'
+    implementation project(path: ':autobahn')
+    implementation 'com.android.support:appcompat-v7:26.0.0-alpha1'
 }

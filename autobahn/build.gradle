@@ -49,9 +49,9 @@ if (plugins.hasPlugin(PLUGIN_ANDROID)) {
 }
 
 dependencies {
-    compile 'com.fasterxml.jackson.core:jackson-core:2.8.8'
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.8.8'
-    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.8.8'
-    compile 'io.netty:netty-codec-http:4.1.2.Final'
-    compile 'io.netty:netty-handler:4.1.2.Final'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.8.8'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.8.8'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.8.8'
+    implementation 'io.netty:netty-codec-http:4.1.2.Final'
+    implementation 'io.netty:netty-handler:4.1.2.Final'
 }
