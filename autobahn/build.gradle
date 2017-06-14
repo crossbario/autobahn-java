@@ -5,8 +5,8 @@ String PLUGIN_ANDROID = "com.android.library"
 String getPlugin() {
     String buildPlugin = project.properties.get("buildPlatform")
     switch (buildPlugin) {
-        case "java":
-            return "java"
+        case "netty":
+            return "java-library-distribution"
         default:
             return "com.android.library"
     }
@@ -36,13 +36,18 @@ if (plugins.hasPlugin(PLUGIN_ANDROID)) {
         }
     }
 } else {
-//    sourceSets {
-//        main {
-//            java {
-//                include 'io/crossbar/autobahn/wamp/**'
-//            }
-//        }
-//    }
+    sourceSets {
+        main {
+            java {
+                include 'io/crossbar/autobahn/wamp/**'
+            }
+        }
+    }
+    distributions {
+        main {
+            baseName = 'autobahn'
+        }
+    }
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
@@ -53,4 +58,11 @@ dependencies {
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.8.8'
     implementation 'io.netty:netty-codec-http:4.1.2.Final'
     implementation 'io.netty:netty-handler:4.1.2.Final'
+    if (!plugins.hasPlugin(PLUGIN_ANDROID)) {
+        runtime 'com.fasterxml.jackson.core:jackson-core:2.8.8'
+        runtime 'com.fasterxml.jackson.core:jackson-databind:2.8.8'
+        runtime 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.8.8'
+        runtime 'io.netty:netty-codec-http:4.1.2.Final'
+        runtime 'io.netty:netty-handler:4.1.2.Final'
+    }
 }
