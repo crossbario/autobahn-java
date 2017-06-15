@@ -26,7 +26,7 @@ public class Welcome implements IMessage {
         }
 
         if (wmsg.size() != 3) {
-            throw new ProtocolError(String.format("invalid message length %s for HELLO", wmsg.size()));
+            throw new ProtocolError(String.format("invalid message length %s for WELCOME", wmsg.size()));
         }
 
         long session = (long) wmsg.get(1);
@@ -40,6 +40,7 @@ public class Welcome implements IMessage {
 
     @Override
     public List<Object> marshal() {
-        return null;
+        // We are a client library, so don't really need to send a Welcome.
+        throw new UnsupportedOperationException("Welcome only to be sent by a server library.");
     }
 }
