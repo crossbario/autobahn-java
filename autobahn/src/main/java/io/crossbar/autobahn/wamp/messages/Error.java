@@ -67,11 +67,16 @@ public class Error implements IMessage {
         marshaled.add(request);
         marshaled.add(new HashMap<String, Object>());
         marshaled.add(error);
-        if (args != null) {
-            marshaled.add(args);
-        }
         if (kwargs != null) {
+            if (args == null) {
+                // Empty args.
+                marshaled.add(new ArrayList<String>());
+            } else {
+                marshaled.add(args);
+            }
             marshaled.add(kwargs);
+        } else if (args != null) {
+            marshaled.add(args);
         }
         return marshaled;
     }
