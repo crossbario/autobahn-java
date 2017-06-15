@@ -1,21 +1,9 @@
-apply plugin: getPlugin()
+apply plugin: project.PLATFORM == project.PLATFORM_NETTY ? project.PLUGIN_JAVA_LIB: project.PLUGIN_ANDROID_LIB
 
-String PLUGIN_ANDROID = "com.android.library"
-
-String getPlugin() {
-    String buildPlugin = project.properties.get("buildPlatform")
-    switch (buildPlugin) {
-        case "netty":
-            return "java-library-distribution"
-        default:
-            return "com.android.library"
-    }
-}
-
-if (plugins.hasPlugin(PLUGIN_ANDROID)) {
+if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
     android {
         compileSdkVersion 26
-        buildToolsVersion "25.0.2"
+        buildToolsVersion '25.0.2'
         useLibrary 'org.apache.http.legacy'
 
         defaultConfig {
@@ -58,7 +46,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.8.8'
     implementation 'io.netty:netty-codec-http:4.1.2.Final'
     implementation 'io.netty:netty-handler:4.1.2.Final'
-    if (!plugins.hasPlugin(PLUGIN_ANDROID)) {
+    if (plugins.hasPlugin(project.PLUGIN_JAVA_LIB)) {
         runtime 'com.fasterxml.jackson.core:jackson-core:2.8.8'
         runtime 'com.fasterxml.jackson.core:jackson-databind:2.8.8'
         runtime 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.8.8'

@@ -8,7 +8,7 @@ ENV GRADLE_VERSION 4.0-rc-3
 WORKDIR /workspace
 
 RUN    apt update \
-    && apt install unzip wget git openjdk-8-jdk-headless -y \
+    && apt install unzip wget openjdk-8-jdk-headless -y \
     && apt clean \
     && rm -rf /var/lib/apt/lists/
 
