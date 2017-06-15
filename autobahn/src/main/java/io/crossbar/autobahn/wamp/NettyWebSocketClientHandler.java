@@ -17,7 +17,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.util.CharsetUtil;
 
-import static io.crossbar.autobahn.wamp.types.MessageMap.MESSAGE_TYPE_MAP;
+import static io.crossbar.autobahn.wamp.messages.MessageMap.MESSAGE_TYPE_MAP;
 
 public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
 

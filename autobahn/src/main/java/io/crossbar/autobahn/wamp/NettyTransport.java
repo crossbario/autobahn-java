@@ -11,7 +11,7 @@ import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.types.CBORSerializer;
-import io.crossbar.autobahn.wamp.types.Hello;
+import io.crossbar.autobahn.wamp.messages.Hello;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;

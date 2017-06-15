@@ -1,4 +1,4 @@
-package io.crossbar.autobahn.wamp.types;
+package io.crossbar.autobahn.wamp.messages;
 
 import java.util.ArrayList;
 import java.util.HashMap;
