@@ -12,7 +12,7 @@ import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.ComponentConfig;
-import io.crossbar.autobahn.wamp.types.Hello;
+import io.crossbar.autobahn.wamp.messages.Hello;
 import io.crossbar.autobahn.wamp.types.IEventHandler;
 import io.crossbar.autobahn.wamp.types.IInvocationHandler;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
@@ -23,7 +23,7 @@ import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
 import io.crossbar.autobahn.wamp.types.SubscribeOptions;
 import io.crossbar.autobahn.wamp.types.Subscription;
-import io.crossbar.autobahn.wamp.types.Welcome;
+import io.crossbar.autobahn.wamp.messages.Welcome;
 
 
 public class Session implements ISession, ITransportHandler {
