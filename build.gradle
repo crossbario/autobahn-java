@@ -1,12 +1,26 @@
+// Set global platform properties.
+project.ext {
+    PLATFORM = project.properties.get('buildPlatform', 'android')
+    PLATFORM_ANDROID = 'android'
+    PLATFORM_NETTY = 'netty'
+    PLUGIN_ANDROID_APP = 'com.android.application'
+    PLUGIN_ANDROID_LIB = 'com.android.library'
+    PLUGIN_JAVA_APP = 'application'
+    PLUGIN_JAVA_LIB = 'java-library-distribution'
+}
+
 buildscript {
     repositories {
         jcenter()
         maven {
-            url "https://maven.google.com"
+            url 'https://maven.google.com'
         }
     }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.0-alpha3'
+    // Netty build does not need android dependencies.
+    if (project.properties.get('buildPlatform', 'android') == 'android') {
+        dependencies {
+            classpath 'com.android.tools.build:gradle:3.0.0-alpha3'
+        }
     }
 }
 
