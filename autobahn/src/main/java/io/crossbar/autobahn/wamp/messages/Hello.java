@@ -10,10 +10,10 @@ import io.crossbar.autobahn.wamp.interfaces.IMessage;
 
 public class Hello implements IMessage {
 
+    public static final int MESSAGE_TYPE = 1;
+
     public final String realm;
     public final Map<String, Map> roles;
-
-    public static final int MESSAGE_TYPE = 1;
 
     @Override
     public List<Object> marshal() {
