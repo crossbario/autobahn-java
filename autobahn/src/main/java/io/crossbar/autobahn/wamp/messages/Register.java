@@ -13,8 +13,6 @@ public class Register implements IMessage {
 
     public static final int MESSAGE_TYPE = 64;
 
-    private static final int CONCURRENCY_DEFAULT = -1;
-
     private static final String MATCH_EXACT = "exact";
     private static final String MATCH_PREFIX = "prefix";
     private static final String MATCH_WILDCARD = "wildcard";
