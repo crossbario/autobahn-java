@@ -23,6 +23,8 @@ public class Playground implements ITransportHandler {
 
     public Playground() {
         mSession = new Session();
+        NettyTransport transport = new NettyTransport();
+        transport.connect("urur", new ArrayList<>(), mSession);
     }
 
     public void showTransportAttachment() {
