@@ -8,18 +8,18 @@ import java.util.Map;
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 
-public class Unsubscribed implements IMessage {
+public class Unregistered implements IMessage {
 
-    public static final int MESSAGE_TYPE = 35;
+    public static final int MESSAGE_TYPE = 67;
 
-    private static final long SUBSCRIPTION_NULL = -1;
+    private static final long REGISTRATION_NULL = -1;
     private final long request;
-    private final long subscription;
+    private final long registration;
     private final String reason;
 
-    public Unsubscribed(long request, long subscription, String reason) {
+    public Unregistered(long request, long registration, String reason) {
         this.request = request;
-        this.subscription = subscription;
+        this.registration = registration;
         this.reason = reason;
     }
 
@@ -34,19 +34,15 @@ public class Unsubscribed implements IMessage {
 
         long request = (long) wmsg.get(1);
 
-        long subscription = SUBSCRIPTION_NULL;
+        long registration = REGISTRATION_NULL;
         String reason = null;
         if (wmsg.size() > 2) {
             Map<String, Object> details = (Map<String, Object>) wmsg.get(2);
-            if (details.containsKey("subscription")) {
-                subscription = (long) details.get("subscription");
-            }
-            if (details.containsKey("reason")) {
-                reason = (String) details.get("reason");
-            }
+            registration = (long) details.getOrDefault("registration", registration);
+            reason = (String) details.getOrDefault("reason", reason);
         }
 
-        return new Unsubscribed(request, subscription, reason);
+        return new Unsubscribed(request, registration, reason);
     }
 
     @Override
@@ -54,13 +50,13 @@ public class Unsubscribed implements IMessage {
         List<Object> marshaled = new ArrayList<>();
         marshaled.add(MESSAGE_TYPE);
         marshaled.add(request);
-        if (subscription != SUBSCRIPTION_NULL || reason != null) {
+        if (registration != REGISTRATION_NULL || reason != null) {
             Map<String, Object> details = new HashMap<>();
             if (reason != null) {
                 details.put("reason", reason);
             }
-            if (subscription != SUBSCRIPTION_NULL) {
-                details.put("subscription", subscription);
+            if (registration != REGISTRATION_NULL) {
+                details.put("registration", registration);
             }
             marshaled.add(details);
         }
