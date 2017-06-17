@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadLocalRandom;
 
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.interfaces.ISession;
@@ -29,6 +28,7 @@ import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
 import io.crossbar.autobahn.wamp.types.SubscribeOptions;
 import io.crossbar.autobahn.wamp.types.Subscription;
+import io.crossbar.autobahn.wamp.utils.IDGenerator;
 
 
 public class Session implements ISession, ITransportHandler {
@@ -40,6 +40,7 @@ public class Session implements ISession, ITransportHandler {
     private final ArrayList<OnConnectListener> mOnConnectListeners;
     private final ArrayList<OnDisconnectListener> mOnDisconnectListeners;
     private final ArrayList<OnUserErrorListener> mOnUserErrorListeners;
+    private final IDGenerator mIDGenerator;
 
     private long mSessionID;
     private boolean mGoodbyeSent;
@@ -53,6 +54,7 @@ public class Session implements ISession, ITransportHandler {
         mOnConnectListeners = new ArrayList<>();
         mOnDisconnectListeners = new ArrayList<>();
         mOnUserErrorListeners = new ArrayList<>();
+        mIDGenerator = new IDGenerator();
     }
 
     public Session(ComponentConfig config) {
@@ -102,7 +104,7 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public CompletableFuture<Subscription> subscribe(String topic, IEventHandler handler, SubscribeOptions options) {
         CompletableFuture<Subscription> future = new CompletableFuture<>();
-        long requestID = getRandomNumber();
+        long requestID = mIDGenerator.next();
         mTransport.send(new Subscribe(requestID, topic, null, false));
         return future;
     }
@@ -111,7 +113,7 @@ public class Session implements ISession, ITransportHandler {
     public CompletableFuture<Publication> publish(String topic, List<Object> args, Map<String, Object> kwargs,
                                                   PublishOptions options) {
         CompletableFuture<Publication> future = new CompletableFuture<>();
-        long requestID = getRandomNumber();
+        long requestID = mIDGenerator.next();
         mTransport.send(new Publish(requestID, topic, args, kwargs, false, true));
         return future;
     }
@@ -120,7 +122,7 @@ public class Session implements ISession, ITransportHandler {
     public CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint,
                                                     RegisterOptions options) {
         CompletableFuture<Registration> future = new CompletableFuture<>();
-        long requestID = getRandomNumber();
+        long requestID = mIDGenerator.next();
         mTransport.send(new Register(requestID, procedure, null, null));
         return future;
     }
@@ -129,7 +131,7 @@ public class Session implements ISession, ITransportHandler {
     public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
                                               CallOptions options) {
         CompletableFuture<CallResult> future = new CompletableFuture<>();
-        long requestID = getRandomNumber();
+        long requestID = mIDGenerator.next();
         mTransport.send(new Call(requestID, procedure, args, kwargs));
         return future;
     }
@@ -150,10 +152,6 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public void leave(String reason, String message) {
 
-    }
-
-    private long getRandomNumber() {
-        return ThreadLocalRandom.current().nextLong(0,9007199254740992L);
     }
 
     public OnJoinListener addOnJoinListener(OnJoinListener listener) {
