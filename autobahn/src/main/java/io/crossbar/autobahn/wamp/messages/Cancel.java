@@ -17,8 +17,8 @@ public class Cancel implements IMessage {
     private static final String ABORT = "abort";
     private static final String KILL = "kill";
 
-    private final long request;
-    private final String mode;
+    public final long request;
+    public final String mode;
 
     public Cancel(long request, String mode) {
         this.request = request;
@@ -53,7 +53,10 @@ public class Cancel implements IMessage {
         if (mode != null) {
             Map<String, Object> options = new HashMap<>();
             options.put("mode", mode);
-            marshaled.add(mode);
+            marshaled.add(options);
+        } else {
+            // Empty options as third item.
+            marshaled.add(new HashMap<>());
         }
         return marshaled;
     }
