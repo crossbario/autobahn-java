@@ -8,6 +8,7 @@ import java.util.Objects;
 
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
+import io.crossbar.autobahn.wamp.utils.Cast;
 
 public class Subscribe implements IMessage {
 
@@ -46,7 +47,7 @@ public class Subscribe implements IMessage {
             throw new ProtocolError(String.format("invalid message length %s for SUBSCRIBE", wmsg.size()));
         }
 
-        long request = (long) wmsg.get(1);
+        long request = Cast.castRequestID(wmsg.get(1));
         Map<String, Object> options = (Map<String, Object>) wmsg.get(2);
         String match = (String) options.get("match");
         boolean getRetained = (boolean) options.get("get_retained");

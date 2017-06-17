@@ -5,6 +5,7 @@ import java.util.List;
 
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
+import io.crossbar.autobahn.wamp.utils.Cast;
 
 public class Unsubscribe implements IMessage {
 
@@ -25,7 +26,7 @@ public class Unsubscribe implements IMessage {
         if (wmsg.size() != 3) {
             throw new ProtocolError(String.format("invalid message length %s for UNSUBSCRIBE", wmsg.size()));
         }
-        return new Unsubscribe((long) wmsg.get(1), (long) wmsg.get(2));
+        return new Unsubscribe(Cast.castRequestID(wmsg.get(1)), (long) wmsg.get(2));
     }
 
     @Override

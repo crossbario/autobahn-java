@@ -7,6 +7,7 @@ import java.util.Map;
 
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
+import io.crossbar.autobahn.wamp.utils.Cast;
 
 public class Yield implements IMessage {
 
@@ -31,7 +32,6 @@ public class Yield implements IMessage {
             throw new ProtocolError(String.format("invalid message length %s for YIELD", wmsg.size()));
         }
 
-        long request = (long) wmsg.get(1);
         Map<String, Object> options = (Map<String, Object>) wmsg.get(2);
         List<Object> args = null;
         if (wmsg.size() > 3) {
@@ -44,7 +44,7 @@ public class Yield implements IMessage {
         if (wmsg.size() > 4) {
             kwargs = (Map<String, Object>) wmsg.get(4);
         }
-        return new Yield(request, args, kwargs);
+        return new Yield(Cast.castRequestID(wmsg.get(1)), args, kwargs);
     }
 
     @Override

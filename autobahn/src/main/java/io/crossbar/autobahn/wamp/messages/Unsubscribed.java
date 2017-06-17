@@ -7,6 +7,7 @@ import java.util.Map;
 
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
+import io.crossbar.autobahn.wamp.utils.Cast;
 
 public class Unsubscribed implements IMessage {
 
@@ -32,7 +33,7 @@ public class Unsubscribed implements IMessage {
             throw new ProtocolError(String.format("invalid message length %s for UNSUBSCRIBED", wmsg.size()));
         }
 
-        long request = (long) wmsg.get(1);
+        long request = Cast.castRequestID(wmsg.get(1));
 
         long subscription = SUBSCRIPTION_NULL;
         String reason = null;

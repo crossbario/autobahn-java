@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadLocalRandom;
 
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.interfaces.ISession;
@@ -15,8 +14,10 @@ import io.crossbar.autobahn.wamp.messages.Call;
 import io.crossbar.autobahn.wamp.messages.Hello;
 import io.crossbar.autobahn.wamp.messages.Publish;
 import io.crossbar.autobahn.wamp.messages.Register;
+import io.crossbar.autobahn.wamp.messages.Result;
 import io.crossbar.autobahn.wamp.messages.Subscribe;
 import io.crossbar.autobahn.wamp.messages.Welcome;
+import io.crossbar.autobahn.wamp.requests.CallRequest;
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.ComponentConfig;
@@ -29,9 +30,18 @@ import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
 import io.crossbar.autobahn.wamp.types.SubscribeOptions;
 import io.crossbar.autobahn.wamp.types.Subscription;
+import io.crossbar.autobahn.wamp.utils.IDGenerator;
 
 
 public class Session implements ISession, ITransportHandler {
+
+    private final int STATE_DISCONNECTED = 1;
+    private final int STATE_HELLO_SENT = 2;
+    private final int STATE_AUTHENTICATE_SENT = 3;
+    private final int STATE_JOINED = 4;
+    private final int STATE_READY = 5;
+    private final int STATE_GOOBYE_SENT = 6;
+    private final int STATE_ABORT_SENT = 7;
 
     private ITransport mTransport;
 
@@ -40,7 +50,10 @@ public class Session implements ISession, ITransportHandler {
     private final ArrayList<OnConnectListener> mOnConnectListeners;
     private final ArrayList<OnDisconnectListener> mOnDisconnectListeners;
     private final ArrayList<OnUserErrorListener> mOnUserErrorListeners;
+    private final IDGenerator mIDGenerator;
+    private final Map<Long, CallRequest> mCallRequests;
 
+    private int mState = STATE_DISCONNECTED;
     private long mSessionID;
     private boolean mGoodbyeSent;
     private String mRealm;
@@ -53,6 +66,8 @@ public class Session implements ISession, ITransportHandler {
         mOnConnectListeners = new ArrayList<>();
         mOnDisconnectListeners = new ArrayList<>();
         mOnUserErrorListeners = new ArrayList<>();
+        mIDGenerator = new IDGenerator();
+        mCallRequests = new HashMap<>();
     }
 
     public Session(ComponentConfig config) {
@@ -74,14 +89,26 @@ public class Session implements ISession, ITransportHandler {
     public void onMessage(IMessage message) {
         if (mSessionID == 0) {
             if (message instanceof Welcome) {
+                mState = STATE_JOINED;
                 Welcome msg = (Welcome) message;
                 mSessionID = msg.session;
                 SessionDetails details = new SessionDetails(msg.realm, msg.session);
                 mOnJoinListeners.forEach(onJoinListener -> onJoinListener.onJoin(details));
+                mState = STATE_READY;
             }
         } else {
             // Now that we have an active session handle all incoming messages here.
             System.out.println(message);
+            if (message instanceof Result) {
+                Result msg = (Result) message;
+                CallRequest request = mCallRequests.getOrDefault(msg.request, null);
+                if (request != null) {
+                    mCallRequests.remove(msg.request);
+                    request.onReply.complete(new CallResult(msg.args, msg.kwargs));
+                } else {
+                    // thow some exception.
+                }
+            }
         }
     }
 
@@ -102,7 +129,7 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public CompletableFuture<Subscription> subscribe(String topic, IEventHandler handler, SubscribeOptions options) {
         CompletableFuture<Subscription> future = new CompletableFuture<>();
-        long requestID = getRandomNumber();
+        long requestID = mIDGenerator.next();
         mTransport.send(new Subscribe(requestID, topic, null, false));
         return future;
     }
@@ -111,7 +138,7 @@ public class Session implements ISession, ITransportHandler {
     public CompletableFuture<Publication> publish(String topic, List<Object> args, Map<String, Object> kwargs,
                                                   PublishOptions options) {
         CompletableFuture<Publication> future = new CompletableFuture<>();
-        long requestID = getRandomNumber();
+        long requestID = mIDGenerator.next();
         mTransport.send(new Publish(requestID, topic, args, kwargs, false, true));
         return future;
     }
@@ -120,7 +147,7 @@ public class Session implements ISession, ITransportHandler {
     public CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint,
                                                     RegisterOptions options) {
         CompletableFuture<Registration> future = new CompletableFuture<>();
-        long requestID = getRandomNumber();
+        long requestID = mIDGenerator.next();
         mTransport.send(new Register(requestID, procedure, null, null));
         return future;
     }
@@ -129,7 +156,8 @@ public class Session implements ISession, ITransportHandler {
     public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
                                               CallOptions options) {
         CompletableFuture<CallResult> future = new CompletableFuture<>();
-        long requestID = getRandomNumber();
+        long requestID = mIDGenerator.next();
+        mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options));
         mTransport.send(new Call(requestID, procedure, args, kwargs));
         return future;
     }
@@ -144,16 +172,13 @@ public class Session implements ISession, ITransportHandler {
         roles.put("caller", new HashMap<>());
         roles.put("callee", new HashMap<>());
         mTransport.send(new Hello(realm, roles));
+        mState = STATE_HELLO_SENT;
         return null;
     }
 
     @Override
     public void leave(String reason, String message) {
 
-    }
-
-    private long getRandomNumber() {
-        return ThreadLocalRandom.current().nextLong(0,9007199254740992L);
     }
 
     public OnJoinListener addOnJoinListener(OnJoinListener listener) {

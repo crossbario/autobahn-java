@@ -7,6 +7,7 @@ import java.util.Map;
 
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
+import io.crossbar.autobahn.wamp.utils.Cast;
 
 public class Call implements IMessage {
 
@@ -33,7 +34,7 @@ public class Call implements IMessage {
             throw new ProtocolError(String.format("invalid message length %s for CALL", wmsg.size()));
         }
 
-        long request = (long) wmsg.get(1);
+        long request = Cast.castRequestID(wmsg.get(1));
         Map<String, Object> options = (Map<String, Object>) wmsg.get(2);
         String procedure = (String) wmsg.get(3);
 
