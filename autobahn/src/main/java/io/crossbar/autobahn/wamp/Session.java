@@ -14,8 +14,10 @@ import io.crossbar.autobahn.wamp.messages.Call;
 import io.crossbar.autobahn.wamp.messages.Hello;
 import io.crossbar.autobahn.wamp.messages.Publish;
 import io.crossbar.autobahn.wamp.messages.Register;
+import io.crossbar.autobahn.wamp.messages.Result;
 import io.crossbar.autobahn.wamp.messages.Subscribe;
 import io.crossbar.autobahn.wamp.messages.Welcome;
+import io.crossbar.autobahn.wamp.requests.CallRequest;
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.ComponentConfig;
@@ -33,6 +35,14 @@ import io.crossbar.autobahn.wamp.utils.IDGenerator;
 
 public class Session implements ISession, ITransportHandler {
 
+    private final int STATE_DISCONNECTED = 1;
+    private final int STATE_HELLO_SENT = 2;
+    private final int STATE_AUTHENTICATE_SENT = 3;
+    private final int STATE_JOINED = 4;
+    private final int STATE_READY = 5;
+    private final int STATE_GOOBYE_SENT = 6;
+    private final int STATE_ABORT_SENT = 7;
+
     private ITransport mTransport;
 
     private final ArrayList<OnJoinListener> mOnJoinListeners;
@@ -41,13 +51,7 @@ public class Session implements ISession, ITransportHandler {
     private final ArrayList<OnDisconnectListener> mOnDisconnectListeners;
     private final ArrayList<OnUserErrorListener> mOnUserErrorListeners;
     private final IDGenerator mIDGenerator;
-    private final int STATE_DISCONNECTED = 1;
-    private final int STATE_HELLO_SENT = 2;
-    private final int STATE_AUTHENTICATE_SENT = 3;
-    private final int STATE_JOINED = 4;
-    private final int STATE_READY = 5;
-    private final int STATE_GOOBYE_SENT = 6;
-    private final int STATE_ABORT_SENT = 7;
+    private final Map<Long, CallRequest> mCallRequests;
 
     private int mState = STATE_DISCONNECTED;
     private long mSessionID;
@@ -63,6 +67,7 @@ public class Session implements ISession, ITransportHandler {
         mOnDisconnectListeners = new ArrayList<>();
         mOnUserErrorListeners = new ArrayList<>();
         mIDGenerator = new IDGenerator();
+        mCallRequests = new HashMap<>();
     }
 
     public Session(ComponentConfig config) {
@@ -94,6 +99,16 @@ public class Session implements ISession, ITransportHandler {
         } else {
             // Now that we have an active session handle all incoming messages here.
             System.out.println(message);
+            if (message instanceof Result) {
+                Result msg = (Result) message;
+                CallRequest request = mCallRequests.getOrDefault(msg.request, null);
+                if (request != null) {
+                    mCallRequests.remove(msg.request);
+                    request.onReply.complete(new CallResult(msg.args, msg.kwargs));
+                } else {
+                    // thow some exception.
+                }
+            }
         }
     }
 
@@ -142,6 +157,7 @@ public class Session implements ISession, ITransportHandler {
                                               CallOptions options) {
         CompletableFuture<CallResult> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
+        mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options));
         mTransport.send(new Call(requestID, procedure, args, kwargs));
         return future;
     }

@@ -78,7 +78,6 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
             byte[] output = new byte[binaryWebSocketFrame.content().readableBytes()];
             binaryWebSocketFrame.content().readBytes(output);
             List<Object> message = mSerializer.unserialize(output, true);
-            System.out.println(message);
             mTransportHandler.onMessage(getMessageObject(message));
         } else if (frame instanceof CloseWebSocketFrame) {
             ch.close();

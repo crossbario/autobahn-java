@@ -9,6 +9,7 @@ import io.crossbar.autobahn.wamp.Client;
 import io.crossbar.autobahn.wamp.NettyTransport;
 import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
+import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
 import io.crossbar.autobahn.wamp.types.InvocationDetails;
 import io.crossbar.autobahn.wamp.types.InvocationResult;
@@ -26,9 +27,14 @@ public class EchoClient {
     }
 
     public void funStuff() {
-        mSession.call("com.byteshaft.lock", null, null, null);
-        mSession.subscribe("com.byteshaft.topic1", this::message, null);
-        mSession.register("com.byteshaft.exp", this::exp, null);
+        CompletableFuture<CallResult> resultCompletableFuture = mSession.call(
+                "com.byteshaft.grab_screenshot", null, null, null);
+        resultCompletableFuture.thenAccept(callResult -> {
+            System.out.println(callResult.results.get(0));
+            System.out.println(callResult.kwresults);
+        });
+//        mSession.subscribe("com.byteshaft.topic1", this::message, null);
+//        mSession.register("com.byteshaft.exp", this::exp, null);
     }
 
     private CompletableFuture<InvocationResult> exp(List<Object> args, Map<String, Object> kwargs,

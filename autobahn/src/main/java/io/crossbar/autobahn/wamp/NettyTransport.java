@@ -90,7 +90,8 @@ public class NettyTransport implements ITransport {
         final NettyWebSocketClientHandler handler = new NettyWebSocketClientHandler(
                 WebSocketClientHandshakerFactory.newHandshaker(
                         uri, WebSocketVersion.V13, "wamp.2.cbor",true,
-                        new DefaultHttpHeaders()), this, transportHandler, mSerializer);
+                        new DefaultHttpHeaders(), 655360),
+                this, transportHandler, mSerializer);
 
         EventLoopGroup group = new NioEventLoopGroup();
         Bootstrap bootstrap = new Bootstrap();
