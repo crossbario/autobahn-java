@@ -126,6 +126,10 @@ public class Session implements ISession, ITransportHandler {
         return mTransport != null;
     }
 
+    private boolean isAttached() {
+        return mTransport != null;
+    }
+
     @Override
     public CompletableFuture<Subscription> subscribe(String topic, IEventHandler handler, SubscribeOptions options) {
         CompletableFuture<Subscription> future = new CompletableFuture<>();
@@ -155,6 +159,9 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
                                               CallOptions options) {
+        if (!isAttached()) {
+            throw new IllegalStateException("The transport must be connected first");
+        }
         CompletableFuture<CallResult> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
         mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options));
