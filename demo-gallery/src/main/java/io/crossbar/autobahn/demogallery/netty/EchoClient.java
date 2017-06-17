@@ -2,49 +2,51 @@ package io.crossbar.autobahn.demogallery.netty;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
+import io.crossbar.autobahn.wamp.Client;
 import io.crossbar.autobahn.wamp.NettyTransport;
 import io.crossbar.autobahn.wamp.Session;
-import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
-import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
+import io.crossbar.autobahn.wamp.types.ExitInfo;
+import io.crossbar.autobahn.wamp.types.InvocationDetails;
+import io.crossbar.autobahn.wamp.types.InvocationResult;
 
-public class EchoClient implements ITransportHandler {
+public class EchoClient {
+    private Client mClient;
     private Session mSession;
-    private String mRealm;
 
     public EchoClient(String uri, String realm) {
-        mRealm = realm;
-        List<String> protocols = new ArrayList<>();
-        protocols.add("wamp.2.cbor");
-        NettyTransport transport = new NettyTransport();
-        transport.connect(uri, protocols, this);
         mSession = new Session();
-        mSession.attach(transport);
-        mSession.addOnJoinListener(System.out::println);
+        List<ITransport> transportList = new ArrayList<>();
+        transportList.add(new NettyTransport(uri));
+        mSession.addOnJoinListener(details -> funStuff());
+        mClient = new Client(mSession, transportList, realm, null);
+    }
+
+    public void funStuff() {
+        mSession.call("com.byteshaft.lock", null, null, null);
+        mSession.subscribe("com.byteshaft.topic1", this::message, null);
+        mSession.register("com.byteshaft.exp", this::exp, null);
+    }
+
+    private CompletableFuture<InvocationResult> exp(List<Object> args, Map<String, Object> kwargs,
+                                                    InvocationDetails details) {
+        CompletableFuture<InvocationResult> future = new CompletableFuture<>();
+        System.out.println("Called");
+        return future;
+
+    }
+
+    private Void message(List<Object> args, Map<String, Object> kwargs) {
+        System.out.println(args);
+        System.out.println(kwargs);
+        return null;
     }
 
     public void start() {
-        mSession.join(mRealm, null);
-    }
-
-    @Override
-    public void onConnect(ITransport transport) {
-
-    }
-
-    @Override
-    public void onMessage(IMessage message) {
-
-    }
-
-    @Override
-    public void onDisconnect(boolean wasClean) {
-
-    }
-
-    @Override
-    public boolean isConnected() {
-        return false;
+        CompletableFuture<ExitInfo> exitInfoCompletableFuture = mClient.connect();
+        exitInfoCompletableFuture.thenApply(exitInfo -> mClient.connect());
     }
 }

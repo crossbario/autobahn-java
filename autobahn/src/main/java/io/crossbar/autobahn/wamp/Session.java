@@ -5,17 +5,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
 
+import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.interfaces.ISession;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
+import io.crossbar.autobahn.wamp.messages.Call;
+import io.crossbar.autobahn.wamp.messages.Hello;
+import io.crossbar.autobahn.wamp.messages.Publish;
+import io.crossbar.autobahn.wamp.messages.Register;
+import io.crossbar.autobahn.wamp.messages.Subscribe;
+import io.crossbar.autobahn.wamp.messages.Welcome;
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.ComponentConfig;
-import io.crossbar.autobahn.wamp.messages.Hello;
 import io.crossbar.autobahn.wamp.types.IEventHandler;
 import io.crossbar.autobahn.wamp.types.IInvocationHandler;
-import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.PublishOptions;
 import io.crossbar.autobahn.wamp.types.RegisterOptions;
@@ -23,18 +29,17 @@ import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
 import io.crossbar.autobahn.wamp.types.SubscribeOptions;
 import io.crossbar.autobahn.wamp.types.Subscription;
-import io.crossbar.autobahn.wamp.messages.Welcome;
 
 
 public class Session implements ISession, ITransportHandler {
 
     private ITransport mTransport;
 
-    private ArrayList<OnJoinListener> mOnJoinListeners;
-    private ArrayList<OnLeaveListener> mOnLeaveListeners;
-    private ArrayList<OnConnectListener> mOnConnectListeners;
-    private ArrayList<OnDisconnectListener> mOnDisconnectListeners;
-    private ArrayList<OnUserErrorListener> mOnUserErrorListeners;
+    private final ArrayList<OnJoinListener> mOnJoinListeners;
+    private final ArrayList<OnLeaveListener> mOnLeaveListeners;
+    private final ArrayList<OnConnectListener> mOnConnectListeners;
+    private final ArrayList<OnDisconnectListener> mOnDisconnectListeners;
+    private final ArrayList<OnUserErrorListener> mOnUserErrorListeners;
 
     private long mSessionID;
     private boolean mGoodbyeSent;
@@ -62,22 +67,22 @@ public class Session implements ISession, ITransportHandler {
 //            throw new Exception("already connected");
         }
         mTransport = transport;
+        mOnConnectListeners.forEach(OnConnectListener::onConnect);
     }
 
     @Override
     public void onMessage(IMessage message) {
-        System.out.println(message);
         if (mSessionID == 0) {
             if (message instanceof Welcome) {
                 Welcome msg = (Welcome) message;
+                mSessionID = msg.session;
                 SessionDetails details = new SessionDetails(msg.realm, msg.session);
-                System.out.println("CONNECTEDDDDDDDDDDDDD");
-
+                mOnJoinListeners.forEach(onJoinListener -> onJoinListener.onJoin(details));
             }
         } else {
-            // Session is already established.
+            // Now that we have an active session handle all incoming messages here.
+            System.out.println(message);
         }
-        // process the incoming WAMP message
     }
 
     @Override
@@ -96,25 +101,37 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public CompletableFuture<Subscription> subscribe(String topic, IEventHandler handler, SubscribeOptions options) {
-        return null;
+        CompletableFuture<Subscription> future = new CompletableFuture<>();
+        long requestID = getRandomNumber();
+        mTransport.send(new Subscribe(requestID, topic, null, false));
+        return future;
     }
 
     @Override
     public CompletableFuture<Publication> publish(String topic, List<Object> args, Map<String, Object> kwargs,
                                                   PublishOptions options) {
-        return null;
+        CompletableFuture<Publication> future = new CompletableFuture<>();
+        long requestID = getRandomNumber();
+        mTransport.send(new Publish(requestID, topic, args, kwargs, false, true));
+        return future;
     }
 
     @Override
     public CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint,
                                                     RegisterOptions options) {
-        return null;
+        CompletableFuture<Registration> future = new CompletableFuture<>();
+        long requestID = getRandomNumber();
+        mTransport.send(new Register(requestID, procedure, null, null));
+        return future;
     }
 
     @Override
     public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
                                               CallOptions options) {
-        return null;
+        CompletableFuture<CallResult> future = new CompletableFuture<>();
+        long requestID = getRandomNumber();
+        mTransport.send(new Call(requestID, procedure, args, kwargs));
+        return future;
     }
 
     @Override
@@ -123,17 +140,20 @@ public class Session implements ISession, ITransportHandler {
         mGoodbyeSent = false;
         Map<String, Map> roles = new HashMap<>();
         roles.put("publisher", new HashMap<>());
+        roles.put("subscriber", new HashMap<>());
+        roles.put("caller", new HashMap<>());
+        roles.put("callee", new HashMap<>());
         mTransport.send(new Hello(realm, roles));
         return null;
     }
 
     @Override
     public void leave(String reason, String message) {
+
     }
 
-    // FIXME: Remove this method. Only there for testing purposes.
-    public void attach(ITransport transport) {
-        mTransport = transport;
+    private long getRandomNumber() {
+        return ThreadLocalRandom.current().nextLong(0,9007199254740992L);
     }
 
     public OnJoinListener addOnJoinListener(OnJoinListener listener) {

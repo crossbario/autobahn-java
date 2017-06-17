@@ -1,7 +1,5 @@
 package io.crossbar.autobahn.wamp.interfaces;
 
-import java.util.List;
-
 // FIXME: data types to be discussed/changed.
 public interface ITransport {
 
@@ -9,7 +7,7 @@ public interface ITransport {
     void send(IMessage message);
 
     // .. not sure about the following, we'll see
-    void connect(String url, List<String> subProtocols, ITransportHandler transportHandler);
+    void connect(ITransportHandler transportHandler);
 
     boolean isOpen();
 

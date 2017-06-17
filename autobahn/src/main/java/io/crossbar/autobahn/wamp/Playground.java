@@ -26,12 +26,9 @@ public class Playground implements ITransportHandler {
     }
 
     public void showTransportAttachment() {
-        NettyTransport transport = new NettyTransport();
-        List<String> protocols = new ArrayList<>();
-        protocols.add("wamp.2.cbor");
-        transport.connect("ws://192.168.1.3:8080/ws", protocols, this);
+        NettyTransport transport = new NettyTransport("ws://192.168.1.3:8080/ws");
+        transport.connect(this);
         mSession.addOnJoinListener( details -> System.out.println("play with join details here"));
-        mSession.attach(transport);
         CompletableFuture<SessionDetails> joinedFuture = mSession.join("realm1", null);
     }
 
