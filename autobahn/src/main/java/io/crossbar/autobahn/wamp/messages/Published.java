@@ -5,6 +5,7 @@ import java.util.List;
 
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
+import io.crossbar.autobahn.wamp.utils.Cast;
 
 public class Published implements IMessage {
 
@@ -27,7 +28,7 @@ public class Published implements IMessage {
             throw new ProtocolError(String.format("invalid message length %s for PUBLISHED", wmsg.size()));
         }
 
-        return new Published((long) wmsg.get(1), (long) wmsg.get(2));
+        return new Published(Cast.castRequestID(wmsg.get(1)), (long) wmsg.get(2));
     }
 
     @Override

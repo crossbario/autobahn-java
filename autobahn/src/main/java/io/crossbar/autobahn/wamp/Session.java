@@ -41,7 +41,15 @@ public class Session implements ISession, ITransportHandler {
     private final ArrayList<OnDisconnectListener> mOnDisconnectListeners;
     private final ArrayList<OnUserErrorListener> mOnUserErrorListeners;
     private final IDGenerator mIDGenerator;
+    private final int STATE_DISCONNECTED = 1;
+    private final int STATE_HELLO_SENT = 2;
+    private final int STATE_AUTHENTICATE_SENT = 3;
+    private final int STATE_JOINED = 4;
+    private final int STATE_READY = 5;
+    private final int STATE_GOOBYE_SENT = 6;
+    private final int STATE_ABORT_SENT = 7;
 
+    private int mState = STATE_DISCONNECTED;
     private long mSessionID;
     private boolean mGoodbyeSent;
     private String mRealm;
@@ -76,10 +84,12 @@ public class Session implements ISession, ITransportHandler {
     public void onMessage(IMessage message) {
         if (mSessionID == 0) {
             if (message instanceof Welcome) {
+                mState = STATE_JOINED;
                 Welcome msg = (Welcome) message;
                 mSessionID = msg.session;
                 SessionDetails details = new SessionDetails(msg.realm, msg.session);
                 mOnJoinListeners.forEach(onJoinListener -> onJoinListener.onJoin(details));
+                mState = STATE_READY;
             }
         } else {
             // Now that we have an active session handle all incoming messages here.
@@ -146,6 +156,7 @@ public class Session implements ISession, ITransportHandler {
         roles.put("caller", new HashMap<>());
         roles.put("callee", new HashMap<>());
         mTransport.send(new Hello(realm, roles));
+        mState = STATE_HELLO_SENT;
         return null;
     }
 

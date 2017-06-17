@@ -7,6 +7,7 @@ import java.util.Map;
 
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
+import io.crossbar.autobahn.wamp.utils.Cast;
 
 public class Publish implements IMessage {
 
@@ -39,7 +40,7 @@ public class Publish implements IMessage {
             throw new ProtocolError(String.format("invalid message length %s for PUBLISH", wmsg.size()));
         }
 
-        long request = (long) wmsg.get(1);
+        long request = Cast.castRequestID(wmsg.get(1));
         Map<String, Object> options = (Map<String, Object>) wmsg.get(2);
         String topic = (String) wmsg.get(3);
 

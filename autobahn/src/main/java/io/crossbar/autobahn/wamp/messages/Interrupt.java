@@ -8,6 +8,7 @@ import java.util.Objects;
 
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
+import io.crossbar.autobahn.wamp.utils.Cast;
 
 public class Interrupt implements IMessage {
 
@@ -33,7 +34,7 @@ public class Interrupt implements IMessage {
             throw new ProtocolError(String.format("invalid message length %s for INTERRUPT", wmsg.size()));
         }
 
-        long request = (long) wmsg.get(1);
+        long request = Cast.castRequestID(wmsg.get(1));
         Map<String, Object> options = (Map<String, Object>) wmsg.get(2);
         String mode = (String) options.getOrDefault("mode", null);
         if (mode != null) {

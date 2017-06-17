@@ -5,6 +5,7 @@ import java.util.List;
 
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
+import io.crossbar.autobahn.wamp.utils.Cast;
 
 public class Subscribed implements IMessage {
 
@@ -25,7 +26,7 @@ public class Subscribed implements IMessage {
         if (wmsg.size() != 3) {
             throw new ProtocolError(String.format("invalid message length %s for SUBSCRIBED", wmsg.size()));
         }
-        return new Subscribed((long) wmsg.get(1), (long) wmsg.get(2));
+        return new Subscribed(Cast.castRequestID(wmsg.get(1)), (long) wmsg.get(2));
     }
 
     @Override
