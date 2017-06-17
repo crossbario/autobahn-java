@@ -4,6 +4,7 @@ import java.util.List;
 
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.interfaces.ISerializer;
+import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -22,12 +23,12 @@ import static io.crossbar.autobahn.wamp.messages.MessageMap.MESSAGE_TYPE_MAP;
 public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
 
     private final WebSocketClientHandshaker mHandshaker;
-    private final NettyTransport mTransport;
+    private final ITransport mTransport;
     private final ISerializer mSerializer;
     private ChannelPromise mHandshakeFuture;
     private ITransportHandler mTransportHandler;
 
-    public NettyWebSocketClientHandler(WebSocketClientHandshaker handshaker, NettyTransport transport,
+    public NettyWebSocketClientHandler(WebSocketClientHandshaker handshaker, ITransport transport,
                                        ITransportHandler transportHandler, ISerializer serializer) {
         mHandshaker = handshaker;
         mTransport = transport;
@@ -60,6 +61,7 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
         if (!mHandshaker.isHandshakeComplete()) {
             mHandshaker.finishHandshake(ch, (FullHttpResponse) msg);
             mHandshakeFuture.setSuccess();
+            mTransportHandler.onConnect(mTransport);
             return;
         }
 

@@ -19,7 +19,7 @@ buildscript {
     // Netty build does not need android dependencies.
     if (project.properties.get('buildPlatform', 'android') == 'android') {
         dependencies {
-            classpath 'com.android.tools.build:gradle:3.0.0-alpha3'
+            classpath 'com.android.tools.build:gradle:3.0.0-alpha4'
         }
     }
 }

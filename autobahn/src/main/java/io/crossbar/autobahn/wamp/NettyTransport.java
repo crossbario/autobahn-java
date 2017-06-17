@@ -2,7 +2,6 @@ package io.crossbar.autobahn.wamp;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 
 import javax.net.ssl.SSLException;
 
@@ -11,7 +10,6 @@ import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.types.CBORSerializer;
-import io.crossbar.autobahn.wamp.messages.Hello;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -38,8 +36,10 @@ public class NettyTransport implements ITransport {
 
     private Channel mChannel;
     private ISerializer mSerializer;
+    private final String mUri;
 
-    public NettyTransport() {
+    public NettyTransport(String uri) {
+        mUri = uri;
         mSerializer = new CBORSerializer();
     }
 
@@ -66,21 +66,11 @@ public class NettyTransport implements ITransport {
         return null;
     }
 
-    private String marshalSubProtocolsList(List<String> subProtocols) {
-        StringBuilder subProtoBuilder = new StringBuilder();
-        for (String proto : subProtocols) {
-            subProtoBuilder.append(proto);
-            subProtoBuilder.append(",");
-        }
-        String rawOutput = subProtoBuilder.toString();
-        return rawOutput.substring(0, rawOutput.length() - 1);
-    }
-
     @Override
-    public void connect(String url, List<String> subProtocols, ITransportHandler transportHandler) {
+    public void connect(ITransportHandler transportHandler) {
         URI uri;
         try {
-            uri = new URI(url);
+            uri = new URI(mUri);
         } catch (URISyntaxException e) {
             e.printStackTrace();
             return;
@@ -99,9 +89,8 @@ public class NettyTransport implements ITransport {
 
         final NettyWebSocketClientHandler handler = new NettyWebSocketClientHandler(
                 WebSocketClientHandshakerFactory.newHandshaker(
-                        uri, WebSocketVersion.V13, marshalSubProtocolsList(subProtocols),
-                        true, new DefaultHttpHeaders()), this, transportHandler,
-                        mSerializer);
+                        uri, WebSocketVersion.V13, "wamp.2.cbor",true,
+                        new DefaultHttpHeaders()), this, transportHandler, mSerializer);
 
         EventLoopGroup group = new NioEventLoopGroup();
         Bootstrap bootstrap = new Bootstrap();
@@ -132,11 +121,9 @@ public class NettyTransport implements ITransport {
 
     @Override
     public void send(IMessage message) {
-        if (message instanceof Hello) {
-            byte[] data = mSerializer.serialize(message.marshal());
-            WebSocketFrame frame = new BinaryWebSocketFrame(toByteBuf(data));
-            mChannel.writeAndFlush(frame);
-        }
+        byte[] data = mSerializer.serialize(message.marshal());
+        WebSocketFrame frame = new BinaryWebSocketFrame(toByteBuf(data));
+        mChannel.writeAndFlush(frame);
     }
 
     @Override

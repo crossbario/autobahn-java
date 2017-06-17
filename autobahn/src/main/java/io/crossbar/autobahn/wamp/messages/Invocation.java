@@ -33,7 +33,7 @@ public class Invocation implements IMessage {
             throw new ProtocolError(String.format("invalid message length %s for INVOCATION", wmsg.size()));
         }
 
-        long request = (long) wmsg.get(1);
+        int request = (int) wmsg.get(1);
         long registration = (long) wmsg.get(2);
         Map<String, Object> details = (Map<String, Object>) wmsg.get(3);
         List<Object> args = null;
