@@ -158,7 +158,7 @@ public class Session implements ISession, ITransportHandler {
         CompletableFuture<CallResult> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
         mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options));
-        mTransport.send(new Call(requestID, procedure, args, kwargs));
+        mTransport.send(new Call(requestID, procedure, args, kwargs, options.timeout));
         return future;
     }
 
