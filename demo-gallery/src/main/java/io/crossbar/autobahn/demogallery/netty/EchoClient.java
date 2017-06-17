@@ -28,6 +28,7 @@ public class EchoClient {
     }
 
     public void funStuff() {
+        System.out.println("JOINED");
         CallOptions options = new CallOptions(5);
         CompletableFuture<CallResult> resultCompletableFuture = mSession.call(
                 "com.byteshaft.grab_screenshot", null, null, options);
