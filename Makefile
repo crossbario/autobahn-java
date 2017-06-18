@@ -9,7 +9,7 @@ build_netty:
 demo_wamp_netty:
 	docker run -it --rm \
 		--link crossbar \
-		-v ${PWD}:/workspace \
+		-v ${shell pwd}:/workspace \
 		crossbario/autobahn-java:netty \
 			/bin/bash -c "gradle installDist -PbuildPlatform=netty && demo-gallery/build/install/demo-gallery/bin/demo-gallery ws://crossbar:8080/ws"
 
