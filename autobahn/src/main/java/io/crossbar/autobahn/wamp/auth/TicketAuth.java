@@ -12,14 +12,16 @@ public class TicketAuth implements IAuthenticator {
 
     public final String authmethod = "ticket";
     public final String authid;
+    public final Map<String, Object> authextra;
     public final String ticket;
 
-    public TicketAuth (String authid, String ticket) {
+    public TicketAuth (String authid, String ticket, Map<String, Object> authextra) {
         this.authid = authid;
         this.ticket = ticket;
+        this.authextra = authextra;
     }
 
     public CompletableFuture<ChallengeResponse> onChallenge(Session session, Challenge challenge) {
-        return CompletableFuture.completedFuture(this.ticket);
+        return CompletableFuture.completedFuture(new ChallengeResponse(this.ticket, this.authextra));
     }
 }
