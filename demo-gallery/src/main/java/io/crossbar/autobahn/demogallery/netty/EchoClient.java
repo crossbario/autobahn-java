@@ -44,8 +44,9 @@ public class EchoClient {
         mClient = new Client(mSession, transports, realm, authenticators);
     }
 
-    public void funStuff2() {
+    public void funStuff2 (details) {
         System.out.println("JOINED 2");
+        System.out.println(details);
     }
 
     public void funStuff() {
