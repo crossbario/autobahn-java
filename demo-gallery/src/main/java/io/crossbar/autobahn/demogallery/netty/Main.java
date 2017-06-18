@@ -21,7 +21,9 @@ public class Main {
 
         EchoClient client = new EchoClient(executor, url, realm);
 
+        System.out.println("EchoClient.start() ...");
         int returnCode = client.start();
+        System.out.println(".. ended with return code " + returnCode);
 
         System.exit(returnCode);
     }
