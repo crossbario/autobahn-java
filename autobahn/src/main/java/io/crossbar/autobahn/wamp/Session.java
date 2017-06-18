@@ -259,7 +259,8 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public void leave(String reason, String message) {
-
+        mTransport.send(new Goodbye(null, null));
+        mState = STATE_GOOBYE_SENT;
     }
 
     public OnJoinListener addOnJoinListener(OnJoinListener listener) {
