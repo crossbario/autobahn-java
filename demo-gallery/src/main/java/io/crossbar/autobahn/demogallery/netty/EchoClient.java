@@ -121,7 +121,7 @@ public class EchoClient {
         //exitInfoCompletableFuture.thenApply(exitInfo -> mClient.connect());
         try {
             ExitInfo exitInfo = exitInfoCompletableFuture.get();
-            return 0;
+            return exitInfo.code;
         } catch (Exception e) {
             System.out.println(e);
             return -1;
