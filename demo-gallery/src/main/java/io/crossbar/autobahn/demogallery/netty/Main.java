@@ -1,5 +1,6 @@
 package io.crossbar.autobahn.demogallery.netty;
 
+import java.lang.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 
@@ -22,6 +23,6 @@ public class Main {
 
         int returnCode = client.start();
 
-        System.Exit(returnCode);
+        System.exit(returnCode);
     }
 }
