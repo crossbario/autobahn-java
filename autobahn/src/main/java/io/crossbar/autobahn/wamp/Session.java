@@ -213,7 +213,7 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public CompletableFuture<Subscription> subscribe(String topic, IEventHandler handler, SubscribeOptions options) {
-        if (!isAttached()) {
+        if (!isConnected()) {
             throw new IllegalStateException("The transport must be connected first");
         }
         CompletableFuture<Subscription> future = new CompletableFuture<>();
@@ -226,7 +226,7 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public CompletableFuture<Publication> publish(String topic, List<Object> args, Map<String, Object> kwargs,
                                                   PublishOptions options) {
-        if (!isAttached()) {
+        if (!isConnected()) {
             throw new IllegalStateException("The transport must be connected first");
         }
         CompletableFuture<Publication> future = new CompletableFuture<>();
@@ -252,7 +252,7 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
                                               CallOptions options) {
-        if (!isAttached()) {
+        if (!isConnected()) {
             throw new IllegalStateException("The transport must be connected first");
         }
         CompletableFuture<CallResult> future = new CompletableFuture<>();
