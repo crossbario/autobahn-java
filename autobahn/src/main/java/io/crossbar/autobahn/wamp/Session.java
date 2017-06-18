@@ -22,6 +22,7 @@ import io.crossbar.autobahn.wamp.messages.Result;
 import io.crossbar.autobahn.wamp.messages.Subscribe;
 import io.crossbar.autobahn.wamp.messages.Subscribed;
 import io.crossbar.autobahn.wamp.messages.Welcome;
+import io.crossbar.autobahn.wamp.messages.Goodbye;
 import io.crossbar.autobahn.wamp.requests.CallRequest;
 import io.crossbar.autobahn.wamp.requests.PublishRequest;
 import io.crossbar.autobahn.wamp.requests.RegisterRequest;
@@ -36,6 +37,7 @@ import io.crossbar.autobahn.wamp.types.PublishOptions;
 import io.crossbar.autobahn.wamp.types.RegisterOptions;
 import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
+import io.crossbar.autobahn.wamp.types.CloseDetails;
 import io.crossbar.autobahn.wamp.types.SubscribeOptions;
 import io.crossbar.autobahn.wamp.types.Subscription;
 import io.crossbar.autobahn.wamp.utils.IDGenerator;
@@ -95,6 +97,7 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public void onConnect(ITransport transport) {
+        System.out.println("Session.onConnect");
         if (mTransport != null) {
             // Now allowed to throw here, find a better way.
 //            throw new Exception("already connected");
@@ -107,7 +110,6 @@ public class Session implements ISession, ITransportHandler {
     public void onMessage(IMessage message) {
         if (mSessionID == 0) {
             if (message instanceof Welcome) {
-                System.out.println(message);
                 mState = STATE_JOINED;
                 Welcome msg = (Welcome) message;
                 mSessionID = msg.session;
@@ -119,6 +121,11 @@ public class Session implements ISession, ITransportHandler {
                     System.out.println("READY NOW");
                     mState = STATE_READY;
                 });
+            } else {
+                // with (mSessionID == 0), we can only receive
+                // WELCOME, ABORT or CHALLENGE
+                System.out.println("FIXME (no session): unprocessed message:");
+                System.out.println(message);
             }
         } else {
             // Now that we have an active session handle all incoming messages here.
@@ -187,25 +194,43 @@ public class Session implements ISession, ITransportHandler {
                 } else {
                     // throw some exception.
                 }
+            } else if (message instanceof Goodbye) {
+
+                CloseDetails details = new CloseDetails();
+                List<CompletableFuture<?>> futures = new ArrayList<>();
+                mOnLeaveListeners.forEach(l -> futures.add(CompletableFuture.runAsync(() -> l.onLeave(details))));
+                CompletableFuture d = combineFutures(futures);
+                d.thenRun(() -> {
+                    System.out.println("CLOSED NOW");
+                    mState = STATE_DISCONNECTED;
+                    if (mTransport != null && mTransport.isOpen()) {
+                        mTransport.close();
+                    }
+                });
+
+            } else {
+                System.out.println("FIXME (session " + mSessionID + "): unprocessed message:");
+                System.out.println(message);
             }
         }
     }
 
     @Override
     public void onDisconnect(boolean wasClean) {
-        if (mTransport == null) {
-            // Now allowed to throw here, find a better way.
-//            throw new Exception("not connected");
-        }
-        mTransport = null;
+        System.out.println("Session.onDisconnect");
+
+        List<CompletableFuture<?>> futures = new ArrayList<>();
+        mOnDisconnectListeners.forEach(l -> futures.add(CompletableFuture.runAsync(() -> l.onDisconnect(wasClean))));
+        CompletableFuture d = combineFutures(futures);
+        d.thenRun(() -> {
+            System.out.println("DISCONNECTED NOW");
+            mTransport = null;
+            mState = STATE_DISCONNECTED;
+        });
     }
 
     @Override
     public boolean isConnected() {
-        return mTransport != null;
-    }
-
-    private boolean isAttached() {
         return mTransport != null;
     }
 
@@ -215,7 +240,7 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public CompletableFuture<Subscription> subscribe(String topic, IEventHandler handler, SubscribeOptions options) {
-        if (!isAttached()) {
+        if (!isConnected()) {
             throw new IllegalStateException("The transport must be connected first");
         }
         CompletableFuture<Subscription> future = new CompletableFuture<>();
@@ -228,7 +253,7 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public CompletableFuture<Publication> publish(String topic, List<Object> args, Map<String, Object> kwargs,
                                                   PublishOptions options) {
-        if (!isAttached()) {
+        if (!isConnected()) {
             throw new IllegalStateException("The transport must be connected first");
         }
         CompletableFuture<Publication> future = new CompletableFuture<>();
@@ -262,7 +287,7 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
                                               CallOptions options) {
-        if (!isAttached()) {
+        if (!isConnected()) {
             throw new IllegalStateException("The transport must be connected first");
         }
         CompletableFuture<CallResult> future = new CompletableFuture<>();
@@ -278,8 +303,7 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public CompletableFuture<SessionDetails> join(String realm, List<String> authMethods) {
-        // IAuthenticator
-
+        System.out.println("Session.join");
         mRealm = realm;
         mGoodbyeSent = false;
         Map<String, Map> roles = new HashMap<>();
@@ -294,7 +318,9 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public void leave(String reason, String message) {
-
+        System.out.println("Session.leave");
+        mTransport.send(new Goodbye(null, null));
+        mState = STATE_GOOBYE_SENT;
     }
 
     public OnJoinListener addOnJoinListener(OnJoinListener listener) {

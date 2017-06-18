@@ -52,7 +52,7 @@ public interface ISession {
     }
 
     interface OnDisconnectListener {
-        void onDisconnect();
+        void onDisconnect(boolean wasClean);
     }
 
     // FIXME: come up with an equivalent of txaio.IFailedFuture as first arg.

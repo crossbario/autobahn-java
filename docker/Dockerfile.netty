@@ -19,4 +19,8 @@ RUN    wget https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-b
 
 ENV PATH=$PATH:/opt/gradle/gradle-${GRADLE_VERSION}/bin
 
-CMD ["gradle", "assemble", "-PbuildPlatform=netty"]
+COPY ${PWD} /workspace
+
+RUN gradle installDist -PbuildPlatform=netty
+
+CMD ["gradle", "installDist", "-PbuildPlatform=netty"]
