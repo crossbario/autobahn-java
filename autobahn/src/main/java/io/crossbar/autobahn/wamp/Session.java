@@ -184,6 +184,8 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public CompletableFuture<SessionDetails> join(String realm, List<String> authMethods) {
+        // IAuthenticator
+
         mRealm = realm;
         mGoodbyeSent = false;
         Map<String, Map> roles = new HashMap<>();
