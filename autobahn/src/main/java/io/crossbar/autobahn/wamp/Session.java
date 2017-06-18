@@ -13,15 +13,18 @@ import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.messages.Call;
 import io.crossbar.autobahn.wamp.messages.Event;
 import io.crossbar.autobahn.wamp.messages.Hello;
+import io.crossbar.autobahn.wamp.messages.Invocation;
 import io.crossbar.autobahn.wamp.messages.Publish;
 import io.crossbar.autobahn.wamp.messages.Published;
 import io.crossbar.autobahn.wamp.messages.Register;
+import io.crossbar.autobahn.wamp.messages.Registered;
 import io.crossbar.autobahn.wamp.messages.Result;
 import io.crossbar.autobahn.wamp.messages.Subscribe;
 import io.crossbar.autobahn.wamp.messages.Subscribed;
 import io.crossbar.autobahn.wamp.messages.Welcome;
 import io.crossbar.autobahn.wamp.requests.CallRequest;
 import io.crossbar.autobahn.wamp.requests.PublishRequest;
+import io.crossbar.autobahn.wamp.requests.RegisterRequest;
 import io.crossbar.autobahn.wamp.requests.SubscribeRequest;
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
@@ -59,7 +62,9 @@ public class Session implements ISession, ITransportHandler {
     private final Map<Long, CallRequest> mCallRequests;
     private final Map<Long, SubscribeRequest> mSubscribeRequests;
     private final Map<Long, PublishRequest> mPublishRequests;
+    private final Map<Long, RegisterRequest> mRegisterRequest;
     private final Map<Long, List<Subscription>> mSubscriptions;
+    private final Map<Long, Registration> mRegistrations;
 
     private int mState = STATE_DISCONNECTED;
     private long mSessionID;
@@ -78,7 +83,9 @@ public class Session implements ISession, ITransportHandler {
         mCallRequests = new HashMap<>();
         mSubscribeRequests = new HashMap<>();
         mPublishRequests = new HashMap<>();
+        mRegisterRequest = new HashMap<>();
         mSubscriptions = new HashMap<>();
+        mRegistrations = new HashMap<>();
     }
 
     public Session(ComponentConfig config) {
@@ -160,6 +167,26 @@ public class Session implements ISession, ITransportHandler {
                 } else {
                     // throw some exception.
                 }
+            } else if (message instanceof Registered) {
+                Registered msg = (Registered) message;
+                RegisterRequest request = mRegisterRequest.getOrDefault(msg.request, null);
+                if (request != null) {
+                    mRegisterRequest.remove(msg.request);
+                    Registration registration = new Registration(
+                            msg.registration, request.procedure, request.endpoint);
+                    mRegistrations.put(msg.registration, registration);
+                    request.onReply.complete(registration);
+                } else {
+                    // throw some exception.
+                }
+            } else if (message instanceof Invocation) {
+                Invocation msg = (Invocation) message;
+                Registration registration = mRegistrations.getOrDefault(msg.registration, null);
+                if (registration != null) {
+                    CompletableFuture.runAsync(() -> registration.endpoint.run(msg.args, msg.kwargs, null));
+                } else {
+                    // throw some exception.
+                }
             }
         }
     }
@@ -218,9 +245,17 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint,
                                                     RegisterOptions options) {
+        if (!isAttached()) {
+            throw new IllegalStateException("The transport must be connected first");
+        }
         CompletableFuture<Registration> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
-        mTransport.send(new Register(requestID, procedure, null, null));
+        mRegisterRequest.put(requestID, new RegisterRequest(requestID, future, procedure, endpoint));
+        if (options != null) {
+            mTransport.send(new Register(requestID, procedure, options.match, options.invoke));
+        } else {
+            mTransport.send(new Register(requestID, procedure, null, null));
+        }
         return future;
     }
 

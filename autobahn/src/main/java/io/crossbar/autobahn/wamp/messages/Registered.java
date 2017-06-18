@@ -10,8 +10,8 @@ import io.crossbar.autobahn.wamp.utils.Cast;
 public class Registered implements IMessage {
 
     public static final int MESSAGE_TYPE = 65;
-    private final long request;
-    private final long registration;
+    public final long request;
+    public final long registration;
 
     public Registered(long request, long registration) {
         this.request = request;
