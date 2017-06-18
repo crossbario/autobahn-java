@@ -111,7 +111,6 @@ public class Session implements ISession, ITransportHandler {
             }
         } else {
             // Now that we have an active session handle all incoming messages here.
-            System.out.println(message);
             if (message instanceof Result) {
                 Result msg = (Result) message;
                 CallRequest request = mCallRequests.getOrDefault(msg.request, null);
@@ -126,11 +125,11 @@ public class Session implements ISession, ITransportHandler {
                 SubscribeRequest request = mSubscribeRequests.getOrDefault(msg.request, null);
                 if (request != null) {
                     mSubscribeRequests.remove(msg.request);
-                    if (!mSubscriptions.containsKey(msg.request)) {
-                        mSubscriptions.put(msg.request, new ArrayList<>());
+                    if (!mSubscriptions.containsKey(msg.subscription)) {
+                        mSubscriptions.put(msg.subscription, new ArrayList<>());
                     }
                     Subscription subscription = new Subscription(msg.subscription, request.topic, request.handler);
-                    mSubscriptions.get(msg.request).add(subscription);
+                    mSubscriptions.get(msg.subscription).add(subscription);
                     request.onReply.complete(subscription);
                 } else {
                     // throw some exception.
@@ -139,7 +138,6 @@ public class Session implements ISession, ITransportHandler {
                 Event msg = (Event) message;
                 List<Subscription> subscriptions = mSubscriptions.getOrDefault(msg.subscription, null);
                 if (subscriptions != null) {
-                    // #FIXME: make async.
                     subscriptions.forEach(s -> s.handler.run(msg.args, msg.kwargs));
                     List<CompletableFuture<?>> futures = new ArrayList<>();
                     subscriptions.forEach(
