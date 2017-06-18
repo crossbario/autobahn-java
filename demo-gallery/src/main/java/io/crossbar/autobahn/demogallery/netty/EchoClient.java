@@ -9,6 +9,7 @@ import io.crossbar.autobahn.wamp.Client;
 import io.crossbar.autobahn.wamp.NettyTransport;
 import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
+import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
 import io.crossbar.autobahn.wamp.types.InvocationDetails;
@@ -27,8 +28,10 @@ public class EchoClient {
     }
 
     public void funStuff() {
+        System.out.println("JOINED");
+        CallOptions options = new CallOptions(5);
         CompletableFuture<CallResult> resultCompletableFuture = mSession.call(
-                "com.byteshaft.grab_screenshot", null, null, null);
+                "com.byteshaft.grab_screenshot", null, null, options);
         resultCompletableFuture.thenAccept(callResult -> {
             System.out.println(callResult.results.get(0));
             System.out.println(callResult.kwresults);

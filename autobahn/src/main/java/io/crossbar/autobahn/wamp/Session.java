@@ -93,8 +93,13 @@ public class Session implements ISession, ITransportHandler {
                 Welcome msg = (Welcome) message;
                 mSessionID = msg.session;
                 SessionDetails details = new SessionDetails(msg.realm, msg.session);
-                mOnJoinListeners.forEach(onJoinListener -> onJoinListener.onJoin(details));
-                mState = STATE_READY;
+                List<CompletableFuture<?>> futures = new ArrayList<>();
+                mOnJoinListeners.forEach(l -> futures.add(CompletableFuture.runAsync(() -> l.onJoin(details))));
+                CompletableFuture d = combineFutures(futures);
+                d.thenRun(() -> {
+                    System.out.println("READY NOW");
+                    mState = STATE_READY;
+                });
             }
         } else {
             // Now that we have an active session handle all incoming messages here.
@@ -106,7 +111,7 @@ public class Session implements ISession, ITransportHandler {
                     mCallRequests.remove(msg.request);
                     request.onReply.complete(new CallResult(msg.args, msg.kwargs));
                 } else {
-                    // thow some exception.
+                    // throw some exception.
                 }
             }
         }
@@ -124,6 +129,14 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public boolean isConnected() {
         return mTransport != null;
+    }
+
+    private boolean isAttached() {
+        return mTransport != null;
+    }
+
+    private CompletableFuture combineFutures(List<CompletableFuture<?>> futures) {
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
     }
 
     @Override
@@ -155,10 +168,17 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
                                               CallOptions options) {
+        if (!isAttached()) {
+            throw new IllegalStateException("The transport must be connected first");
+        }
         CompletableFuture<CallResult> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
         mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options));
-        mTransport.send(new Call(requestID, procedure, args, kwargs));
+        if (options == null) {
+            mTransport.send(new Call(requestID, procedure, args, kwargs, 0));
+        } else {
+            mTransport.send(new Call(requestID, procedure, args, kwargs, options.timeout));
+        }
         return future;
     }
 

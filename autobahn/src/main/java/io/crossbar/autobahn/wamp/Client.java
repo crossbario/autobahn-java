@@ -12,7 +12,8 @@ public class Client {
     private final String mRealm;
     private final List<?> mAuthenticators;
 
-    public Client(Session session, List<ITransport> transports, String realm, List<?> authenticators) {
+    public Client(Session session, List<ITransport> transports, String realm,
+                  List<?> authenticators) {
         mSession = session;
         mTransports = transports;
         mRealm = realm;
