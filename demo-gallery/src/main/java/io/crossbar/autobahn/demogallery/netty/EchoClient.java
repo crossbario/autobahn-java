@@ -121,4 +121,5 @@ public class EchoClient {
         //exitInfoCompletableFuture.thenApply(exitInfo -> mClient.connect());
         ExitInfo exitInfo = exitInfoCompletableFuture.get();
         return exitInfo.code;
+    }
 }
