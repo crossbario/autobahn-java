@@ -9,19 +9,17 @@ import java.util.concurrent.ExecutorService;
 import io.crossbar.autobahn.wamp.Client;
 import io.crossbar.autobahn.wamp.NettyTransport;
 import io.crossbar.autobahn.wamp.Session;
-import io.crossbar.autobahn.wamp.interfaces.ITransport;
-import io.crossbar.autobahn.wamp.types.ExitInfo;
-import io.crossbar.autobahn.wamp.types.InvocationDetails;
-import io.crossbar.autobahn.wamp.types.InvocationResult;
-import io.crossbar.autobahn.wamp.types.Subscription;
+import io.crossbar.autobahn.wamp.auth.AnonymousAuth;
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
+import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
 import io.crossbar.autobahn.wamp.types.InvocationDetails;
 import io.crossbar.autobahn.wamp.types.InvocationResult;
+import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
-import io.crossbar.autobahn.wamp.auth.AnonymousAuth;
+import io.crossbar.autobahn.wamp.types.Subscription;
 
 
 public class EchoClient {
@@ -82,6 +80,10 @@ public class EchoClient {
         });
 
         // FIXME: add the error handling
+
+        CompletableFuture<Publication> publicationCompletableFuture = mSession.publish(
+                "com.example.pub1", null, null, null);
+        publicationCompletableFuture.thenAccept(publication -> System.out.println("Published"));
 
 //        mSession.subscribe("com.byteshaft.topic1", this::message, null);
 //        mSession.register("com.byteshaft.exp", this::exp, null);
