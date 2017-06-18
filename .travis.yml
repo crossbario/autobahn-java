@@ -1,0 +1,9 @@
+language: python
+python:
+  - 3.5
+
+services:
+  - docker
+
+install:
+  - docker build -t crossbario/autobahn-java:netty -f ./docker/Dockerfile.netty .

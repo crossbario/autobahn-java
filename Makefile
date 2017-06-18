@@ -13,8 +13,6 @@ demo_wamp_netty:
 		crossbario/autobahn-java:netty \
 			/bin/bash -c "gradle installDist -PbuildPlatform=netty && demo-gallery/build/install/demo-gallery/bin/demo-gallery ws://crossbar:8080/ws"
 
-#                ws://$(shell docker inspect --format '{{ .NetworkSettings.IPAddress }}' crossbar):8080/ws"
-
 run_crossbar:
 	docker run \
 		--rm -it -p 8080:8080 --name crossbar \
