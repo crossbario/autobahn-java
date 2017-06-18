@@ -7,7 +7,7 @@ public class ExitInfo {
         code = 0;
     }
 
-    public ExitInfo(int code) {
-        code = code;
+    public ExitInfo(int _code) {
+        code = _code;
     }
 }
