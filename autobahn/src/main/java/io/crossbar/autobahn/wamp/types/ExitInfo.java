@@ -11,7 +11,7 @@ public class ExitInfo {
         if (wasClean) {
             code = 0;
         } else {
-            code = -1;
+            code = 1;
         }
     }
 

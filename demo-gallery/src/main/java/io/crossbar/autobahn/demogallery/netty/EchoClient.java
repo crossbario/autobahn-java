@@ -124,7 +124,7 @@ public class EchoClient {
             return exitInfo.code;
         } catch (Exception e) {
             System.out.println(e);
-            return -1;
+            return 1;
         }
     }
 }
