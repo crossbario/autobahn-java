@@ -1,4 +1,4 @@
-upackage io.crossbar.autobahn.wamp.types;
+package io.crossbar.autobahn.wamp.types;
 
 import java.util.Map;
 
