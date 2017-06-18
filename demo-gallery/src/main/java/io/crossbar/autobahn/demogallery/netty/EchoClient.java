@@ -70,7 +70,7 @@ public class EchoClient {
 
         result.thenAccept(callResult -> {
             System.out.println("got result: " + callResult.results.get(0));
-            mSession.leave();
+            mSession.leave("wamp.leave.normal", "sessio leaving realm normally.");
         });
     }
 
@@ -116,8 +116,9 @@ public class EchoClient {
         return null;
     }
 
-    public void start() {
+    public int start() {
         CompletableFuture<ExitInfo> exitInfoCompletableFuture = mClient.connect();
-        exitInfoCompletableFuture.thenApply(exitInfo -> mClient.connect());
-    }
+        //exitInfoCompletableFuture.thenApply(exitInfo -> mClient.connect());
+        ExitInfo exitInfo = exitInfoCompletableFuture.get();
+        return exitInfo.code;
 }
