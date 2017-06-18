@@ -4,6 +4,7 @@ import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
 import io.crossbar.autobahn.wamp.types.Challenge;
+import io.crossbar.autobahn.wamp.types.ChallengeResponse;
 import io.crossbar.autobahn.wamp.Session;
 
 
