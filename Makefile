@@ -19,3 +19,10 @@ run_crossbar:
 	docker run \
 		--rm -it -p 8080:8080 --name crossbar \
 		crossbario/crossbar
+
+run_test_component:
+	docker run \
+		-it --rm --link crossbar \
+		-v ${PWD}/test_component.py:/test_component.py  \
+		crossbario/autobahn-python \
+		python -u /test_component.py
