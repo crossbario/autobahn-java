@@ -176,7 +176,7 @@ public class Session implements ISession, ITransportHandler {
                     System.out.println("CLOSED NOW");
                     mState = STATE_DISCONNECTED;
                     if (mTransport) {
-                        mTransport.disconnect();
+                        mTransport.close();
                     }
                 });
 
