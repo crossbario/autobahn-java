@@ -14,12 +14,14 @@ import io.crossbar.autobahn.wamp.messages.Call;
 import io.crossbar.autobahn.wamp.messages.Event;
 import io.crossbar.autobahn.wamp.messages.Hello;
 import io.crossbar.autobahn.wamp.messages.Publish;
+import io.crossbar.autobahn.wamp.messages.Published;
 import io.crossbar.autobahn.wamp.messages.Register;
 import io.crossbar.autobahn.wamp.messages.Result;
 import io.crossbar.autobahn.wamp.messages.Subscribe;
 import io.crossbar.autobahn.wamp.messages.Subscribed;
 import io.crossbar.autobahn.wamp.messages.Welcome;
 import io.crossbar.autobahn.wamp.requests.CallRequest;
+import io.crossbar.autobahn.wamp.requests.PublishRequest;
 import io.crossbar.autobahn.wamp.requests.SubscribeRequest;
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
@@ -56,6 +58,7 @@ public class Session implements ISession, ITransportHandler {
     private final IDGenerator mIDGenerator;
     private final Map<Long, CallRequest> mCallRequests;
     private final Map<Long, SubscribeRequest> mSubscribeRequests;
+    private final Map<Long, PublishRequest> mPublishRequests;
     private final Map<Long, List<Subscription>> mSubscriptions;
 
     private int mState = STATE_DISCONNECTED;
@@ -74,6 +77,7 @@ public class Session implements ISession, ITransportHandler {
         mIDGenerator = new IDGenerator();
         mCallRequests = new HashMap<>();
         mSubscribeRequests = new HashMap<>();
+        mPublishRequests = new HashMap<>();
         mSubscriptions = new HashMap<>();
     }
 
@@ -146,6 +150,16 @@ public class Session implements ISession, ITransportHandler {
                 } else {
                     // throw some exception.
                 }
+            } else if (message instanceof Published) {
+                Published msg = (Published) message;
+                PublishRequest request = mPublishRequests.getOrDefault(msg.request, null);
+                if (request != null) {
+                    mPublishRequests.remove(msg.request);
+                    Publication publication = new Publication(msg.publication);
+                    request.onReply.complete(publication);
+                } else {
+                    // throw some exception.
+                }
             }
         }
     }
@@ -187,9 +201,17 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public CompletableFuture<Publication> publish(String topic, List<Object> args, Map<String, Object> kwargs,
                                                   PublishOptions options) {
+        if (!isAttached()) {
+            throw new IllegalStateException("The transport must be connected first");
+        }
         CompletableFuture<Publication> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
-        mTransport.send(new Publish(requestID, topic, args, kwargs, false, true));
+        mPublishRequests.put(requestID, new PublishRequest(requestID, future));
+        if (options != null) {
+            mTransport.send(new Publish(requestID, topic, args, kwargs, options.acknowledge, options.excludeMe));
+        } else {
+            mTransport.send(new Publish(requestID, topic, args, kwargs, true, true));
+        }
         return future;
     }
 
