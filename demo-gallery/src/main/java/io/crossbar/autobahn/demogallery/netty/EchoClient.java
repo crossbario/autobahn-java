@@ -32,7 +32,7 @@ public class EchoClient {
         mSession = new Session();
 
         // when the session joins a realm, run our code
-        mSession.addOnJoinListener(details -> funStuff());
+        //mSession.addOnJoinListener(details -> funStuff());
 
         // .. and we can have multiple listeners!
         mSession.addOnJoinListener(details -> funStuff2(details));
@@ -70,6 +70,7 @@ public class EchoClient {
 
         result.thenAccept(callResult -> {
             System.out.println("got result: " + callResult.results.get(0));
+            mSession.leave();
         });
     }
 
