@@ -43,6 +43,10 @@ public interface ISession {
         void onJoin(SessionDetails details);
     }
 
+    interface OnReadyListener {
+        void onReady();
+    }
+
     interface OnLeaveListener {
         void onLeave(CloseDetails details);
     }
