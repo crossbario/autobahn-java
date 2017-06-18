@@ -20,7 +20,6 @@ import io.crossbar.autobahn.wamp.types.SessionDetails;
 import io.crossbar.autobahn.wamp.auth.AnonymousAuth;
 
 
-ExecutorService executor
 public class EchoClient {
     private Client mClient;
     private Session mSession;
