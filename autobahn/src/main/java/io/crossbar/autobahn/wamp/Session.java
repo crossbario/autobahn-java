@@ -56,6 +56,7 @@ public class Session implements ISession, ITransportHandler {
     private ITransport mTransport;
 
     private final ArrayList<OnJoinListener> mOnJoinListeners;
+    private final ArrayList<OnReadyListener> mOnReadyListeners;
     private final ArrayList<OnLeaveListener> mOnLeaveListeners;
     private final ArrayList<OnConnectListener> mOnConnectListeners;
     private final ArrayList<OnDisconnectListener> mOnDisconnectListeners;
@@ -77,6 +78,7 @@ public class Session implements ISession, ITransportHandler {
 
     public Session() {
         mOnJoinListeners = new ArrayList<>();
+        mOnReadyListeners = new ArrayList<>();
         mOnLeaveListeners = new ArrayList<>();
         mOnConnectListeners = new ArrayList<>();
         mOnDisconnectListeners = new ArrayList<>();
@@ -118,8 +120,8 @@ public class Session implements ISession, ITransportHandler {
                 mOnJoinListeners.forEach(l -> futures.add(CompletableFuture.runAsync(() -> l.onJoin(details))));
                 CompletableFuture d = combineFutures(futures);
                 d.thenRun(() -> {
-                    System.out.println("READY NOW");
                     mState = STATE_READY;
+                    mOnReadyListeners.forEach(OnReadyListener::onReady);
                 });
             } else {
                 // with (mSessionID == 0), we can only receive
@@ -331,6 +333,17 @@ public class Session implements ISession, ITransportHandler {
     public void removeOnJoinListener(OnJoinListener listener) {
         if (mOnJoinListeners.contains(listener)) {
             mOnJoinListeners.remove(listener);
+        }
+    }
+
+    public OnReadyListener adOnReadyListener(OnReadyListener listener) {
+        mOnReadyListeners.add(listener);
+        return listener;
+    }
+
+    public void removeOnReadyListener(OnReadyListener listener) {
+        if (mOnReadyListeners.contains(listener)) {
+            mOnReadyListeners.remove(listener);
         }
     }
 
