@@ -1,6 +1,5 @@
 package io.crossbar.autobahn.demogallery.netty;
 
-import Java.lang.System;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 
