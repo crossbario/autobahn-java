@@ -9,10 +9,9 @@ services:
 install:
   - docker build -t crossbario/autobahn-java:netty -f ./docker/Dockerfile.netty .
 
-
-script:
+before_script:
   - docker run -d -p 8080:8080 --name crossbar crossbario/crossbar
-
   - docker run -d --link crossbar -v ${PWD}/test_component.py:/test_component.py crossbario/autobahn-python python -u /test_component.py
 
+script:
   - docker run --rm -it --link crossbar -v ${PWD}:/workspace crossbario/autobahn-java:netty /bin/bash -c "demo-gallery/build/install/demo-gallery/bin/demo-gallery ws://crossbar:8080/ws"
