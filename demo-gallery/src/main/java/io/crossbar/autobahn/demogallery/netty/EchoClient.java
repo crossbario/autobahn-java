@@ -15,6 +15,7 @@ import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
 import io.crossbar.autobahn.wamp.types.InvocationDetails;
 import io.crossbar.autobahn.wamp.types.InvocationResult;
+import io.crossbar.autobahn.wamp.types.SessionDetails;
 import io.crossbar.autobahn.wamp.auth.AnonymousAuth;
 
 
@@ -44,9 +45,8 @@ public class EchoClient {
         mClient = new Client(mSession, transports, realm, authenticators);
     }
 
-    public void funStuff2 (details) {
-        System.out.println("JOINED 2");
-        System.out.println(details);
+    public void funStuff2 (SessionDetails details) {
+        System.out.println("JOINED 2: sessionID=" + details.sessionID + " on realm=" + details.realm);
     }
 
     public void funStuff() {
