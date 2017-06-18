@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
+import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
 
 public class Client {
@@ -13,7 +14,7 @@ public class Client {
     private final List<?> mAuthenticators;
 
     public Client(Session session, List<ITransport> transports, String realm,
-                  List<?> authenticators) {
+                  List<IAuthenticator> authenticators) {
         mSession = session;
         mTransports = transports;
         mRealm = realm;

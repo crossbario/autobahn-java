@@ -14,6 +14,8 @@ import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
 import io.crossbar.autobahn.wamp.types.InvocationDetails;
 import io.crossbar.autobahn.wamp.types.InvocationResult;
+import io.crossbar.autobahn.wamp.auth.AnonymousAuth;
+
 
 public class EchoClient {
     private Client mClient;
@@ -31,11 +33,14 @@ public class EchoClient {
 
         // now create a transport list for the transport to try
         // and which will carry our session
-        List<ITransport> transportList = new ArrayList<>();
-        transportList.add(new NettyTransport(uri));
+        List<ITransport> transports = new ArrayList<>();
+        transports.add(new NettyTransport(uri));
+
+        List<IAuthenticator> authenticators = new ArrayList<>();
+        authenticators.add(new AnonymousAuth());
 
         // finally, provide everything to a Client instance
-        mClient = new Client(mSession, transportList, realm, null);
+        mClient = new Client(mSession, transports, realm, authenticators);
     }
 
     public void funStuff2() {
