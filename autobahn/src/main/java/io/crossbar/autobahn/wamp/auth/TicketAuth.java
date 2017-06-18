@@ -1,4 +1,11 @@
+package io.crossbar.autobahn.wamp.auth;
+
+import java.util.concurrent.CompletableFuture;
+
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
+import io.crossbar.autobahn.wamp.types.Challenge;
+import io.crossbar.autobahn.wamp.Session;
+
 
 public class TicketAuth implements IAuthenticator {
 
@@ -11,7 +18,7 @@ public class TicketAuth implements IAuthenticator {
         this.ticket = ticket;
     }
 
-    CompletableFuture<ChallengeResponse> onChallenge(Session session, Challenge challenge) {
+    public CompletableFuture<ChallengeResponse> onChallenge(Session session, Challenge challenge) {
         return CompletableFuture.completedFuture(this.ticket);
     }
 }
