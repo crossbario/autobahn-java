@@ -1,5 +1,9 @@
 package io.crossbar.autobahn.demogallery.netty;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+
+
 public class Main {
     public static void main(String[] args) {
         String url;
@@ -8,6 +12,12 @@ public class Main {
         } else {
             url = args[0];
         }
-        new EchoClient(url, "realm1").start();
+        String realm = "realm1";
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        EchoClient client = new EchoClient(executor, url, realm);
+
+        client.start();
     }
 }

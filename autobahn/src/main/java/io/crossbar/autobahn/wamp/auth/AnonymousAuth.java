@@ -1,5 +1,6 @@
 package io.crossbar.autobahn.wamp.auth;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
@@ -17,5 +18,7 @@ public class AnonymousAuth implements IAuthenticator {
 
     public CompletableFuture<ChallengeResponse> onChallenge(Session session, Challenge challenge) {
         // anonymous authentication in WAMP will NOT invoke this callback!
+        // FIXME
+        return CompletableFuture.completedFuture(new ChallengeResponse(null, null));
     }
 }
