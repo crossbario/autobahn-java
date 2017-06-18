@@ -53,6 +53,9 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         System.out.println("WebSocket Client disconnected!");
+        // FIXME: wasClean flag
+        mTransportHandler.onDisconnect(true);
+        //mTransportHandler.onDisconnect(false);
     }
 
     @Override

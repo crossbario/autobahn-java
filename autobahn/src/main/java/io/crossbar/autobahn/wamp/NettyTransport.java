@@ -134,6 +134,7 @@ public class NettyTransport implements ITransport {
 
     @Override
     public void close() {
+        System.out.println("ITransport.close()");
         try {
             mChannel.close().sync();
         } catch (InterruptedException e) {
@@ -143,6 +144,7 @@ public class NettyTransport implements ITransport {
 
     @Override
     public void abort() {
+        System.out.println("ITransport.abort()");
         close();
     }
 
