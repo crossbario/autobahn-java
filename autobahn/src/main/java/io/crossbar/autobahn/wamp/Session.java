@@ -20,6 +20,7 @@ import io.crossbar.autobahn.wamp.messages.Result;
 import io.crossbar.autobahn.wamp.messages.Subscribe;
 import io.crossbar.autobahn.wamp.messages.Subscribed;
 import io.crossbar.autobahn.wamp.messages.Welcome;
+import io.crossbar.autobahn.wamp.messages.Goodbye;
 import io.crossbar.autobahn.wamp.requests.CallRequest;
 import io.crossbar.autobahn.wamp.requests.PublishRequest;
 import io.crossbar.autobahn.wamp.requests.SubscribeRequest;
