@@ -22,7 +22,11 @@ public class Main {
         EchoClient client = new EchoClient(executor, url, realm);
 
         System.out.println("EchoClient.start() ...");
+        System.out.println("----------------------");
+
         int returnCode = client.start();
+
+        System.out.println("----------------------");
         System.out.println(".. ended with return code " + returnCode);
 
         System.exit(returnCode);

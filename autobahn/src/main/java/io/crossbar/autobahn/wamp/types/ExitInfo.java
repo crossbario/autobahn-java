@@ -7,6 +7,14 @@ public class ExitInfo {
         code = 0;
     }
 
+    public ExitInfo(boolean wasClean) {
+        if (wasClean) {
+            code = 0;
+        } else {
+            code = -1;
+        }
+    }
+
     public ExitInfo(int _code) {
         code = _code;
     }

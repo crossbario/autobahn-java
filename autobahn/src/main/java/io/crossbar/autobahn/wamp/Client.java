@@ -23,9 +23,8 @@ public class Client {
 
     public CompletableFuture<ExitInfo> connect() {
         CompletableFuture<ExitInfo> exitFuture = new CompletableFuture<>();
-        ExitInfo info = new ExitInfo();
         mSession.addOnConnectListener(() -> mSession.join(mRealm, null));
-        mSession.addOnDisconnectListener(() -> exitFuture.complete(info));
+        mSession.addOnDisconnectListener((boolean wasClean) -> exitFuture.complete(new ExitInfo(wasClean)));
         mTransports.get(0).connect(mSession);
         return exitFuture;
     }
