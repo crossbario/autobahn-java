@@ -40,4 +40,5 @@ local.properties
 *.iml
 *.ipr
 *.iws
-.idea/
+.idea/.gradle
+.gradle*
