@@ -61,6 +61,18 @@ public class EchoClient {
 
     public void funStuff2 (SessionDetails details) {
         System.out.println("JOINED 2: sessionID=" + details.sessionID + " on realm=" + details.realm);
+
+        // here we do an outoing remote call (WAMP RPC):
+        List<Object> args = new List<Object>();
+        args.add(2);
+        args.add(3);
+
+        CompletableFuture<CallResult> result =
+            mSession.call("com.example.add2", args, null, null);
+
+        result.thenAccept(callResult -> {
+            System.out.println("got result: " + callResult.results.get(0));
+        });
     }
 
     public void funStuff() {
