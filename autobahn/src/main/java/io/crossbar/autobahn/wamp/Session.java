@@ -101,7 +101,6 @@ public class Session implements ISession, ITransportHandler {
     public void onMessage(IMessage message) {
         if (mSessionID == 0) {
             if (message instanceof Welcome) {
-                System.out.println(message);
                 mState = STATE_JOINED;
                 Welcome msg = (Welcome) message;
                 mSessionID = msg.session;
@@ -113,6 +112,11 @@ public class Session implements ISession, ITransportHandler {
                     System.out.println("READY NOW");
                     mState = STATE_READY;
                 });
+            } else {
+                // with (mSessionID == 0), we can only receive
+                // WELCOME, ABORT or CHALLENGE
+                System.out.println("FIXME (no session): unprocessed message:");
+                System.out.println(message);
             }
         } else {
             // Now that we have an active session handle all incoming messages here.
@@ -161,6 +165,9 @@ public class Session implements ISession, ITransportHandler {
                 } else {
                     // throw some exception.
                 }
+            } else {
+                System.out.println("FIXME (session " + mSessionID + "): unprocessed message:");
+                System.out.println(message);
             }
         }
     }
