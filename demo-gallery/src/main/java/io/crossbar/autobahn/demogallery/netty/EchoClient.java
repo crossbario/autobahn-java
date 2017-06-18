@@ -20,15 +20,30 @@ public class EchoClient {
     private Session mSession;
 
     public EchoClient(String uri, String realm) {
+        // first, we create a session object (that may or may not be reused)
         mSession = new Session();
+
+        // when the session joins a realm, run our code
+        mSession.addOnJoinListener(details -> funStuff());
+
+        // .. and we can have multiple listeners!
+        mSession.addOnJoinListener(details -> funStuff2());
+
+        // now create a transport list for the transport to try
+        // and which will carry our session
         List<ITransport> transportList = new ArrayList<>();
         transportList.add(new NettyTransport(uri));
-        mSession.addOnJoinListener(details -> funStuff());
+
+        // finally, provide everything to a Client instance
         mClient = new Client(mSession, transportList, realm, null);
     }
 
+    public void funStuff2() {
+        System.out.println("JOINED 2");
+    }
+
     public void funStuff() {
-        System.out.println("JOINED");
+        System.out.println("JOINED 1");
         CallOptions options = new CallOptions(5);
         CompletableFuture<CallResult> resultCompletableFuture = mSession.call(
                 "com.byteshaft.grab_screenshot", null, null, options);
