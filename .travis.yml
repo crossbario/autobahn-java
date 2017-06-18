@@ -11,8 +11,8 @@ install:
 
 
 script:
-  - docker run --rm -p 8080:8080 --name crossbar crossbario/crossbar
+  - docker run -d -p 8080:8080 --name crossbar crossbario/crossbar
 
-  - docker run --rm --link crossbar -v ${PWD}/test_component.py:/test_component.py crossbario/autobahn-python python -u /test_component.py
+  - docker run -d --link crossbar -v ${PWD}/test_component.py:/test_component.py crossbario/autobahn-python python -u /test_component.py
 
   - docker run --rm -it --link crossbar -v ${PWD}:/workspace crossbario/autobahn-java:netty /bin/bash -c "demo-gallery/build/install/demo-gallery/bin/demo-gallery ws://crossbar:8080/ws"
