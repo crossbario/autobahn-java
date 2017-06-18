@@ -8,6 +8,7 @@ import java.util.Objects;
 
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
+import io.crossbar.autobahn.wamp.types.SubscribeOptions;
 import io.crossbar.autobahn.wamp.utils.Cast;
 
 public class Subscribe implements IMessage {
@@ -23,19 +24,22 @@ public class Subscribe implements IMessage {
     private final String MATCH_PREFIX = "prefix";
     private final String MATCH_WILDCARD = "wildcard";
 
-    public Subscribe(long request, String topic, String match, boolean getRetained) {
+    public Subscribe(long request, SubscribeOptions options, String topic) {
         this.request = request;
         this.topic = topic;
-        if (match != null) {
-            if (!Objects.equals(match, MATCH_EXACT) && !Objects.equals(match, MATCH_PREFIX) &&
-                    !Objects.equals(match, MATCH_WILDCARD)) {
-                throw new IllegalArgumentException("match must be one of exact, prefix or wildcard.");
+        if (options != null) {
+            if (options.match != null) {
+                if (!Objects.equals(options.match, MATCH_EXACT) && !Objects.equals(options.match, MATCH_PREFIX) &&
+                        !Objects.equals(options.match, MATCH_WILDCARD)) {
+                    throw new IllegalArgumentException("match must be one of exact, prefix or wildcard.");
+                }
             }
-            this.match = match;
+            this.match = options.match;
+            this.getRetained = options.getRetained;
         } else {
             this.match = MATCH_EXACT;
+            this.getRetained = false;
         }
-        this.getRetained = getRetained;
     }
 
     public static Subscribe parse(List<Object> wmsg) {
@@ -52,7 +56,8 @@ public class Subscribe implements IMessage {
         String match = (String) options.get("match");
         boolean getRetained = (boolean) options.get("get_retained");
         String topic = (String) wmsg.get(3);
-        return new Subscribe(request, topic, match,getRetained);
+        SubscribeOptions opt = new SubscribeOptions(match, true, getRetained);
+        return new Subscribe(request, opt, topic);
     }
 
     @Override

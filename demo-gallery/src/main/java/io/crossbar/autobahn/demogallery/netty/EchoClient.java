@@ -10,6 +10,10 @@ import io.crossbar.autobahn.wamp.Client;
 import io.crossbar.autobahn.wamp.NettyTransport;
 import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
+import io.crossbar.autobahn.wamp.types.ExitInfo;
+import io.crossbar.autobahn.wamp.types.InvocationDetails;
+import io.crossbar.autobahn.wamp.types.InvocationResult;
+import io.crossbar.autobahn.wamp.types.Subscription;
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
@@ -61,6 +65,12 @@ public class EchoClient {
 
     public void funStuff() {
         System.out.println("JOINED 1");
+        // Here we do a subscribe to a topic.
+        CompletableFuture<Subscription> subscriptionCompletableFuture = mSession.subscribe(
+                "com.byteshaft.topic1", this::message, null);
+        subscriptionCompletableFuture.thenAccept(subscription -> {
+            System.out.println(subscription.topic);
+        });
 
         // here we do an outoing remote call (WAMP RPC):
         CallOptions options = new CallOptions(5);
