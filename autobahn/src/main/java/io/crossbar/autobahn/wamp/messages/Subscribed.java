@@ -10,8 +10,8 @@ import io.crossbar.autobahn.wamp.utils.Cast;
 public class Subscribed implements IMessage {
 
     public static final int MESSAGE_TYPE = 33;
-    private final long request;
-    private final long subscription;
+    public final long request;
+    public final long subscription;
 
     public Subscribed(long request, long subscription) {
         this.request = request;

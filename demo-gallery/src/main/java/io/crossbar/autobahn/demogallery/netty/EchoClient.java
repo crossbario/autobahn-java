@@ -9,11 +9,10 @@ import io.crossbar.autobahn.wamp.Client;
 import io.crossbar.autobahn.wamp.NettyTransport;
 import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
-import io.crossbar.autobahn.wamp.types.CallOptions;
-import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
 import io.crossbar.autobahn.wamp.types.InvocationDetails;
 import io.crossbar.autobahn.wamp.types.InvocationResult;
+import io.crossbar.autobahn.wamp.types.Subscription;
 
 public class EchoClient {
     private Client mClient;
@@ -29,14 +28,18 @@ public class EchoClient {
 
     public void funStuff() {
         System.out.println("JOINED");
-        CallOptions options = new CallOptions(5);
-        CompletableFuture<CallResult> resultCompletableFuture = mSession.call(
-                "com.byteshaft.grab_screenshot", null, null, options);
-        resultCompletableFuture.thenAccept(callResult -> {
-            System.out.println(callResult.results.get(0));
-            System.out.println(callResult.kwresults);
+//        CallOptions options = new CallOptions(5);
+//        CompletableFuture<CallResult> resultCompletableFuture = mSession.call(
+//                "com.byteshaft.grab_screenshot", null, null, options);
+//        resultCompletableFuture.thenAccept(callResult -> {
+//            System.out.println(callResult.results.get(0));
+//            System.out.println(callResult.kwresults);
+//        });
+        CompletableFuture<Subscription> subscriptionCompletableFuture = mSession.subscribe(
+                "com.byteshaft.topic1", this::message, null);
+        subscriptionCompletableFuture.thenAccept(subscription -> {
+            System.out.println(subscription.topic);
         });
-//        mSession.subscribe("com.byteshaft.topic1", this::message, null);
 //        mSession.register("com.byteshaft.exp", this::exp, null);
     }
 

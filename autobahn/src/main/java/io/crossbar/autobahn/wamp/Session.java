@@ -11,13 +11,16 @@ import io.crossbar.autobahn.wamp.interfaces.ISession;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.messages.Call;
+import io.crossbar.autobahn.wamp.messages.Event;
 import io.crossbar.autobahn.wamp.messages.Hello;
 import io.crossbar.autobahn.wamp.messages.Publish;
 import io.crossbar.autobahn.wamp.messages.Register;
 import io.crossbar.autobahn.wamp.messages.Result;
 import io.crossbar.autobahn.wamp.messages.Subscribe;
+import io.crossbar.autobahn.wamp.messages.Subscribed;
 import io.crossbar.autobahn.wamp.messages.Welcome;
 import io.crossbar.autobahn.wamp.requests.CallRequest;
+import io.crossbar.autobahn.wamp.requests.SubscribeRequest;
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.ComponentConfig;
@@ -52,6 +55,8 @@ public class Session implements ISession, ITransportHandler {
     private final ArrayList<OnUserErrorListener> mOnUserErrorListeners;
     private final IDGenerator mIDGenerator;
     private final Map<Long, CallRequest> mCallRequests;
+    private final Map<Long, SubscribeRequest> mSubscribeRequests;
+    private final Map<Long, List<Subscription>> mSubscriptions;
 
     private int mState = STATE_DISCONNECTED;
     private long mSessionID;
@@ -68,6 +73,8 @@ public class Session implements ISession, ITransportHandler {
         mOnUserErrorListeners = new ArrayList<>();
         mIDGenerator = new IDGenerator();
         mCallRequests = new HashMap<>();
+        mSubscribeRequests = new HashMap<>();
+        mSubscriptions = new HashMap<>();
     }
 
     public Session(ComponentConfig config) {
@@ -89,6 +96,7 @@ public class Session implements ISession, ITransportHandler {
     public void onMessage(IMessage message) {
         if (mSessionID == 0) {
             if (message instanceof Welcome) {
+                System.out.println(message);
                 mState = STATE_JOINED;
                 Welcome msg = (Welcome) message;
                 mSessionID = msg.session;
@@ -110,6 +118,33 @@ public class Session implements ISession, ITransportHandler {
                 if (request != null) {
                     mCallRequests.remove(msg.request);
                     request.onReply.complete(new CallResult(msg.args, msg.kwargs));
+                } else {
+                    // throw some exception.
+                }
+            } else if (message instanceof Subscribed) {
+                Subscribed msg = (Subscribed) message;
+                SubscribeRequest request = mSubscribeRequests.getOrDefault(msg.request, null);
+                if (request != null) {
+                    mSubscribeRequests.remove(msg.request);
+                    if (!mSubscriptions.containsKey(msg.request)) {
+                        mSubscriptions.put(msg.request, new ArrayList<>());
+                    }
+                    Subscription subscription = new Subscription(msg.subscription, request.topic, request.handler);
+                    mSubscriptions.get(msg.request).add(subscription);
+                    request.onReply.complete(subscription);
+                } else {
+                    // throw some exception.
+                }
+            } else if (message instanceof Event) {
+                Event msg = (Event) message;
+                List<Subscription> subscriptions = mSubscriptions.getOrDefault(msg.subscription, null);
+                if (subscriptions != null) {
+                    // #FIXME: make async.
+                    subscriptions.forEach(s -> s.handler.run(msg.args, msg.kwargs));
+                    List<CompletableFuture<?>> futures = new ArrayList<>();
+                    subscriptions.forEach(
+                            s -> futures.add(CompletableFuture.runAsync(() -> s.handler.run(msg.args, msg.kwargs))));
+                    combineFutures(futures);
                 } else {
                     // throw some exception.
                 }
@@ -141,9 +176,13 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public CompletableFuture<Subscription> subscribe(String topic, IEventHandler handler, SubscribeOptions options) {
+        if (!isAttached()) {
+            throw new IllegalStateException("The transport must be connected first");
+        }
         CompletableFuture<Subscription> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
-        mTransport.send(new Subscribe(requestID, topic, null, false));
+        mSubscribeRequests.put(requestID, new SubscribeRequest(requestID, topic, future, handler));
+        mTransport.send(new Subscribe(requestID, options, topic));
         return future;
     }
 
