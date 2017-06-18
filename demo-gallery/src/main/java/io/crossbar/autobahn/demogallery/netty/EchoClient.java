@@ -63,7 +63,7 @@ public class EchoClient {
         System.out.println("JOINED 2: sessionID=" + details.sessionID + " on realm=" + details.realm);
 
         // here we do an outoing remote call (WAMP RPC):
-        List<Object> args = new List<Object>();
+        List<Object> args = new List<>();
         args.add(2);
         args.add(3);
 
