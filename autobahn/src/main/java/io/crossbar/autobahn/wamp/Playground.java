@@ -70,7 +70,7 @@ public class Playground implements ITransportHandler {
         mSession.removeOnConnectListener(onConnectListener);
 
         Session.OnDisconnectListener onDisconnectListener = mSession.addOnDisconnectListener(
-                () -> System.out.println("Do stuff after disconnect."));
+                (boolean wasClean) -> System.out.println("Do stuff after disconnect."));
         mSession.removeOnDisconnectListener(onDisconnectListener);
 
         Session.OnUserErrorListener onUserErrorListener = mSession.addOnUserErrorListener(
