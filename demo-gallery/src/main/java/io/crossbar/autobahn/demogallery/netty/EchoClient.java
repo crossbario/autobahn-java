@@ -18,6 +18,7 @@ import io.crossbar.autobahn.wamp.types.ExitInfo;
 import io.crossbar.autobahn.wamp.types.InvocationDetails;
 import io.crossbar.autobahn.wamp.types.InvocationResult;
 import io.crossbar.autobahn.wamp.types.Publication;
+import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
 import io.crossbar.autobahn.wamp.types.Subscription;
 
@@ -98,8 +99,12 @@ public class EchoClient {
                 "com.example.pub1", null, null, null);
         publicationCompletableFuture.thenAccept(publication -> System.out.println("Published"));
 
-//        mSession.subscribe("com.byteshaft.topic1", this::message, null);
-//        mSession.register("com.byteshaft.exp", this::exp, null);
+        CompletableFuture<Registration> registrationCompletableFuture = mSession.register(
+                "com.byteshaft.exp", this::exp, null);
+        registrationCompletableFuture.thenAcceptAsync(registration -> {
+            System.out.println("Registered procedure=" + registration.procedure);
+            System.out.println(registration);
+        });
     }
 
     private CompletableFuture<InvocationResult> exp(List<Object> args, Map<String, Object> kwargs,
@@ -107,7 +112,6 @@ public class EchoClient {
         CompletableFuture<InvocationResult> future = new CompletableFuture<>();
         System.out.println("Called");
         return future;
-
     }
 
     private Void message(List<Object> args, Map<String, Object> kwargs) {
