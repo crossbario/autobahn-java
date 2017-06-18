@@ -1,5 +1,6 @@
 package io.crossbar.autobahn.wamp.auth;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
