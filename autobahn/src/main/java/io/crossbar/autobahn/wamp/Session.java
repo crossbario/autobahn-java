@@ -270,7 +270,7 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint,
                                                     RegisterOptions options) {
-        if (!isAttached()) {
+        if (!isConnected()) {
             throw new IllegalStateException("The transport must be connected first");
         }
         CompletableFuture<Registration> future = new CompletableFuture<>();
