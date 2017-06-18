@@ -197,6 +197,7 @@ public class Session implements ISession, ITransportHandler {
         }
         mTransport = null;
         mState = STATE_DISCONNECTED;
+        mOnDisconnectListeners.forEach(OnConnectListener::onDisconnect);
     }
 
     @Override
