@@ -191,21 +191,19 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public void onDisconnect(boolean wasClean) {
         System.out.println("Session.onDisconnect");
-        if (mTransport == null) {
-            // Now allowed to throw here, find a better way.
-//            throw new Exception("not connected");
-        }
-        mTransport = null;
-        mState = STATE_DISCONNECTED;
-        mOnDisconnectListeners.forEach(OnDisconnectListener::onDisconnect(wasClean));
+
+        List<CompletableFuture<?>> futures = new ArrayList<>();
+        mOnDisconnectListeners.forEach(l -> futures.add(CompletableFuture.runAsync(() -> l.onDisconnect(wasClean))));
+        CompletableFuture d = combineFutures(futures);
+        d.thenRun(() -> {
+            System.out.println("DISCONNECTED NOW");
+            mTransport = null;
+            mState = STATE_DISCONNECTED;
+        });
     }
 
     @Override
     public boolean isConnected() {
-        return mTransport != null;
-    }
-
-    private boolean isAttached() {
         return mTransport != null;
     }
 
