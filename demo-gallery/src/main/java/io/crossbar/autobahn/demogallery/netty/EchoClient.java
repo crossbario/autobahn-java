@@ -31,7 +31,7 @@ public class EchoClient {
         mSession.addOnJoinListener(details -> funStuff());
 
         // .. and we can have multiple listeners!
-        mSession.addOnJoinListener(details -> funStuff2());
+        mSession.addOnJoinListener(details -> funStuff2(details));
 
         // now create a transport list for the transport to try
         // and which will carry our session
