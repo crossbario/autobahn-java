@@ -27,16 +27,19 @@ public class Subscribe implements IMessage {
     public Subscribe(long request, SubscribeOptions options, String topic) {
         this.request = request;
         this.topic = topic;
-        if (options != null && options.match != null) {
-            if (!Objects.equals(options.match, MATCH_EXACT) && !Objects.equals(options.match, MATCH_PREFIX) &&
-                    !Objects.equals(options.match, MATCH_WILDCARD)) {
-                throw new IllegalArgumentException("match must be one of exact, prefix or wildcard.");
+        if (options != null) {
+            if (options.match != null) {
+                if (!Objects.equals(options.match, MATCH_EXACT) && !Objects.equals(options.match, MATCH_PREFIX) &&
+                        !Objects.equals(options.match, MATCH_WILDCARD)) {
+                    throw new IllegalArgumentException("match must be one of exact, prefix or wildcard.");
+                }
             }
             this.match = options.match;
+            this.getRetained = options.getRetained;
         } else {
             this.match = MATCH_EXACT;
+            this.getRetained = false;
         }
-        this.getRetained = options.getRetained;
     }
 
     public static Subscribe parse(List<Object> wmsg) {
