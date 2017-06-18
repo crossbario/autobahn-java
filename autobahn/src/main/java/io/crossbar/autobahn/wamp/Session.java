@@ -235,10 +235,13 @@ public class Session implements ISession, ITransportHandler {
                 }
                 if (onReply != null) {
                     onReply.completeExceptionally(new ApplicationError(msg.error));
+                } else {
+                    throw new ProtocolError(String.format(
+                            "ERROR received for non-pending request_type: %s and request ID %s",
+                            msg.requestType, msg.request));
                 }
             } else {
-                System.out.println("FIXME (session " + mSessionID + "): unprocessed message:");
-                System.out.println(message);
+                throw new ProtocolError(String.format("Unexpected message %s", message.getClass().getName()));
             }
         }
     }
