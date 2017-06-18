@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
 import io.crossbar.autobahn.wamp.Client;
 import io.crossbar.autobahn.wamp.NettyTransport;
@@ -19,11 +20,13 @@ import io.crossbar.autobahn.wamp.types.SessionDetails;
 import io.crossbar.autobahn.wamp.auth.AnonymousAuth;
 
 
+ExecutorService executor
 public class EchoClient {
     private Client mClient;
     private Session mSession;
 
-    public EchoClient(String uri, String realm) {
+    public EchoClient(ExecutorService executor, String uri, String realm) {
+
         // first, we create a session object (that may or may not be reused)
         mSession = new Session();
 
@@ -36,9 +39,17 @@ public class EchoClient {
         // now create a transport list for the transport to try
         // and which will carry our session
         List<ITransport> transports = new ArrayList<>();
+
+        // in this case, the only transport we add is a WAMP-over-WebSocket
+        // implementation on top of Netty client WebSocket
         transports.add(new NettyTransport(uri));
 
+        // now create a authenticator list for the session to announce
+        // and which will authenticate our session
         List<IAuthenticator> authenticators = new ArrayList<>();
+
+        // in this case, we don't care about authentication and so
+        // the only authenticator we announce is the (pseudo) "anyonymous"
         authenticators.add(new AnonymousAuth());
 
         // finally, provide everything to a Client instance
@@ -51,6 +62,8 @@ public class EchoClient {
 
     public void funStuff() {
         System.out.println("JOINED 1");
+
+        // here we do an outoing remote call (WAMP RPC):
         CallOptions options = new CallOptions(5);
         CompletableFuture<CallResult> resultCompletableFuture = mSession.call(
                 "com.byteshaft.grab_screenshot", null, null, options);
@@ -58,6 +71,9 @@ public class EchoClient {
             System.out.println(callResult.results.get(0));
             System.out.println(callResult.kwresults);
         });
+
+        // FIXME: add the error handling
+
 //        mSession.subscribe("com.byteshaft.topic1", this::message, null);
 //        mSession.register("com.byteshaft.exp", this::exp, null);
     }
