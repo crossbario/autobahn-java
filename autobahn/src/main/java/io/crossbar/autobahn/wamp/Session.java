@@ -34,6 +34,7 @@ import io.crossbar.autobahn.wamp.types.PublishOptions;
 import io.crossbar.autobahn.wamp.types.RegisterOptions;
 import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
+import io.crossbar.autobahn.wamp.types.CloseDetails;
 import io.crossbar.autobahn.wamp.types.SubscribeOptions;
 import io.crossbar.autobahn.wamp.types.Subscription;
 import io.crossbar.autobahn.wamp.utils.IDGenerator;
@@ -165,6 +166,20 @@ public class Session implements ISession, ITransportHandler {
                 } else {
                     // throw some exception.
                 }
+            } else if (message instanceof Goodbye) {
+
+                CloseDetails details = new CloseDetails();
+                List<CompletableFuture<?>> futures = new ArrayList<>();
+                mOnLeaveListeners.forEach(l -> futures.add(CompletableFuture.runAsync(() -> l.onLeave(details))));
+                CompletableFuture d = combineFutures(futures);
+                d.thenRun(() -> {
+                    System.out.println("CLOSED NOW");
+                    mState = STATE_DISCONNECTED;
+                    if (mTransport) {
+                        mTransport.disconnect();
+                    }
+                });
+
             } else {
                 System.out.println("FIXME (session " + mSessionID + "): unprocessed message:");
                 System.out.println(message);
@@ -179,6 +194,7 @@ public class Session implements ISession, ITransportHandler {
 //            throw new Exception("not connected");
         }
         mTransport = null;
+        mState = STATE_DISCONNECTED;
     }
 
     @Override
