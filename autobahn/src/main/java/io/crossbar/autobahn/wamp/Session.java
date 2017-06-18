@@ -90,6 +90,7 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public void onConnect(ITransport transport) {
+        System.out.println("Session.onConnect");
         if (mTransport != null) {
             // Now allowed to throw here, find a better way.
 //            throw new Exception("already connected");
@@ -189,6 +190,7 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public void onDisconnect(boolean wasClean) {
+        System.out.println("Session.onDisconnect");
         if (mTransport == null) {
             // Now allowed to throw here, find a better way.
 //            throw new Exception("not connected");
@@ -267,8 +269,7 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public CompletableFuture<SessionDetails> join(String realm, List<String> authMethods) {
-        // IAuthenticator
-
+        System.out.println("Session.join");
         mRealm = realm;
         mGoodbyeSent = false;
         Map<String, Map> roles = new HashMap<>();
@@ -283,6 +284,7 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public void leave(String reason, String message) {
+        System.out.println("Session.leave");
         mTransport.send(new Goodbye(null, null));
         mState = STATE_GOOBYE_SENT;
     }
