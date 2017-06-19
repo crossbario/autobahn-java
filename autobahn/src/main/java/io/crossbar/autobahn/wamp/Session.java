@@ -6,12 +6,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
+import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.interfaces.ISession;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.messages.Call;
+import io.crossbar.autobahn.wamp.messages.Error;
 import io.crossbar.autobahn.wamp.messages.Event;
+import io.crossbar.autobahn.wamp.messages.Goodbye;
 import io.crossbar.autobahn.wamp.messages.Hello;
 import io.crossbar.autobahn.wamp.messages.Invocation;
 import io.crossbar.autobahn.wamp.messages.Publish;
@@ -22,13 +26,13 @@ import io.crossbar.autobahn.wamp.messages.Result;
 import io.crossbar.autobahn.wamp.messages.Subscribe;
 import io.crossbar.autobahn.wamp.messages.Subscribed;
 import io.crossbar.autobahn.wamp.messages.Welcome;
-import io.crossbar.autobahn.wamp.messages.Goodbye;
 import io.crossbar.autobahn.wamp.requests.CallRequest;
 import io.crossbar.autobahn.wamp.requests.PublishRequest;
 import io.crossbar.autobahn.wamp.requests.RegisterRequest;
 import io.crossbar.autobahn.wamp.requests.SubscribeRequest;
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
+import io.crossbar.autobahn.wamp.types.CloseDetails;
 import io.crossbar.autobahn.wamp.types.ComponentConfig;
 import io.crossbar.autobahn.wamp.types.IEventHandler;
 import io.crossbar.autobahn.wamp.types.IInvocationHandler;
@@ -37,7 +41,6 @@ import io.crossbar.autobahn.wamp.types.PublishOptions;
 import io.crossbar.autobahn.wamp.types.RegisterOptions;
 import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
-import io.crossbar.autobahn.wamp.types.CloseDetails;
 import io.crossbar.autobahn.wamp.types.SubscribeOptions;
 import io.crossbar.autobahn.wamp.types.Subscription;
 import io.crossbar.autobahn.wamp.utils.IDGenerator;
@@ -50,7 +53,7 @@ public class Session implements ISession, ITransportHandler {
     private final int STATE_AUTHENTICATE_SENT = 3;
     private final int STATE_JOINED = 4;
     private final int STATE_READY = 5;
-    private final int STATE_GOOBYE_SENT = 6;
+    private final int STATE_GOODBYE_SENT = 6;
     private final int STATE_ABORT_SENT = 7;
 
     private ITransport mTransport;
@@ -138,7 +141,8 @@ public class Session implements ISession, ITransportHandler {
                     mCallRequests.remove(msg.request);
                     request.onReply.complete(new CallResult(msg.args, msg.kwargs));
                 } else {
-                    // throw some exception.
+                    throw new ProtocolError(String.format(
+                            "RESULT received for non-pending request ID %s", msg.request));
                 }
             } else if (message instanceof Subscribed) {
                 Subscribed msg = (Subscribed) message;
@@ -152,7 +156,8 @@ public class Session implements ISession, ITransportHandler {
                     mSubscriptions.get(msg.subscription).add(subscription);
                     request.onReply.complete(subscription);
                 } else {
-                    // throw some exception.
+                    throw new ProtocolError(String.format(
+                            "SUBSCRIBED received for non-pending request ID %s", msg.request));
                 }
             } else if (message instanceof Event) {
                 Event msg = (Event) message;
@@ -164,7 +169,8 @@ public class Session implements ISession, ITransportHandler {
                             s -> futures.add(CompletableFuture.runAsync(() -> s.handler.run(msg.args, msg.kwargs))));
                     combineFutures(futures);
                 } else {
-                    // throw some exception.
+                    throw new ProtocolError(String.format(
+                            "EVENT received for non-subscribed subscription ID %s", msg.subscription));
                 }
             } else if (message instanceof Published) {
                 Published msg = (Published) message;
@@ -174,7 +180,8 @@ public class Session implements ISession, ITransportHandler {
                     Publication publication = new Publication(msg.publication);
                     request.onReply.complete(publication);
                 } else {
-                    // throw some exception.
+                    throw new ProtocolError(String.format(
+                            "PUBLISHED received for non-pending request ID %s", msg.request));
                 }
             } else if (message instanceof Registered) {
                 Registered msg = (Registered) message;
@@ -186,7 +193,8 @@ public class Session implements ISession, ITransportHandler {
                     mRegistrations.put(msg.registration, registration);
                     request.onReply.complete(registration);
                 } else {
-                    // throw some exception.
+                    throw new ProtocolError(String.format(
+                            "REGISTERED received for already existing registration ID %s", msg.request));
                 }
             } else if (message instanceof Invocation) {
                 Invocation msg = (Invocation) message;
@@ -194,10 +202,10 @@ public class Session implements ISession, ITransportHandler {
                 if (registration != null) {
                     CompletableFuture.runAsync(() -> registration.endpoint.run(msg.args, msg.kwargs, null));
                 } else {
-                    // throw some exception.
+                    throw new ProtocolError(String.format(
+                            "INVOCATION received for non-registered registration ID %s", msg.registration));
                 }
             } else if (message instanceof Goodbye) {
-
                 CloseDetails details = new CloseDetails();
                 List<CompletableFuture<?>> futures = new ArrayList<>();
                 mOnLeaveListeners.forEach(l -> futures.add(CompletableFuture.runAsync(() -> l.onLeave(details))));
@@ -209,10 +217,31 @@ public class Session implements ISession, ITransportHandler {
                         mTransport.close();
                     }
                 });
-
+            } else if (message instanceof Error) {
+                Error msg = (Error) message;
+                CompletableFuture<?> onReply = null;
+                if (msg.requestType == Call.MESSAGE_TYPE && mCallRequests.containsKey(msg.request)) {
+                    onReply = mCallRequests.get(msg.request).onReply;
+                    mCallRequests.remove(msg.request);
+                } else if (msg.requestType == Publish.MESSAGE_TYPE && mPublishRequests.containsKey(msg.request)) {
+                    onReply = mPublishRequests.get(msg.request).onReply;
+                    mPublishRequests.remove(msg.request);
+                } else if (msg.requestType == Subscribe.MESSAGE_TYPE && mSubscribeRequests.containsKey(msg.request)) {
+                    onReply = mSubscribeRequests.get(msg.request).onReply;
+                    mSubscribeRequests.remove(msg.request);
+                } else if (msg.requestType == Register.MESSAGE_TYPE && mRegisterRequest.containsKey(msg.request)) {
+                    onReply = mRegisterRequest.get(msg.request).onReply;
+                    mRegisterRequest.remove(msg.request);
+                }
+                if (onReply != null) {
+                    onReply.completeExceptionally(new ApplicationError(msg.error));
+                } else {
+                    throw new ProtocolError(String.format(
+                            "ERROR received for non-pending request_type: %s and request ID %s",
+                            msg.requestType, msg.request));
+                }
             } else {
-                System.out.println("FIXME (session " + mSessionID + "): unprocessed message:");
-                System.out.println(message);
+                throw new ProtocolError(String.format("Unexpected message %s", message.getClass().getName()));
             }
         }
     }
@@ -321,8 +350,8 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public void leave(String reason, String message) {
         System.out.println("Session.leave");
-        mTransport.send(new Goodbye(null, null));
-        mState = STATE_GOOBYE_SENT;
+        mTransport.send(new Goodbye(reason, message));
+        mState = STATE_GOODBYE_SENT;
     }
 
     public OnJoinListener addOnJoinListener(OnJoinListener listener) {

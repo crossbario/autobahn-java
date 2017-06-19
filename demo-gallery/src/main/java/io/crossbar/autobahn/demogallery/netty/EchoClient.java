@@ -73,6 +73,11 @@ public class EchoClient {
             System.out.println("got result: " + callResult.results.get(0));
             mSession.leave("wamp.leave.normal", "sessio leaving realm normally.");
         });
+
+        result.exceptionally(throwable -> {
+            System.out.println(throwable.getMessage());
+            return null;
+        });
     }
 
     public void funStuff() {
