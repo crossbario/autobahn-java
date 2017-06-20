@@ -32,6 +32,7 @@ import io.crossbar.autobahn.wamp.types.InvocationDetails;
 import io.crossbar.autobahn.wamp.types.InvocationResult;
 import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.PublishOptions;
+import io.crossbar.autobahn.wamp.types.RegisterOptions;
 import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
 import io.crossbar.autobahn.wamp.types.Subscription;
@@ -113,8 +114,9 @@ public class Service {
         });
 
         // Here we REGISTER a procedure
+        RegisterOptions options = new RegisterOptions(RegisterOptions.MATCH_EXACT, RegisterOptions.INVOKE_ROUNDROBIN);
         CompletableFuture<Registration> f2 = mSession.register(
-                "com.example.add2", this::add2, null);
+                "com.example.add2", this::add2, options);
         f2.thenAccept(registration ->
             System.out.println("Registered procedure: " + registration.procedure)
         );
@@ -154,7 +156,7 @@ public class Service {
     public void onJoinHandler3(SessionDetails details) {
         System.out.println("onJoinHandler3 fired");
 
-        PublishOptions options = new PublishOptions(true, true);
+        PublishOptions options = new PublishOptions(true, false);
 
         List<Object> argsCounter = new ArrayList<>();
         argsCounter.add(details.sessionID);

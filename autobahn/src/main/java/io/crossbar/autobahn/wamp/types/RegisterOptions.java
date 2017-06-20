@@ -14,6 +14,17 @@ package io.crossbar.autobahn.wamp.types;
 import java.util.Map;
 
 public class RegisterOptions {
+    public static final String MATCH_EXACT = "exact";
+    public static final String MATCH_PREFIX = "prefix";
+    public static final String MATCH_WILDCARD = "wildcard";
+
+    public final static String INVOKE_SINGLE = "single";
+    public final static String INVOKE_FIRST = "first";
+    public final static String INVOKE_LAST = "last";
+    public final static String INVOKE_ROUNDROBIN = "roundrobin";
+    public final static String INVOKE_RANDOM = "random";
+    public final static String INVOKE_ALL = "all";
+
     public String match;
     public String invoke;
 
