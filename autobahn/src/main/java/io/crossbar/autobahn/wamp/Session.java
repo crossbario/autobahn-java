@@ -16,6 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
@@ -44,7 +46,6 @@ import io.crossbar.autobahn.wamp.requests.SubscribeRequest;
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.CloseDetails;
-import io.crossbar.autobahn.wamp.types.ComponentConfig;
 import io.crossbar.autobahn.wamp.types.IEventHandler;
 import io.crossbar.autobahn.wamp.types.IInvocationHandler;
 import io.crossbar.autobahn.wamp.types.Publication;
@@ -68,6 +69,7 @@ public class Session implements ISession, ITransportHandler {
     private final int STATE_ABORT_SENT = 7;
 
     private ITransport mTransport;
+    private ExecutorService mExecutor;
 
     private final ArrayList<OnJoinListener> mOnJoinListeners;
     private final ArrayList<OnReadyListener> mOnReadyListeners;
@@ -88,8 +90,6 @@ public class Session implements ISession, ITransportHandler {
     private boolean mGoodbyeSent;
     private String mRealm;
 
-    private ComponentConfig mComponentConfig;
-
     public Session() {
         mOnJoinListeners = new ArrayList<>();
         mOnReadyListeners = new ArrayList<>();
@@ -106,9 +106,16 @@ public class Session implements ISession, ITransportHandler {
         mRegistrations = new HashMap<>();
     }
 
-    public Session(ComponentConfig config) {
+    public Session(ExecutorService executor) {
         this();
-        mComponentConfig = config;
+        mExecutor = executor;
+    }
+
+    private ExecutorService getExecutor() {
+        if (mExecutor == null) {
+            mExecutor = ForkJoinPool.commonPool();
+        }
+        return mExecutor;
     }
 
     @Override
@@ -131,12 +138,14 @@ public class Session implements ISession, ITransportHandler {
                 mSessionID = msg.session;
                 SessionDetails details = new SessionDetails(msg.realm, msg.session);
                 List<CompletableFuture<?>> futures = new ArrayList<>();
-                mOnJoinListeners.forEach(l -> futures.add(CompletableFuture.runAsync(() -> l.onJoin(details))));
+                mOnJoinListeners.forEach(
+                        listener -> futures.add(
+                                CompletableFuture.runAsync(() -> listener.onJoin(details), getExecutor())));
                 CompletableFuture d = combineFutures(futures);
-                d.thenRun(() -> {
+                d.thenRunAsync(() -> {
                     mState = STATE_READY;
                     mOnReadyListeners.forEach(OnReadyListener::onReady);
-                });
+                }, getExecutor());
             } else {
                 // with (mSessionID == 0), we can only receive
                 // WELCOME, ABORT or CHALLENGE
@@ -177,7 +186,10 @@ public class Session implements ISession, ITransportHandler {
                     subscriptions.forEach(s -> s.handler.run(msg.args, msg.kwargs));
                     List<CompletableFuture<?>> futures = new ArrayList<>();
                     subscriptions.forEach(
-                            s -> futures.add(CompletableFuture.runAsync(() -> s.handler.run(msg.args, msg.kwargs))));
+                            subscription -> futures.add(
+                                    CompletableFuture.runAsync(() -> subscription.handler.run(msg.args, msg.kwargs),
+                                    getExecutor())));
+                    // Not really doing anything with the combined futures.
                     combineFutures(futures);
                 } else {
                     throw new ProtocolError(String.format(
@@ -211,7 +223,8 @@ public class Session implements ISession, ITransportHandler {
                 Invocation msg = (Invocation) message;
                 Registration registration = mRegistrations.getOrDefault(msg.registration, null);
                 if (registration != null) {
-                    CompletableFuture.runAsync(() -> registration.endpoint.run(msg.args, msg.kwargs, null));
+                    CompletableFuture.runAsync(
+                            () -> registration.endpoint.run(msg.args, msg.kwargs, null), getExecutor());
                 } else {
                     throw new ProtocolError(String.format(
                             "INVOCATION received for non-registered registration ID %s", msg.registration));
@@ -219,7 +232,9 @@ public class Session implements ISession, ITransportHandler {
             } else if (message instanceof Goodbye) {
                 CloseDetails details = new CloseDetails();
                 List<CompletableFuture<?>> futures = new ArrayList<>();
-                mOnLeaveListeners.forEach(l -> futures.add(CompletableFuture.runAsync(() -> l.onLeave(details))));
+                mOnLeaveListeners.forEach(
+                        l -> futures.add(
+                                CompletableFuture.runAsync(() -> l.onLeave(details), getExecutor())));
                 CompletableFuture d = combineFutures(futures);
                 d.thenRun(() -> {
                     System.out.println("CLOSED NOW");
@@ -262,7 +277,9 @@ public class Session implements ISession, ITransportHandler {
         System.out.println("Session.onDisconnect");
 
         List<CompletableFuture<?>> futures = new ArrayList<>();
-        mOnDisconnectListeners.forEach(l -> futures.add(CompletableFuture.runAsync(() -> l.onDisconnect(wasClean))));
+        mOnDisconnectListeners.forEach(
+                l -> futures.add(
+                        CompletableFuture.runAsync(() -> l.onDisconnect(wasClean), getExecutor())));
         CompletableFuture d = combineFutures(futures);
         d.thenRun(() -> {
             System.out.println("DISCONNECTED NOW");

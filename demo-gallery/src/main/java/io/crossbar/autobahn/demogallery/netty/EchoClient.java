@@ -41,13 +41,13 @@ public class EchoClient {
     public EchoClient(ExecutorService executor, String uri, String realm) {
 
         // first, we create a session object (that may or may not be reused)
-        mSession = new Session();
+        mSession = new Session(executor);
 
         // when the session joins a realm, run our code
         //mSession.addOnJoinListener(details -> funStuff());
 
         // .. and we can have multiple listeners!
-        mSession.addOnJoinListener(details -> funStuff2(details));
+        mSession.addOnJoinListener(this::funStuff2);
 
         // now create a transport list for the transport to try
         // and which will carry our session
@@ -66,7 +66,11 @@ public class EchoClient {
         authenticators.add(new AnonymousAuth());
 
         // finally, provide everything to a Client instance
-        mClient = new Client(mSession, transports, realm, authenticators);
+        mClient = new Client(transports, executor);
+
+        // leave room for adding more than one sessions.
+        mClient.add(mSession, realm, authenticators);
+
     }
 
     public void funStuff2 (SessionDetails details) {
@@ -138,7 +142,6 @@ public class EchoClient {
 
     public int start() {
         CompletableFuture<ExitInfo> exitInfoCompletableFuture = mClient.connect();
-        //exitInfoCompletableFuture.thenApply(exitInfo -> mClient.connect());
         try {
             ExitInfo exitInfo = exitInfoCompletableFuture.get();
             return exitInfo.code;
