@@ -183,7 +183,6 @@ public class Session implements ISession, ITransportHandler {
                 Event msg = (Event) message;
                 List<Subscription> subscriptions = mSubscriptions.getOrDefault(msg.subscription, null);
                 if (subscriptions != null) {
-                    subscriptions.forEach(s -> s.handler.run(msg.args, msg.kwargs));
                     List<CompletableFuture<?>> futures = new ArrayList<>();
                     subscriptions.forEach(
                             subscription -> futures.add(

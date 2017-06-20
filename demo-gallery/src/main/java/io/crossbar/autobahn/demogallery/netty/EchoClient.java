@@ -13,7 +13,9 @@ package io.crossbar.autobahn.demogallery.netty;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
 import io.crossbar.autobahn.wamp.Client;
@@ -24,7 +26,10 @@ import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
+import io.crossbar.autobahn.wamp.types.Publication;
+import io.crossbar.autobahn.wamp.types.PublishOptions;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
+import io.crossbar.autobahn.wamp.types.Subscription;
 
 
 public class EchoClient {
@@ -79,13 +84,43 @@ public class EchoClient {
 
         result.thenAccept(callResult -> {
             System.out.println("got result: " + callResult.results.get(0));
-            mSession.leave("wamp.leave.normal", "sessio leaving realm normally.");
+//            mSession.leave("wamp.leave.normal", "sessio leaving realm normally.");
         });
 
         result.exceptionally(throwable -> {
             System.out.println(throwable.getMessage());
             return null;
         });
+
+        CompletableFuture<Subscription> counterRes = mSession.subscribe(
+                "com.example.oncounter", this::onCounter, null);
+
+        counterRes.thenAccept(subscription -> System.out.println("subscribed to topic: " + subscription.topic));
+
+        PublishOptions options = new PublishOptions(true, true);
+        List<Object> argsCounter = new ArrayList<>();
+        argsCounter.add(details.sessionID);
+        argsCounter.add("Java");
+        int i = 1;
+        while (true) {
+            argsCounter.add(0, i);
+            CompletableFuture<Publication> pubFuture = mSession.publish(
+                    "com.example.oncounter", argsCounter, null, options);
+            pubFuture.thenAccept(publication -> System.out.println("published: " + publication.publication));
+            try {
+                pubFuture.get();
+                Thread.sleep(1000);
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+            argsCounter.remove(0);
+            i += 1;
+        }
+    }
+
+    private Void onCounter(List<Object> args, Map<String, Object> kwargs) {
+        System.out.println("got counter: " + args.get(0));
+        return null;
     }
 
     public int start() {

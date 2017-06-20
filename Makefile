@@ -21,6 +21,6 @@ run_crossbar:
 run_test_component:
 	docker run \
 		-it --rm --link crossbar \
-		-v ${PWD}/test_component.py:/test_component.py  \
+		-v ${shell pwd}/test_component.py:/test_component.py  \
 		crossbario/autobahn-python \
 		python -u /test_component.py
