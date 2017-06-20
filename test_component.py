@@ -8,7 +8,7 @@ from twisted.internet.error import ReactorNotRunning
 from twisted.internet.defer import inlineCallbacks
 
 from autobahn.twisted.util import sleep
-from autobahn.wamp.types import RegisterOptions
+from autobahn.wamp.types import RegisterOptions, PublishOptions
 from autobahn.twisted.wamp import ApplicationSession, ApplicationRunner
 from autobahn.wamp.exception import ApplicationError
 
@@ -63,9 +63,10 @@ class ClientSession(ApplicationSession):
 
             # CALL
             try:
-                res = yield self.call(u'com.example.add', x, 3)
+                res = yield self.call(u'com.example.add2', x, 3)
                 print('----------------------------')
-                self.log.info("add2 result: {result}", result=res.results[0])
+                self.log.info("add2 result: {result}", result=res)
+                #self.log.info("add2 result: {result}", result=res.results[0])
                 # self.log.info("from component {id} ({type})", id=res[1], type=res[2])
                 x += 1
             except ApplicationError as e:
@@ -75,7 +76,7 @@ class ClientSession(ApplicationSession):
                     raise e
 
             # PUBLISH
-            yield self.publish(u'com.example.oncounter', counter, self._ident, self._type)
+            yield self.publish(u'com.example.oncounter', counter, self._ident, self._type, options=PublishOptions(acknowledge=True, exclude_me=False))
             print('----------------------------')
             self.log.info("published to 'oncounter' with counter {counter}",
                           counter=counter)

@@ -93,7 +93,7 @@ public class Service {
 
 
     public void onJoinHandler1(SessionDetails details) {
-        System.out.println("JOINED 2: sessionID=" + details.sessionID + " on realm=" + details.realm);
+        System.out.println("onJoinHandler1 fired: sessionid=" + details.sessionID + ", authid=" + details.authid + ", realm=" + details.realm);
 
         // Here we subscribe to a topic
         CompletableFuture<Subscription> counterRes = mSession.subscribe(
@@ -103,13 +103,13 @@ public class Service {
 
         // Here we register a remote procedure.
         CompletableFuture<Registration> regFuture = mSession.register(
-                "com.example.add", this::add2, null);
+                "com.example.add2", this::add2, null);
         regFuture.thenAccept(registration -> System.out.println("Registered procedure: " + registration.procedure));
     }
 
 
     public void onJoinHandler2(SessionDetails details) {
-        System.out.println("JOINED 2: sessionID=" + details.sessionID + " on realm=" + details.realm);
+        System.out.println("onJoinHandler2 fired");
 
         List<Object> args = new ArrayList<>();
         args.add(2);
@@ -135,20 +135,21 @@ public class Service {
 
 
     public void onJoinHandler3(SessionDetails details) {
-        System.out.println("JOINED 2: sessionID=" + details.sessionID + " on realm=" + details.realm);
+        System.out.println("onJoinHandler3 fired");
 
-        // Here we publish an event.
         PublishOptions options = new PublishOptions(true, true);
+
         List<Object> argsCounter = new ArrayList<>();
         argsCounter.add(details.sessionID);
         argsCounter.add("Java");
+
         final int[] i = new int[1];
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
         executorService.scheduleAtFixedRate(() -> {
             argsCounter.add(0, i[0]);
             CompletableFuture<Publication> pubFuture = mSession.publish(
                     "com.example.oncounter", argsCounter, null, options);
-            pubFuture.thenAccept(publication -> System.out.println("published: " + publication.publication));
+            pubFuture.thenAccept(publication -> System.out.println("event published: " + publication.publication));
             argsCounter.remove(0);
             i[0] += 1;
         }, 0, 1, TimeUnit.SECONDS);
@@ -157,21 +158,16 @@ public class Service {
 
     private CompletableFuture<InvocationResult> add2(List<Object> args, Map<String, Object> kwargs,
                                                      InvocationDetails details) {
-        CompletableFuture<InvocationResult> future = new CompletableFuture<>();
-        CompletableFuture.supplyAsync(() -> {
-            int res = (int) args.get(0) + (int) args.get(1);
-            List<Object> arr = new ArrayList<>();
-            arr.add(res);
-            arr.add("Netty");
-            return new InvocationResult(arr);
-        }, mExecutor).thenApplyAsync(future::complete, mExecutor);
-        System.out.println("CALLED: " + args);
-        return future;
+        int res = (int) args.get(0) + (int) args.get(1);
+        List<Object> arr = new ArrayList<>();
+        arr.add(res);
+        arr.add("Java");
+        return CompletableFuture.completedFuture(new InvocationResult(arr));
     }
 
 
     private Void onCounter(List<Object> args, Map<String, Object> kwargs) {
-        System.out.println("got counter: " + args.get(0));
+        System.out.println("received counter: " + args.get(0));
         return null;
     }
 }
