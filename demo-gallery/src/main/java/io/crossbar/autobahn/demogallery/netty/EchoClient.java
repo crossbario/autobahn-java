@@ -13,7 +13,6 @@ package io.crossbar.autobahn.demogallery.netty;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
@@ -23,15 +22,9 @@ import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.auth.AnonymousAuth;
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
-import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
-import io.crossbar.autobahn.wamp.types.InvocationDetails;
-import io.crossbar.autobahn.wamp.types.InvocationResult;
-import io.crossbar.autobahn.wamp.types.Publication;
-import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
-import io.crossbar.autobahn.wamp.types.Subscription;
 
 
 public class EchoClient {
@@ -41,13 +34,13 @@ public class EchoClient {
     public EchoClient(ExecutorService executor, String uri, String realm) {
 
         // first, we create a session object (that may or may not be reused)
-        mSession = new Session();
+        mSession = new Session(executor);
 
         // when the session joins a realm, run our code
         //mSession.addOnJoinListener(details -> funStuff());
 
         // .. and we can have multiple listeners!
-        mSession.addOnJoinListener(details -> funStuff2(details));
+        mSession.addOnJoinListener(this::onJoinHandler);
 
         // now create a transport list for the transport to try
         // and which will carry our session
@@ -66,10 +59,14 @@ public class EchoClient {
         authenticators.add(new AnonymousAuth());
 
         // finally, provide everything to a Client instance
-        mClient = new Client(mSession, transports, realm, authenticators);
+        mClient = new Client(transports, executor);
+
+        // leave room for adding more than one sessions.
+        mClient.add(mSession, realm, authenticators);
+
     }
 
-    public void funStuff2 (SessionDetails details) {
+    public void onJoinHandler(SessionDetails details) {
         System.out.println("JOINED 2: sessionID=" + details.sessionID + " on realm=" + details.realm);
 
         // here we do an outoing remote call (WAMP RPC):
@@ -91,54 +88,8 @@ public class EchoClient {
         });
     }
 
-    public void funStuff() {
-        System.out.println("JOINED 1");
-        // Here we do a subscribe to a topic.
-        CompletableFuture<Subscription> subscriptionCompletableFuture = mSession.subscribe(
-                "com.byteshaft.topic1", this::message, null);
-        subscriptionCompletableFuture.thenAccept(subscription -> {
-            System.out.println(subscription.topic);
-        });
-
-        // here we do an outoing remote call (WAMP RPC):
-        CallOptions options = new CallOptions(5);
-        CompletableFuture<CallResult> resultCompletableFuture = mSession.call(
-                "com.byteshaft.grab_screenshot", null, null, options);
-        resultCompletableFuture.thenAccept(callResult -> {
-            System.out.println(callResult.results.get(0));
-            System.out.println(callResult.kwresults);
-        });
-
-        // FIXME: add the error handling
-
-        CompletableFuture<Publication> publicationCompletableFuture = mSession.publish(
-                "com.example.pub1", null, null, null);
-        publicationCompletableFuture.thenAccept(publication -> System.out.println("Published"));
-
-        CompletableFuture<Registration> registrationCompletableFuture = mSession.register(
-                "com.byteshaft.exp", this::exp, null);
-        registrationCompletableFuture.thenAcceptAsync(registration -> {
-            System.out.println("Registered procedure=" + registration.procedure);
-            System.out.println(registration);
-        });
-    }
-
-    private CompletableFuture<InvocationResult> exp(List<Object> args, Map<String, Object> kwargs,
-                                                    InvocationDetails details) {
-        CompletableFuture<InvocationResult> future = new CompletableFuture<>();
-        System.out.println("Called");
-        return future;
-    }
-
-    private Void message(List<Object> args, Map<String, Object> kwargs) {
-        System.out.println(args);
-        System.out.println(kwargs);
-        return null;
-    }
-
     public int start() {
         CompletableFuture<ExitInfo> exitInfoCompletableFuture = mClient.connect();
-        //exitInfoCompletableFuture.thenApply(exitInfo -> mClient.connect());
         try {
             ExitInfo exitInfo = exitInfoCompletableFuture.get();
             return exitInfo.code;
