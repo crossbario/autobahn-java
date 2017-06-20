@@ -13,6 +13,8 @@ package io.crossbar.autobahn.wamp;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 
 import javax.net.ssl.SSLException;
 
@@ -49,9 +51,23 @@ public class NettyTransport implements ITransport {
     private ISerializer mSerializer;
     private final String mUri;
 
+    private ExecutorService mExecutor;
+
     public NettyTransport(String uri) {
         mUri = uri;
         mSerializer = new CBORSerializer();
+    }
+
+    public NettyTransport(String uri, ExecutorService executor) {
+        this(uri);
+        mExecutor = executor;
+    }
+
+    private ExecutorService getExecutor() {
+        if (mExecutor == null) {
+            mExecutor = ForkJoinPool.commonPool();
+        }
+        return mExecutor;
     }
 
     private int validateURIAndGetPort(URI uri) {

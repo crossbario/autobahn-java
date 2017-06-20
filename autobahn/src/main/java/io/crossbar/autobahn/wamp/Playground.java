@@ -37,7 +37,7 @@ public class Playground implements ITransportHandler {
     }
 
     public void showTransportAttachment() {
-        NettyTransport transport = new NettyTransport("ws://192.168.1.3:8080/ws");
+        NettyTransport transport = new NettyTransport("ws://172.17.0.2:8080/ws");
         transport.connect(this);
         mSession.addOnJoinListener( details -> System.out.println("play with join details here"));
         CompletableFuture<SessionDetails> joinedFuture = mSession.join("realm1", null);
