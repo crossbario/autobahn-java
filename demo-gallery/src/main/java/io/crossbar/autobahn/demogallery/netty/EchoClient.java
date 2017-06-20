@@ -13,6 +13,7 @@ package io.crossbar.autobahn.demogallery.netty;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
@@ -25,6 +26,7 @@ import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
+import io.crossbar.autobahn.wamp.types.Subscription;
 
 
 public class EchoClient {
@@ -79,13 +81,23 @@ public class EchoClient {
 
         result.thenAccept(callResult -> {
             System.out.println("got result: " + callResult.results.get(0));
-            mSession.leave("wamp.leave.normal", "sessio leaving realm normally.");
+//            mSession.leave("wamp.leave.normal", "sessio leaving realm normally.");
         });
 
         result.exceptionally(throwable -> {
             System.out.println(throwable.getMessage());
             return null;
         });
+
+        CompletableFuture<Subscription> counterRes = mSession.subscribe(
+                "com.example.oncounter", this::onCounter, null);
+
+        counterRes.thenAccept(subscription -> System.out.println("subscribed to topic: " + subscription.topic));
+    }
+
+    private Void onCounter(List<Object> objects, Map<String, Object> stringObjectMap) {
+        System.out.println("got counter: " + objects.get(0));
+        return null;
     }
 
     public int start() {
