@@ -37,31 +37,35 @@ import io.crossbar.autobahn.wamp.types.SessionDetails;
 import io.crossbar.autobahn.wamp.types.Subscription;
 
 
-public class EchoClient {
-    private Client mClient;
-    private Session mSession;
-    private ExecutorService mExecutor;
+public class Service {
 
-    public EchoClient(ExecutorService executor, String uri, String realm) {
+    private final ExecutorService mExecutor;
+    private final Session mSession;
 
+
+    public Service(ExecutorService executor) {
+        // everything should be run on the user supplied executor
         mExecutor = executor;
 
         // first, we create a session object (that may or may not be reused)
         mSession = new Session(executor);
 
         // when the session joins a realm, run our code
-        //mSession.addOnJoinListener(details -> funStuff());
-
         // .. and we can have multiple listeners!
-        mSession.addOnJoinListener(this::onJoinHandler);
+        mSession.addOnJoinListener(this::onJoinHandler1);
+        mSession.addOnJoinListener(this::onJoinHandler2);
+        mSession.addOnJoinListener(this::onJoinHandler3);
+    }
 
+
+    public int start(String url, String realm) {
         // now create a transport list for the transport to try
         // and which will carry our session
         List<ITransport> transports = new ArrayList<>();
 
         // in this case, the only transport we add is a WAMP-over-WebSocket
         // implementation on top of Netty client WebSocket
-        transports.add(new NettyTransport(uri));
+        transports.add(new NettyTransport(url));
 
         // now create a authenticator list for the session to announce
         // and which will authenticate our session
@@ -72,35 +76,26 @@ public class EchoClient {
         authenticators.add(new AnonymousAuth());
 
         // finally, provide everything to a Client instance
-        mClient = new Client(transports, executor);
+        Client client = new Client(transports, mExecutor);
 
         // leave room for adding more than one sessions.
-        mClient.add(mSession, realm, authenticators);
+        client.add(mSession, realm, authenticators);
 
+        CompletableFuture<ExitInfo> exitInfoCompletableFuture = client.connect();
+        try {
+            ExitInfo exitInfo = exitInfoCompletableFuture.get();
+            return exitInfo.code;
+        } catch (Exception e) {
+            System.out.println(e);
+            return 1;
+        }
     }
 
-    public void onJoinHandler(SessionDetails details) {
+
+    public void onJoinHandler1(SessionDetails details) {
         System.out.println("JOINED 2: sessionID=" + details.sessionID + " on realm=" + details.realm);
 
-        // here we do an outgoing remote call (WAMP RPC):
-        List<Object> args = new ArrayList<>();
-        args.add(2);
-        args.add(3);
-
-        CompletableFuture<CallResult> result =
-            mSession.call("com.example.add2", args, null, null);
-
-        result.thenAccept(callResult -> {
-            System.out.println("got result: " + callResult.results.get(0));
-//            mSession.leave("wamp.leave.normal", "sessio leaving realm normally.");
-        });
-
-        result.exceptionally(throwable -> {
-            System.out.println(throwable.getMessage());
-            return null;
-        });
-
-        // Here we subscribe to a remote procedure.
+        // Here we subscribe to a topic
         CompletableFuture<Subscription> counterRes = mSession.subscribe(
                 "com.example.oncounter", this::onCounter, null);
 
@@ -110,6 +105,37 @@ public class EchoClient {
         CompletableFuture<Registration> regFuture = mSession.register(
                 "com.example.add", this::add2, null);
         regFuture.thenAccept(registration -> System.out.println("Registered procedure: " + registration.procedure));
+    }
+
+
+    public void onJoinHandler2(SessionDetails details) {
+        System.out.println("JOINED 2: sessionID=" + details.sessionID + " on realm=" + details.realm);
+
+        List<Object> args = new ArrayList<>();
+        args.add(2);
+        args.add(3);
+
+        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+        executorService.scheduleAtFixedRate(() -> {
+
+            CompletableFuture<CallResult> result =
+                mSession.call("com.example.add2", args, null, null);
+
+            result.thenAccept(callResult -> {
+                System.out.println("got result: " + callResult.results.get(0));
+            });
+
+            result.exceptionally(throwable -> {
+                System.out.println(throwable.getMessage());
+                return null;
+            });
+
+        }, 0, 1, TimeUnit.SECONDS);
+    }
+
+
+    public void onJoinHandler3(SessionDetails details) {
+        System.out.println("JOINED 2: sessionID=" + details.sessionID + " on realm=" + details.realm);
 
         // Here we publish an event.
         PublishOptions options = new PublishOptions(true, true);
@@ -128,6 +154,7 @@ public class EchoClient {
         }, 0, 1, TimeUnit.SECONDS);
     }
 
+
     private CompletableFuture<InvocationResult> add2(List<Object> args, Map<String, Object> kwargs,
                                                      InvocationDetails details) {
         CompletableFuture<InvocationResult> future = new CompletableFuture<>();
@@ -142,19 +169,9 @@ public class EchoClient {
         return future;
     }
 
+
     private Void onCounter(List<Object> args, Map<String, Object> kwargs) {
         System.out.println("got counter: " + args.get(0));
         return null;
-    }
-
-    public int start() {
-        CompletableFuture<ExitInfo> exitInfoCompletableFuture = mClient.connect();
-        try {
-            ExitInfo exitInfo = exitInfoCompletableFuture.get();
-            return exitInfo.code;
-        } catch (Exception e) {
-            System.out.println(e);
-            return 1;
-        }
     }
 }
