@@ -40,6 +40,10 @@ import io.crossbar.autobahn.wamp.types.Subscription;
 public class Service {
 
     private final ExecutorService mExecutor;
+
+    // This is the central object to interact with Crossbar.io
+    // a WAMP session runs over a transport, uses authenticators
+    // and finally joins a realm.
     private final Session mSession;
 
 
@@ -51,7 +55,8 @@ public class Service {
         mSession = new Session(executor);
 
         // when the session joins a realm, run our code
-        // .. and we can have multiple listeners!
+        // .. and we can have multiple listeners! there are other lifecycle
+        // events to get notified for as well.
         mSession.addOnJoinListener(this::onJoinHandler1);
         mSession.addOnJoinListener(this::onJoinHandler2);
         mSession.addOnJoinListener(this::onJoinHandler3);
@@ -95,16 +100,28 @@ public class Service {
     public void onJoinHandler1(SessionDetails details) {
         System.out.println("onJoinHandler1 fired: sessionid=" + details.sessionID + ", authid=" + details.authid + ", realm=" + details.realm);
 
-        // Here we subscribe to a topic
-        CompletableFuture<Subscription> counterRes = mSession.subscribe(
+        // Here we SUBSCRIBE to a topic
+        CompletableFuture<Subscription> f1 = mSession.subscribe(
                 "com.example.oncounter", this::onCounter, null);
 
-        counterRes.thenAccept(subscription -> System.out.println("subscribed to topic: " + subscription.topic));
+        f1.thenAccept(subscription ->
+            System.out.println("Subscribed to topic: " + subscription.topic)
+        );
+        f1.exceptionally(throwable -> {
+            System.out.println("ERROR - subscription failed: " + throwable.getMessage());
+            return null;
+        });
 
-        // Here we register a remote procedure.
-        CompletableFuture<Registration> regFuture = mSession.register(
+        // Here we REGISTER a procedure
+        CompletableFuture<Registration> f2 = mSession.register(
                 "com.example.add2", this::add2, null);
-        regFuture.thenAccept(registration -> System.out.println("Registered procedure: " + registration.procedure));
+        f2.thenAccept(registration ->
+            System.out.println("Registered procedure: " + registration.procedure)
+        );
+        f2.exceptionally(throwable -> {
+            System.out.println("ERROR - registration failed: " + throwable.getMessage());
+            return null;
+        });
     }
 
 
@@ -118,15 +135,15 @@ public class Service {
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
         executorService.scheduleAtFixedRate(() -> {
 
-            CompletableFuture<CallResult> result =
+            // here we CALL every second
+            CompletableFuture<CallResult> f =
                 mSession.call("com.example.add2", args, null, null);
 
-            result.thenAccept(callResult -> {
-                System.out.println("got result: " + callResult.results.get(0));
+            f.thenAccept(result -> {
+                System.out.println("got result: " + result.results.get(0));
             });
-
-            result.exceptionally(throwable -> {
-                System.out.println(throwable.getMessage());
+            f.exceptionally(throwable -> {
+                System.out.println("ERROR - call failed: " + throwable.getMessage());
                 return null;
             });
 
@@ -144,18 +161,30 @@ public class Service {
         argsCounter.add("Java");
 
         final int[] i = new int[1];
+
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
         executorService.scheduleAtFixedRate(() -> {
             argsCounter.add(0, i[0]);
-            CompletableFuture<Publication> pubFuture = mSession.publish(
+
+            // here we PUBLISH every second
+            CompletableFuture<Publication> f = mSession.publish(
                     "com.example.oncounter", argsCounter, null, options);
-            pubFuture.thenAccept(publication -> System.out.println("event published: " + publication.publication));
+
+            f.thenAccept(publication ->
+                System.out.println("event published: " + publication.publication)
+            );
+            f.exceptionally(throwable -> {
+                System.out.println("ERROR - publication failed: " + throwable.getMessage());
+                return null;
+            });
+
             argsCounter.remove(0);
             i[0] += 1;
         }, 0, 1, TimeUnit.SECONDS);
     }
 
 
+    // this procedure is registered and can be called remotely
     private CompletableFuture<InvocationResult> add2(List<Object> args, Map<String, Object> kwargs,
                                                      InvocationDetails details) {
         int res = (int) args.get(0) + (int) args.get(1);
@@ -166,6 +195,7 @@ public class Service {
     }
 
 
+    // this handler will process incoming events for the topic we subscribe it to
     private Void onCounter(List<Object> args, Map<String, Object> kwargs) {
         System.out.println("received counter: " + args.get(0));
         return null;
