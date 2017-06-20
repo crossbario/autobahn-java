@@ -61,7 +61,7 @@ public class Main {
             } else {
                 session.leave("wamp.leave.normal", "no errors, successfully ended");
             }
-        })
+        });
     }
 
     public static void main(String[] args) {
