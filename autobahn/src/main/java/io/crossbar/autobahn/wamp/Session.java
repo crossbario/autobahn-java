@@ -39,6 +39,7 @@ import io.crossbar.autobahn.wamp.messages.Result;
 import io.crossbar.autobahn.wamp.messages.Subscribe;
 import io.crossbar.autobahn.wamp.messages.Subscribed;
 import io.crossbar.autobahn.wamp.messages.Welcome;
+import io.crossbar.autobahn.wamp.messages.Yield;
 import io.crossbar.autobahn.wamp.requests.CallRequest;
 import io.crossbar.autobahn.wamp.requests.PublishRequest;
 import io.crossbar.autobahn.wamp.requests.RegisterRequest;
@@ -48,6 +49,7 @@ import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.CloseDetails;
 import io.crossbar.autobahn.wamp.types.IEventHandler;
 import io.crossbar.autobahn.wamp.types.IInvocationHandler;
+import io.crossbar.autobahn.wamp.types.InvocationResult;
 import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.PublishOptions;
 import io.crossbar.autobahn.wamp.types.RegisterOptions;
@@ -183,7 +185,6 @@ public class Session implements ISession, ITransportHandler {
                 Event msg = (Event) message;
                 List<Subscription> subscriptions = mSubscriptions.getOrDefault(msg.subscription, null);
                 if (subscriptions != null) {
-                    subscriptions.forEach(s -> s.handler.run(msg.args, msg.kwargs));
                     List<CompletableFuture<?>> futures = new ArrayList<>();
                     subscriptions.forEach(
                             subscription -> futures.add(
@@ -223,8 +224,12 @@ public class Session implements ISession, ITransportHandler {
                 Invocation msg = (Invocation) message;
                 Registration registration = mRegistrations.getOrDefault(msg.registration, null);
                 if (registration != null) {
-                    CompletableFuture.runAsync(
-                            () -> registration.endpoint.run(msg.args, msg.kwargs, null), getExecutor());
+                    CompletableFuture<InvocationResult> result = registration.endpoint.run(
+                            msg.args, msg.kwargs, null);
+                    result.thenAcceptAsync(
+                            invocationResult -> mTransport.send(
+                                    new Yield(msg.request, invocationResult.results, invocationResult.kwresults)),
+                            getExecutor());
                 } else {
                     throw new ProtocolError(String.format(
                             "INVOCATION received for non-registered registration ID %s", msg.registration));

@@ -51,7 +51,7 @@ public class Register implements IMessage {
             }
             this.match = match;
         } else {
-            this.match = MATCH_EXACT;
+            this.match = null;
         }
         if (invoke != null) {
             if (!Objects.equals(invoke, INVOKE_SINGLE) && !Objects.equals(invoke, INVOKE_FIRST) &&
