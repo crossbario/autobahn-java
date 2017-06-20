@@ -20,22 +20,28 @@ public class Main {
 
     public static void main(String[] args) {
 
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
         String url;
         if (args.length < 1) {
             url = "ws://localhost:8080/ws";
         } else {
             url = args[0];
         }
-        String realm = "realm1";
 
-        ExecutorService executor = Executors.newSingleThreadExecutor();
+        String realm;
+        if (args.length < 2) {
+            realm = "realm1";
+        } else {
+            realm = args[1];
+        }
 
-        EchoClient client = new EchoClient(executor, url, realm);
+        Service service = new Service(executor);
 
-        System.out.println("EchoClient.start() ...");
+        System.out.println("service.start() ...");
         System.out.println("----------------------");
 
-        int returnCode = client.start();
+        int returnCode = service.start(url, realm);
 
         System.out.println("----------------------");
         System.out.println(".. ended with return code " + returnCode);

@@ -133,6 +133,8 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public void onMessage(IMessage message) {
+        // System.out.println(message);
+
         if (mSessionID == 0) {
             if (message instanceof Welcome) {
                 mState = STATE_JOINED;
