@@ -63,11 +63,10 @@ class ClientSession(ApplicationSession):
 
             # CALL
             try:
-                res = yield self.call(u'com.example.add2', x, 3)
+                res = yield self.call(u'com.example.add', x, 3)
                 print('----------------------------')
-                self.log.info("add2 result: {result}",
-                result=res[0])
-                self.log.info("from component {id} ({type})", id=res[1], type=res[2])
+                self.log.info("add2 result: {result}", result=res.results[0])
+                # self.log.info("from component {id} ({type})", id=res[1], type=res[2])
                 x += 1
             except ApplicationError as e:
                 ## ignore errors due to the frontend not yet having

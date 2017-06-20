@@ -15,8 +15,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import io.crossbar.autobahn.wamp.Client;
 import io.crossbar.autobahn.wamp.NettyTransport;
@@ -26,8 +28,11 @@ import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
+import io.crossbar.autobahn.wamp.types.InvocationDetails;
+import io.crossbar.autobahn.wamp.types.InvocationResult;
 import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.PublishOptions;
+import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
 import io.crossbar.autobahn.wamp.types.Subscription;
 
@@ -35,8 +40,11 @@ import io.crossbar.autobahn.wamp.types.Subscription;
 public class EchoClient {
     private Client mClient;
     private Session mSession;
+    private ExecutorService mExecutor;
 
     public EchoClient(ExecutorService executor, String uri, String realm) {
+
+        mExecutor = executor;
 
         // first, we create a session object (that may or may not be reused)
         mSession = new Session(executor);
@@ -74,7 +82,7 @@ public class EchoClient {
     public void onJoinHandler(SessionDetails details) {
         System.out.println("JOINED 2: sessionID=" + details.sessionID + " on realm=" + details.realm);
 
-        // here we do an outoing remote call (WAMP RPC):
+        // here we do an outgoing remote call (WAMP RPC):
         List<Object> args = new ArrayList<>();
         args.add(2);
         args.add(3);
@@ -92,30 +100,46 @@ public class EchoClient {
             return null;
         });
 
+        // Here we subscribe to a remote procedure.
         CompletableFuture<Subscription> counterRes = mSession.subscribe(
                 "com.example.oncounter", this::onCounter, null);
 
         counterRes.thenAccept(subscription -> System.out.println("subscribed to topic: " + subscription.topic));
 
+        // Here we register a remote procedure.
+        CompletableFuture<Registration> regFuture = mSession.register(
+                "com.example.add", this::add2, null);
+        regFuture.thenAccept(registration -> System.out.println("Registered procedure: " + registration.procedure));
+
+        // Here we publish an event.
         PublishOptions options = new PublishOptions(true, true);
         List<Object> argsCounter = new ArrayList<>();
         argsCounter.add(details.sessionID);
         argsCounter.add("Java");
-        int i = 1;
-        while (true) {
-            argsCounter.add(0, i);
+        final int[] i = new int[1];
+        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+        executorService.scheduleAtFixedRate(() -> {
+            argsCounter.add(0, i[0]);
             CompletableFuture<Publication> pubFuture = mSession.publish(
                     "com.example.oncounter", argsCounter, null, options);
             pubFuture.thenAccept(publication -> System.out.println("published: " + publication.publication));
-            try {
-                pubFuture.get();
-                Thread.sleep(1000);
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
             argsCounter.remove(0);
-            i += 1;
-        }
+            i[0] += 1;
+        }, 0, 1, TimeUnit.SECONDS);
+    }
+
+    private CompletableFuture<InvocationResult> add2(List<Object> args, Map<String, Object> kwargs,
+                                                     InvocationDetails details) {
+        CompletableFuture<InvocationResult> future = new CompletableFuture<>();
+        CompletableFuture.supplyAsync(() -> {
+            int res = (int) args.get(0) + (int) args.get(1);
+            List<Object> arr = new ArrayList<>();
+            arr.add(res);
+            arr.add("Netty");
+            return new InvocationResult(arr);
+        }, mExecutor).thenApplyAsync(future::complete, mExecutor);
+        System.out.println("CALLED: " + args);
+        return future;
     }
 
     private Void onCounter(List<Object> args, Map<String, Object> kwargs) {
