@@ -95,8 +95,8 @@ public class EchoClient {
         counterRes.thenAccept(subscription -> System.out.println("subscribed to topic: " + subscription.topic));
     }
 
-    private Void onCounter(List<Object> objects, Map<String, Object> stringObjectMap) {
-        System.out.println("got counter: " + objects.get(0));
+    private Void onCounter(List<Object> args, Map<String, Object> kwargs) {
+        System.out.println("got counter: " + args.get(0));
         return null;
     }
 
