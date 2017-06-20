@@ -149,6 +149,8 @@ public class NettyTransport implements ITransport {
 
     @Override
     public void send(IMessage message) {
+        System.out.println("  >>> TX : " + message);
+
         byte[] data = mSerializer.serialize(message.marshal());
         WebSocketFrame frame = new BinaryWebSocketFrame(toByteBuf(data));
         mChannel.writeAndFlush(frame);

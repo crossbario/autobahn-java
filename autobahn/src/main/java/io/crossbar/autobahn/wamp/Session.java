@@ -133,7 +133,7 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public void onMessage(IMessage message) {
-        // System.out.println(message);
+        System.out.println("  <<< RX : " + message);
 
         if (mSessionID == 0) {
             if (message instanceof Welcome) {
@@ -225,13 +225,20 @@ public class Session implements ISession, ITransportHandler {
             } else if (message instanceof Invocation) {
                 Invocation msg = (Invocation) message;
                 Registration registration = mRegistrations.getOrDefault(msg.registration, null);
+
                 if (registration != null) {
+
                     CompletableFuture<InvocationResult> result = registration.endpoint.run(
                             msg.args, msg.kwargs, null);
-                    result.thenAcceptAsync(
-                            invocationResult -> mTransport.send(
-                                    new Yield(msg.request, invocationResult.results, invocationResult.kwresults)),
-                            getExecutor());
+
+                    result.whenCompleteAsync((invocationResult, invocationException) -> {
+                        if (invocationException != null) {
+                            System.out.println("FIXME: send call error: " + invocationException.getMessage());
+                        }
+                        else {
+                            mTransport.send(new Yield(msg.request, invocationResult.results, invocationResult.kwresults));
+                        }
+                    }, getExecutor());
                 } else {
                     throw new ProtocolError(String.format(
                             "INVOCATION received for non-registered registration ID %s", msg.registration));
