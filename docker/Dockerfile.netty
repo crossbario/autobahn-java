@@ -3,7 +3,7 @@ FROM ubuntu
 USER root
 
 ENV DEBIAN_FRONTEND noninteractive
-ENV GRADLE_VERSION 4.0-rc-3
+ENV GRADLE_VERSION 4.0
 
 WORKDIR /workspace
 
@@ -14,7 +14,7 @@ RUN    apt update \
 
 RUN    wget https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip \
     && mkdir /opt/gradle \
-    && unzip -d /opt/gradle gradle-4.0-rc-3-bin.zip \
+    && unzip -d /opt/gradle gradle-${GRADLE_VERSION}-bin.zip \
     && rm gradle-${GRADLE_VERSION}-bin.zip
 
 ENV PATH=$PATH:/opt/gradle/gradle-${GRADLE_VERSION}/bin
