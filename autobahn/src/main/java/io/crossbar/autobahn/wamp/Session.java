@@ -115,9 +115,6 @@ public class Session implements ISession, ITransportHandler {
     }
 
     public long getID() {
-        if (!isConnected()) {
-            throw new IllegalStateException("Session must be connected first.");
-        }
         return mSessionID;
     }
 
