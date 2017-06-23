@@ -98,7 +98,7 @@ public class Service {
     }
 
 
-    public void onJoinHandler1(SessionDetails details) {
+    public void onJoinHandler1(Session session, SessionDetails details) {
         System.out.println("onJoinHandler1 fired: sessionid=" + details.sessionID + ", authid=" + details.authid + ", realm=" + details.realm);
 
         // Here we SUBSCRIBE to a topic
@@ -127,7 +127,7 @@ public class Service {
     }
 
 
-    public void onJoinHandler2(SessionDetails details) {
+    public void onJoinHandler2(Session session, SessionDetails details) {
         System.out.println("onJoinHandler2 fired");
 
         List<Object> args = new ArrayList<>();
@@ -153,7 +153,7 @@ public class Service {
     }
 
 
-    public void onJoinHandler3(SessionDetails details) {
+    public void onJoinHandler3(Session session, SessionDetails details) {
         System.out.println("onJoinHandler3 fired");
 
         PublishOptions options = new PublishOptions(true, false);
