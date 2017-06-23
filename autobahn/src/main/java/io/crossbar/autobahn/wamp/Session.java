@@ -144,7 +144,8 @@ public class Session implements ISession, ITransportHandler {
                 List<CompletableFuture<?>> futures = new ArrayList<>();
                 mOnJoinListeners.forEach(
                         listener -> futures.add(
-                                CompletableFuture.runAsync(() -> listener.onJoin(details), getExecutor())));
+                                CompletableFuture.runAsync(() -> listener.onJoin(this, details),
+                                        getExecutor())));
                 CompletableFuture d = combineFutures(futures);
                 d.thenRunAsync(() -> {
                     mState = STATE_READY;

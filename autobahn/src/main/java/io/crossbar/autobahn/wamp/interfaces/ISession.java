@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.CloseDetails;
@@ -51,7 +52,7 @@ public interface ISession {
     boolean isConnected();
 
     interface OnJoinListener {
-        void onJoin(SessionDetails details);
+        void onJoin(Session session, SessionDetails details);
     }
 
     interface OnReadyListener {
