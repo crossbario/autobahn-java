@@ -56,23 +56,23 @@ public interface ISession {
     }
 
     interface OnReadyListener {
-        void onReady();
+        void onReady(Session session);
     }
 
     interface OnLeaveListener {
-        void onLeave(CloseDetails details);
+        void onLeave(Session session, CloseDetails details);
     }
 
     interface OnConnectListener {
-        void onConnect();
+        void onConnect(Session session);
     }
 
     interface OnDisconnectListener {
-        void onDisconnect(boolean wasClean);
+        void onDisconnect(Session session, boolean wasClean);
     }
 
     // FIXME: come up with an equivalent of txaio.IFailedFuture as first arg.
     interface OnUserErrorListener {
-        void onUserError(String message);
+        void onUserError(Session session, String message);
     }
 }
