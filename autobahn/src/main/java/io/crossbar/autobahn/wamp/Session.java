@@ -49,6 +49,7 @@ import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.CloseDetails;
 import io.crossbar.autobahn.wamp.types.IEventHandler;
 import io.crossbar.autobahn.wamp.types.IInvocationHandler;
+import io.crossbar.autobahn.wamp.types.InvocationDetails;
 import io.crossbar.autobahn.wamp.types.InvocationResult;
 import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.PublishOptions;
@@ -229,8 +230,10 @@ public class Session implements ISession, ITransportHandler {
 
                 if (registration != null) {
 
+                    InvocationDetails details = new InvocationDetails(
+                            registration, registration.procedure, -1, null, null, this);
                     CompletableFuture<InvocationResult> result = registration.endpoint.run(
-                            msg.args, msg.kwargs, null);
+                            msg.args, msg.kwargs, details);
 
                     result.whenCompleteAsync((invocationResult, invocationException) -> {
                         if (invocationException != null) {
