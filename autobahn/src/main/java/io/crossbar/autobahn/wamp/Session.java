@@ -114,6 +114,10 @@ public class Session implements ISession, ITransportHandler {
         mExecutor = executor;
     }
 
+    public long getID() {
+        return mSessionID;
+    }
+
     private ExecutorService getExecutor() {
         if (mExecutor == null) {
             mExecutor = ForkJoinPool.commonPool();
@@ -129,7 +133,8 @@ public class Session implements ISession, ITransportHandler {
 //            throw new Exception("already connected");
         }
         mTransport = transport;
-        mOnConnectListeners.forEach(OnConnectListener::onConnect);
+        // FIXME: should be async.
+        mOnConnectListeners.forEach(onConnectListener -> onConnectListener.onConnect(this));
     }
 
     @Override
@@ -150,7 +155,7 @@ public class Session implements ISession, ITransportHandler {
                 CompletableFuture d = combineFutures(futures);
                 d.thenRunAsync(() -> {
                     mState = STATE_READY;
-                    mOnReadyListeners.forEach(OnReadyListener::onReady);
+                    mOnReadyListeners.forEach(listener -> listener.onReady(this));
                 }, getExecutor());
             } else {
                 // with (mSessionID == 0), we can only receive
@@ -252,7 +257,7 @@ public class Session implements ISession, ITransportHandler {
                 List<CompletableFuture<?>> futures = new ArrayList<>();
                 mOnLeaveListeners.forEach(
                         l -> futures.add(
-                                CompletableFuture.runAsync(() -> l.onLeave(details), getExecutor())));
+                                CompletableFuture.runAsync(() -> l.onLeave(this, details), getExecutor())));
                 CompletableFuture d = combineFutures(futures);
                 d.thenRun(() -> {
                     System.out.println("CLOSED NOW");
@@ -297,7 +302,7 @@ public class Session implements ISession, ITransportHandler {
         List<CompletableFuture<?>> futures = new ArrayList<>();
         mOnDisconnectListeners.forEach(
                 l -> futures.add(
-                        CompletableFuture.runAsync(() -> l.onDisconnect(wasClean), getExecutor())));
+                        CompletableFuture.runAsync(() -> l.onDisconnect(this, wasClean), getExecutor())));
         CompletableFuture d = combineFutures(futures);
         d.thenRun(() -> {
             System.out.println("DISCONNECTED NOW");

@@ -57,8 +57,8 @@ public class Client {
 
     public CompletableFuture<ExitInfo> connect() {
         CompletableFuture<ExitInfo> exitFuture = new CompletableFuture<>();
-        mSession.addOnConnectListener(() -> mSession.join(mRealm, null));
-        mSession.addOnDisconnectListener(wasClean -> exitFuture.complete(new ExitInfo(wasClean)));
+        mSession.addOnConnectListener((session) -> mSession.join(mRealm, null));
+        mSession.addOnDisconnectListener((session, wasClean) -> exitFuture.complete(new ExitInfo(wasClean)));
         // FIXME: Add error handling but it probably depends on refactoring of the transport.
         CompletableFuture.runAsync(() -> mTransports.get(0).connect(mSession), getExecutor());
         return exitFuture;
