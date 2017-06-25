@@ -174,7 +174,7 @@ public class Session implements ISession, ITransportHandler {
                     if (request.resultType == null) {
                         request.onReply.complete(new CallResult(msg.args, msg.kwargs));
                     } else {
-                        // Basically convert the List<Object> that came Transport
+                        // Basically convert the List<Object> that came from Transport
                         // to List<request.resultType>
                         request.onReply.complete(
                                 serializer.unserialize(serializer.serialize(msg.args),
