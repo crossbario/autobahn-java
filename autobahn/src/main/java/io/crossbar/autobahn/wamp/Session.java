@@ -171,7 +171,7 @@ public class Session implements ISession, ITransportHandler {
                 CallRequest request = mCallRequests.getOrDefault(msg.request, null);
                 if (request != null) {
                     mCallRequests.remove(msg.request);
-                    if (request.resultType == null) {
+                    if (request.resultType == CallResult.class) {
                         request.onReply.complete(new CallResult(msg.args, msg.kwargs));
                     } else {
                         // Basically convert the List<Object> that came from Transport
@@ -375,27 +375,8 @@ public class Session implements ISession, ITransportHandler {
         return future;
     }
 
-    @Override
-    public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
-                                              CallOptions options) {
-        // FIXME: remove code duplication.
-        if (!isConnected()) {
-            throw new IllegalStateException("The transport must be connected first");
-        }
-        CompletableFuture<CallResult> future = new CompletableFuture<>();
-        long requestID = mIDGenerator.next();
-        mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options));
-        if (options == null) {
-            mTransport.send(new Call(requestID, procedure, args, kwargs, 0));
-        } else {
-            mTransport.send(new Call(requestID, procedure, args, kwargs, options.timeout));
-        }
-        return future;
-    }
-
-    @Override
-    public <T> CompletableFuture<T> call(String procedure, List<Object> args, Map<String, Object> kwargs,
-                                         Class<T> resultType, CallOptions options) {
+    private <T> CompletableFuture<T> reallyCall(String procedure, List<Object> args, Map<String, Object> kwargs,
+                                                Class<T> resultType, CallOptions options) {
         if (!isConnected()) {
             throw new IllegalStateException("The transport must be connected first");
         }
@@ -408,6 +389,18 @@ public class Session implements ISession, ITransportHandler {
             mTransport.send(new Call(requestID, procedure, args, kwargs, options.timeout));
         }
         return future;
+    }
+
+    @Override
+    public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
+                                              CallOptions options) {
+        return reallyCall(procedure, args, kwargs, CallResult.class, options);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(String procedure, List<Object> args, Map<String, Object> kwargs,
+                                         Class<T> resultType, CallOptions options) {
+        return reallyCall(procedure, args, kwargs, resultType, options);
     }
 
     @Override
