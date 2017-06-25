@@ -174,8 +174,11 @@ public class Session implements ISession, ITransportHandler {
                     if (request.resultType == null) {
                         request.onReply.complete(new CallResult(msg.args, msg.kwargs));
                     } else {
-                        // XXXXX - Here is a problem:
-                        // the Result object here is already serialized of the format.
+                        // Basically convert the List<Object> that came Transport
+                        // to List<request.resultType>
+                        request.onReply.complete(
+                                serializer.unserialize(serializer.serialize(msg.args),
+                                        true, request.resultType));
                     }
                 } else {
                     throw new ProtocolError(String.format(
