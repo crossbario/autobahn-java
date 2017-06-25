@@ -22,6 +22,7 @@ import java.util.concurrent.ForkJoinPool;
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
+import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 import io.crossbar.autobahn.wamp.interfaces.ISession;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
@@ -138,7 +139,7 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
-    public void onMessage(IMessage message) {
+    public void onMessage(IMessage message, ISerializer serializer) {
         System.out.println("  <<< RX : " + message);
 
         if (mSessionID == 0) {
@@ -173,7 +174,8 @@ public class Session implements ISession, ITransportHandler {
                     if (request.resultType == null) {
                         request.onReply.complete(new CallResult(msg.args, msg.kwargs));
                     } else {
-                        // XXXXX - Use serializer here ?
+                        // XXXXX - Here is a problem:
+                        // the Result object here is already serialized of the format.
                     }
                 } else {
                     throw new ProtocolError(String.format(

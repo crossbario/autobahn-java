@@ -17,7 +17,7 @@ public interface ITransportHandler {
 
     void onConnect(ITransport transport);
 
-    void onMessage(IMessage message);
+    void onMessage(IMessage message, ISerializer serializer);
 
     void onDisconnect(boolean wasClean);
 

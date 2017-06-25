@@ -47,4 +47,14 @@ public class CBORSerializer implements ISerializer {
             return null;
         }
     }
+
+    @Override
+    public <T> T unserialize(byte[] payload, boolean isBinary, Class<T> Klass) {
+        try {
+            return mMapper.readValue(payload, Klass);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }
