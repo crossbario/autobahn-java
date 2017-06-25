@@ -45,6 +45,12 @@ public interface ISession {
                                        Map<String, Object> kwargs,
                                        CallOptions options);
 
+    <T> CompletableFuture<T> call(String procedure,
+                                  List<Object> args,
+                                  Map<String, Object> kwargs,
+                                  Class<T> resultType,
+                                  CallOptions options);
+
     CompletableFuture<SessionDetails> join(String realm, List<String> authMethods);
 
     void leave(String reason, String message);

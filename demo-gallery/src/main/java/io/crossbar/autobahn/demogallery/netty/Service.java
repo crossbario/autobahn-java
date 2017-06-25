@@ -202,4 +202,22 @@ public class Service {
         System.out.println("received counter: " + args.get(0));
         return null;
     }
+
+    private void test() {
+        CompletableFuture<RandomClass> out = mSession.call("ssasa", null, null, RandomClass.class, null);
+        out.thenAcceptAsync(randomClass -> {
+            System.out.println(randomClass.firstName);
+            System.out.println(randomClass.fatherName);
+        });
+    }
+
+    private class RandomClass {
+        int firstName;
+        int fatherName;
+
+        public RandomClass(int firstName, int fatherName) {
+            this.firstName = firstName;
+            this.fatherName = fatherName;
+        }
+    }
 }

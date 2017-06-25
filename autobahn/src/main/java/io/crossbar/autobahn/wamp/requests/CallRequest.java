@@ -14,18 +14,27 @@ package io.crossbar.autobahn.wamp.requests;
 import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.types.CallOptions;
-import io.crossbar.autobahn.wamp.types.CallResult;
 
 public class CallRequest extends Request {
     public final String procedure;
     public final CallOptions options;
-    public final CompletableFuture<CallResult> onReply;
+    public final CompletableFuture onReply;
+    public final Class resultType;
 
-    public CallRequest(long request, String procedure, CompletableFuture<CallResult> onReply,
-                       CallOptions options) {
+    public <T> CallRequest(long request, String procedure, CompletableFuture<T> onReply, CallOptions options) {
         super(request);
         this.procedure = procedure;
         this.options = options;
         this.onReply = onReply;
+        this.resultType = null;
+    }
+
+    public CallRequest(long request, String procedure, CompletableFuture onReply, CallOptions options,
+                       Class resultType) {
+        super(request);
+        this.procedure = procedure;
+        this.options = options;
+        this.onReply = onReply;
+        this.resultType = resultType;
     }
 }
