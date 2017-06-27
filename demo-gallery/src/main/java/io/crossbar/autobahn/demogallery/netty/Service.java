@@ -204,20 +204,30 @@ public class Service {
     }
 
     private void test() {
-        CompletableFuture<RandomClass> out = mSession.call("ssasa", null, null, RandomClass.class, null);
-        out.thenAcceptAsync(randomClass -> {
+        CompletableFuture<List<RandomClass>> r = mSession.call(
+                "com.example.pojo", null, null, RandomClass.class, null);
+        r.thenAcceptAsync(randomClasses -> randomClasses.forEach(randomClass -> {
             System.out.println(randomClass.firstName);
-            System.out.println(randomClass.fatherName);
+            System.out.println(randomClass.lastName);
+        }), mExecutor);
+        r.exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
         });
     }
 
-    private class RandomClass {
-        int firstName;
-        int fatherName;
+    // XXXX - For demonstration purpose only, to be removed.
+    static class RandomClass {
+        public String firstName;
+        public String lastName;
 
-        public RandomClass(int firstName, int fatherName) {
+        public RandomClass() {
+
+        }
+
+        public RandomClass(String firstName, String lastName) {
             this.firstName = firstName;
-            this.fatherName = fatherName;
+            this.lastName = lastName;
         }
     }
 }

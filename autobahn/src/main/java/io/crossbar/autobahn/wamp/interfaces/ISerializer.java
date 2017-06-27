@@ -19,6 +19,6 @@ public interface ISerializer {
 
     List<Object> unserialize(byte[] payload, boolean isBinary);
 
-    <T> T unserialize(byte[] payload, boolean isBinary, Class<T> Klass);
+    <T> T unserialize(byte[] payload, boolean isBinary, Class<?> collectionClass, Class<?>... subclasses);
 
 }

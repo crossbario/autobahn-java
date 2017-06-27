@@ -176,9 +176,8 @@ public class Session implements ISession, ITransportHandler {
                     } else {
                         // Basically convert the List<Object> that came from Transport
                         // to List<request.resultType>
-                        request.onReply.complete(
-                                serializer.unserialize(serializer.serialize(msg.args),
-                                        true, request.resultType));
+                        request.onReply.complete(serializer.unserialize(
+                                serializer.serialize(msg.args), true, List.class, request.resultType));
                     }
                 } else {
                     throw new ProtocolError(String.format(
@@ -375,14 +374,15 @@ public class Session implements ISession, ITransportHandler {
         return future;
     }
 
-    private <T> CompletableFuture<T> reallyCall(String procedure, List<Object> args, Map<String, Object> kwargs,
-                                                Class<T> resultType, CallOptions options) {
+    @Override
+    public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
+                                              CallOptions options) {
         if (!isConnected()) {
             throw new IllegalStateException("The transport must be connected first");
         }
-        CompletableFuture<T> future = new CompletableFuture<>();
+        CompletableFuture<CallResult> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
-        mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options, resultType));
+        mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options, CallResult.class));
         if (options == null) {
             mTransport.send(new Call(requestID, procedure, args, kwargs, 0));
         } else {
@@ -392,15 +392,20 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
-    public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
-                                              CallOptions options) {
-        return reallyCall(procedure, args, kwargs, CallResult.class, options);
-    }
-
-    @Override
-    public <T> CompletableFuture<T> call(String procedure, List<Object> args, Map<String, Object> kwargs,
-                                         Class<T> resultType, CallOptions options) {
-        return reallyCall(procedure, args, kwargs, resultType, options);
+    public <T> CompletableFuture<List<T>> call(String procedure, List<Object> args, Map<String, Object> kwargs,
+                                               Class<T> resultType, CallOptions options) {
+        if (!isConnected()) {
+            throw new IllegalStateException("The transport must be connected first");
+        }
+        CompletableFuture<List<T>> future = new CompletableFuture<>();
+        long requestID = mIDGenerator.next();
+        mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options, resultType));
+        if (options == null) {
+            mTransport.send(new Call(requestID, procedure, args, kwargs, 0));
+        } else {
+            mTransport.send(new Call(requestID, procedure, args, kwargs, options.timeout));
+        }
+        return future;
     }
 
     @Override
