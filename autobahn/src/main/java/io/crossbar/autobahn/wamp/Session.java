@@ -16,6 +16,7 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -401,27 +402,14 @@ public class Session implements ISession, ITransportHandler {
         return future;
     }
 
-    @Override
-    public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
-                                              CallOptions options) {
-        if (!isConnected()) {
-            throw new IllegalStateException("The transport must be connected first");
+    private <T> CompletableFuture<T> reallyCall(String procedure, List<Object> args, Map<String, Object> kwargs,
+                             CallOptions options, TypeReference<T> resultType, Object... posArgs) {
+        if (args != null && posArgs != null) {
+            throw new IllegalArgumentException("Pass only one of args or posArgs");
         }
-        CompletableFuture<CallResult> future = new CompletableFuture<>();
-        long requestID = mIDGenerator.next();
-        TypeReference<CallResult> resultType = new TypeReference<CallResult>() {};
-        mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options, resultType));
-        if (options == null) {
-            mTransport.send(new Call(requestID, procedure, args, kwargs, 0));
-        } else {
-            mTransport.send(new Call(requestID, procedure, args, kwargs, options.timeout));
+        if (posArgs != null) {
+            args = Arrays.asList(posArgs);
         }
-        return future;
-    }
-
-    @Override
-    public <T> CompletableFuture<T> call(String procedure, List<Object> args, Map<String, Object> kwargs,
-                                         TypeReference<T> resultType, CallOptions options) {
         if (!isConnected()) {
             throw new IllegalStateException("The transport must be connected first");
         }
@@ -434,6 +422,24 @@ public class Session implements ISession, ITransportHandler {
             mTransport.send(new Call(requestID, procedure, args, kwargs, options.timeout));
         }
         return future;
+    }
+
+    @Override
+    public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
+                                              CallOptions options) {
+        return reallyCall(procedure, args, kwargs, options, new TypeReference<CallResult>() {});
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(String procedure, TypeReference<T> resultType, CallOptions options,
+                                         Object... args) {
+        return reallyCall(procedure, null, null, options, resultType, args);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(String procedure, List<Object> args, Map<String, Object> kwargs,
+                                         TypeReference<T> resultType, CallOptions options) {
+        return reallyCall(procedure, args, kwargs, options, resultType);
     }
 
     @Override

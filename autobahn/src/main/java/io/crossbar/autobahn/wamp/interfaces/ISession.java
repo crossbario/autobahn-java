@@ -48,6 +48,11 @@ public interface ISession {
                                        CallOptions options);
 
     <T> CompletableFuture<T> call(String procedure,
+                                  TypeReference<T> resultType,
+                                  CallOptions options,
+                                  Object... args);
+
+    <T> CompletableFuture<T> call(String procedure,
                                   List<Object> args,
                                   Map<String, Object> kwargs,
                                   TypeReference<T> resultType,
