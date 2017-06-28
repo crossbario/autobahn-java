@@ -75,7 +75,7 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
         if (!mHandshaker.isHandshakeComplete()) {
             mHandshaker.finishHandshake(ch, (FullHttpResponse) msg);
             mHandshakeFuture.setSuccess();
-            mTransportHandler.onConnect(mTransport);
+            mTransportHandler.onConnect(mTransport, mSerializer);
             return;
         }
 
@@ -92,7 +92,7 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
             byte[] output = new byte[binaryWebSocketFrame.content().readableBytes()];
             binaryWebSocketFrame.content().readBytes(output);
             List<Object> message = mSerializer.unserialize(output, true);
-            mTransportHandler.onMessage(getMessageObject(message), mSerializer);
+            mTransportHandler.onMessage(getMessageObject(message));
         } else if (frame instanceof CloseWebSocketFrame) {
             ch.close();
         }

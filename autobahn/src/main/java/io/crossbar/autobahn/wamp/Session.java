@@ -73,6 +73,7 @@ public class Session implements ISession, ITransportHandler {
     private final int STATE_ABORT_SENT = 7;
 
     private ITransport mTransport;
+    private ISerializer mSerializer;
     private ExecutorService mExecutor;
 
     private final ArrayList<OnJoinListener> mOnJoinListeners;
@@ -127,19 +128,20 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
-    public void onConnect(ITransport transport) {
+    public void onConnect(ITransport transport, ISerializer serializer) {
         System.out.println("Session.onConnect");
         if (mTransport != null) {
             // Now allowed to throw here, find a better way.
 //            throw new Exception("already connected");
         }
         mTransport = transport;
+        mSerializer = serializer;
         // FIXME: should be async.
         mOnConnectListeners.forEach(onConnectListener -> onConnectListener.onConnect(this));
     }
 
     @Override
-    public void onMessage(IMessage message, ISerializer serializer) {
+    public void onMessage(IMessage message) {
         System.out.println("  <<< RX : " + message);
 
         if (mSessionID == 0) {
@@ -176,8 +178,8 @@ public class Session implements ISession, ITransportHandler {
                     } else {
                         // Basically convert the List<Object> that came from Transport
                         // to List<request.resultType>
-                        request.onReply.complete(serializer.unserialize(
-                                serializer.serialize(msg.args), true, List.class, request.resultType));
+                        request.onReply.complete(mSerializer.unserialize(
+                                mSerializer.serialize(msg.args), true, List.class, request.resultType));
                     }
                 } else {
                     throw new ProtocolError(String.format(
