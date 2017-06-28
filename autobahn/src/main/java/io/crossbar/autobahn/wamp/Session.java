@@ -61,6 +61,8 @@ import io.crossbar.autobahn.wamp.types.SubscribeOptions;
 import io.crossbar.autobahn.wamp.types.Subscription;
 import io.crossbar.autobahn.wamp.utils.IDGenerator;
 
+import static io.crossbar.autobahn.wamp.messages.MessageMap.MESSAGE_TYPE_MAP;
+
 
 public class Session implements ISession, ITransportHandler {
 
@@ -127,6 +129,12 @@ public class Session implements ISession, ITransportHandler {
         return mExecutor;
     }
 
+    private IMessage getMessageObject(List<Object> rawMessage) throws Exception {
+        int messageType = (int) rawMessage.get(0);
+        Class<? extends IMessage> messageKlass = MESSAGE_TYPE_MAP.get(messageType);
+        return (IMessage) messageKlass.getMethod("parse", List.class).invoke(null, rawMessage);
+    }
+
     @Override
     public void onConnect(ITransport transport, ISerializer serializer) {
         System.out.println("Session.onConnect");
@@ -141,8 +149,16 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
-    public void onMessage(IMessage message) {
-        System.out.println("  <<< RX : " + message);
+    public void onMessage(byte[] rawMessage) {
+        System.out.println("  <<< RX : " + rawMessage);
+        List<Object> incoming = mSerializer.unserialize(rawMessage, true);
+        IMessage message;
+        try {
+            message = getMessageObject(incoming);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
 
         if (mSessionID == 0) {
             if (message instanceof Welcome) {
