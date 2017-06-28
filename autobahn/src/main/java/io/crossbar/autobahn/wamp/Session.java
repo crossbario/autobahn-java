@@ -198,15 +198,18 @@ public class Session implements ISession, ITransportHandler {
                 if (request != null) {
                     mCallRequests.remove(requestID);
                     if (request.resultType == CallResult.class) {
-                        List<Object> incoming = mSerializer.unserialize(rawMessage, true);
-                        Result msg = Result.parse(incoming);
+                        Result msg = (Result) message;
                         request.onReply.complete(new CallResult(msg.args, msg.kwargs));
                     } else {
                         TypeReference<Map<String, Object>> detailsType = new TypeReference<Map<String, Object>>() {};
                         @SuppressWarnings("Variable unused for now.")
                         Map<String, Object> details = parser.readValueAs(detailsType);
 
-                        // We want to slice out the bytes from the raw message
+                        // We want to slice out the bytes from the raw message.
+                        // There might be a better way to do this, need to investigate.
+                        // JsonParser.readValueAs does not take JavaType as a parameter,
+                        // due to that we to unserialize using the ObjectMapper because
+                        // JavaType is the only class that support dynamic type definition.
                         int argsOffsetStart = (int) parser.getCurrentLocation().getByteOffset();
                         while (parser.nextToken() != JsonToken.END_ARRAY) {}
                         int argsOffsetEnd = (int) parser.getCurrentLocation().getByteOffset();
