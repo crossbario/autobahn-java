@@ -16,7 +16,6 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -197,7 +196,7 @@ public class Session implements ISession, ITransportHandler {
                 CallRequest request = mCallRequests.getOrDefault(requestID, null);
                 if (request != null) {
                     mCallRequests.remove(requestID);
-                    if (request.resultType == CallResult.class) {
+                    if (request.resultType.getType() == CallResult.class) {
                         Result msg = (Result) message;
                         request.onReply.complete(new CallResult(msg.args, msg.kwargs));
                     } else {
@@ -205,18 +204,7 @@ public class Session implements ISession, ITransportHandler {
                         @SuppressWarnings("Variable unused for now.")
                         Map<String, Object> details = parser.readValueAs(detailsType);
 
-                        // We want to slice out the bytes from the raw message.
-                        // There might be a better way to do this, need to investigate.
-                        // JsonParser.readValueAs does not take JavaType as a parameter,
-                        // due to that we to unserialize using the ObjectMapper because
-                        // JavaType is the only class that support dynamic type definition.
-                        int argsOffsetStart = (int) parser.getCurrentLocation().getByteOffset();
-                        while (parser.nextToken() != JsonToken.END_ARRAY) {}
-                        int argsOffsetEnd = (int) parser.getCurrentLocation().getByteOffset();
-                        byte[] args = Arrays.copyOfRange(rawMessage, argsOffsetStart, argsOffsetEnd);
-
-                        request.onReply.complete(mSerializer.unserialize(
-                                args, true, List.class, request.resultType));
+                        request.onReply.complete(parser.readValueAs(request.resultType));
                     }
                 } else {
                     throw new ProtocolError(String.format(
@@ -421,7 +409,8 @@ public class Session implements ISession, ITransportHandler {
         }
         CompletableFuture<CallResult> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
-        mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options, CallResult.class));
+        TypeReference<CallResult> resultType = new TypeReference<CallResult>() {};
+        mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options, resultType));
         if (options == null) {
             mTransport.send(new Call(requestID, procedure, args, kwargs, 0));
         } else {
@@ -431,12 +420,12 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
-    public <T> CompletableFuture<List<T>> call(String procedure, List<Object> args, Map<String, Object> kwargs,
-                                               Class<T> resultType, CallOptions options) {
+    public <T> CompletableFuture<T> call(String procedure, List<Object> args, Map<String, Object> kwargs,
+                                         TypeReference<T> resultType, CallOptions options) {
         if (!isConnected()) {
             throw new IllegalStateException("The transport must be connected first");
         }
-        CompletableFuture<List<T>> future = new CompletableFuture<>();
+        CompletableFuture<T> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
         mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options, resultType));
         if (options == null) {

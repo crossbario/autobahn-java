@@ -11,6 +11,8 @@
 
 package io.crossbar.autobahn.wamp.requests;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.types.CallOptions;
@@ -19,10 +21,10 @@ public class CallRequest extends Request {
     public final String procedure;
     public final CallOptions options;
     public final CompletableFuture onReply;
-    public final Class resultType;
+    public final TypeReference resultType;
 
     public CallRequest(long request, String procedure, CompletableFuture onReply, CallOptions options,
-                       Class resultType) {
+                       TypeReference resultType) {
         super(request);
         this.procedure = procedure;
         this.options = options;

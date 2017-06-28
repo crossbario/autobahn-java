@@ -11,6 +11,8 @@
 
 package io.crossbar.autobahn.demogallery.netty;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -206,8 +208,9 @@ public class Service {
     }
 
     private void test() {
+        TypeReference<List<RandomClass>> resultType = new TypeReference<List<RandomClass>>() {};
         CompletableFuture<List<RandomClass>> r = mSession.call(
-                "com.example.pojo", null, null, RandomClass.class, null);
+                "com.example.pojo", null, null, resultType, null);
         r.thenAcceptAsync(randomClasses -> randomClasses.forEach(randomClass -> {
             System.out.println(randomClass.firstName);
             System.out.println(randomClass.lastName);
