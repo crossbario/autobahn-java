@@ -11,11 +11,12 @@
 
 package io.crossbar.autobahn.wamp;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
-import com.fasterxml.jackson.dataformat.cbor.CBORParser;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -152,27 +153,23 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
-    public void onMessage(byte[] rawMessage) {
+    public void onMessage(byte[] rawMessage) throws Exception {
+        int messageTypeID;
         IMessage message;
-        CBORFactory cborFactory = new CBORFactory();
-        CBORParser parser;
-        try {
-            parser = cborFactory.createParser(rawMessage);
-            if (parser.nextToken() == JsonToken.START_ARRAY && parser.nextToken() == JsonToken.VALUE_NUMBER_INT) {
-                List<Object> incoming = mSerializer.unserialize(rawMessage, true);
-                message = getMessageObject(parser.getIntValue(), incoming);
-            } else {
-                throw new ProtocolError("Invalid message received");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return;
+        JsonParser parser = mSerializer.getParser(rawMessage);
+        if (parser.nextToken() == JsonToken.START_ARRAY
+                && parser.nextToken() == JsonToken.VALUE_NUMBER_INT) {
+            List<Object> incoming = mSerializer.unserialize(rawMessage, true);
+            messageTypeID = parser.getIntValue();
+            message = getMessageObject(messageTypeID, incoming);
+        } else {
+            throw new ProtocolError("Invalid message received");
         }
 
         if (mSessionID == 0) {
-            if (message instanceof Welcome) {
-                mState = STATE_JOINED;
+            if (messageTypeID == Welcome.MESSAGE_TYPE) {
                 Welcome msg = (Welcome) message;
+                mState = STATE_JOINED;
                 mSessionID = msg.session;
                 SessionDetails details = new SessionDetails(msg.realm, msg.session);
                 List<CompletableFuture<?>> futures = new ArrayList<>();
@@ -193,22 +190,34 @@ public class Session implements ISession, ITransportHandler {
             }
         } else {
             // Now that we have an active session handle all incoming messages here.
-            if (message instanceof Result) {
-                Result msg = (Result) message;
-                CallRequest request = mCallRequests.getOrDefault(msg.request, null);
+            if (messageTypeID == Result.MESSAGE_TYPE) {
+                parser.nextToken();
+                long requestID = parser.readValueAs(long.class);
+
+                CallRequest request = mCallRequests.getOrDefault(requestID, null);
                 if (request != null) {
-                    mCallRequests.remove(msg.request);
+                    mCallRequests.remove(requestID);
                     if (request.resultType == CallResult.class) {
+                        List<Object> incoming = mSerializer.unserialize(rawMessage, true);
+                        Result msg = Result.parse(incoming);
                         request.onReply.complete(new CallResult(msg.args, msg.kwargs));
                     } else {
-                        // Basically convert the List<Object> that came from Transport
-                        // to List<request.resultType>
+                        TypeReference<Map<String, Object>> detailsType = new TypeReference<Map<String, Object>>() {};
+                        @SuppressWarnings("Variable unused for now.")
+                        Map<String, Object> details = parser.readValueAs(detailsType);
+
+                        // We want to slice out the bytes from the raw message
+                        int argsOffsetStart = (int) parser.getCurrentLocation().getByteOffset();
+                        while (parser.nextToken() != JsonToken.END_ARRAY) {}
+                        int argsOffsetEnd = (int) parser.getCurrentLocation().getByteOffset();
+                        byte[] args = Arrays.copyOfRange(rawMessage, argsOffsetStart, argsOffsetEnd);
+
                         request.onReply.complete(mSerializer.unserialize(
-                                mSerializer.serialize(msg.args), true, List.class, request.resultType));
+                                args, true, List.class, request.resultType));
                     }
                 } else {
                     throw new ProtocolError(String.format(
-                            "RESULT received for non-pending request ID %s", msg.request));
+                            "RESULT received for non-pending request ID %s", requestID));
                 }
             } else if (message instanceof Subscribed) {
                 Subscribed msg = (Subscribed) message;

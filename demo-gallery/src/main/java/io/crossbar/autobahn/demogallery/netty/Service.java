@@ -134,6 +134,8 @@ public class Service {
         args.add(2);
         args.add(3);
 
+        test();
+
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
         executorService.scheduleAtFixedRate(() -> {
 

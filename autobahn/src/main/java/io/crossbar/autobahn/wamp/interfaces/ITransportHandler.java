@@ -17,7 +17,7 @@ public interface ITransportHandler {
 
     void onConnect(ITransport transport, ISerializer serializer);
 
-    void onMessage(byte[] rawMessage);
+    void onMessage(byte[] rawMessage) throws Exception;
 
     void onDisconnect(boolean wasClean);
 
