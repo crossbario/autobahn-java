@@ -11,6 +11,10 @@
 
 package io.crossbar.autobahn.wamp;
 
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
+import com.fasterxml.jackson.dataformat.cbor.CBORParser;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -129,8 +133,7 @@ public class Session implements ISession, ITransportHandler {
         return mExecutor;
     }
 
-    private IMessage getMessageObject(List<Object> rawMessage) throws Exception {
-        int messageType = (int) rawMessage.get(0);
+    private IMessage getMessageObject(int messageType, List<Object> rawMessage) throws Exception {
         Class<? extends IMessage> messageKlass = MESSAGE_TYPE_MAP.get(messageType);
         return (IMessage) messageKlass.getMethod("parse", List.class).invoke(null, rawMessage);
     }
@@ -150,11 +153,17 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public void onMessage(byte[] rawMessage) {
-        System.out.println("  <<< RX : " + rawMessage);
-        List<Object> incoming = mSerializer.unserialize(rawMessage, true);
         IMessage message;
+        CBORFactory cborFactory = new CBORFactory();
+        CBORParser parser;
         try {
-            message = getMessageObject(incoming);
+            parser = cborFactory.createParser(rawMessage);
+            if (parser.nextToken() == JsonToken.START_ARRAY && parser.nextToken() == JsonToken.VALUE_NUMBER_INT) {
+                List<Object> incoming = mSerializer.unserialize(rawMessage, true);
+                message = getMessageObject(parser.getIntValue(), incoming);
+            } else {
+                throw new ProtocolError("Invalid message received");
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return;
