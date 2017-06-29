@@ -214,27 +214,12 @@ public class Session implements ISession, ITransportHandler {
                     mCallRequests.remove(msg.request);
 
                     if (request.resultType != null) {
-/*
-                        if (msg.args.length() == 0) {
+                        // FIXME: check args length > 1 and == 0, and kwargs != null
+                        // we cannot currently POJO automap these cases!
 
-                        } else if (msg.args.length() == 1) {
-
-                        } else {
-
-                        }
-*/
-                        System.out.println("resultType SET! " + msg.args);
-
-
-                        // https://github.com/FasterXML/jackson-databind#tutorial-fancier-stuff-conversions
-                        // ResultType result = mapper.convertValue(sourceObject, ResultType.class);
-                        ObjectMapper mapper = new ObjectMapper();
-                        request.onReply.complete(mapper.convertValue(msg.args.get(0), request.resultType));
-
-                        System.out.println("resultType SET CALLED!");
+                        request.onReply.complete(mSerializer.convertValue(msg.args.get(0), request.resultType));
 
                     } else {
-                        System.out.println("resultType UNSET");
                         request.onReply.complete(new CallResult(msg.args, msg.kwargs));
                     }
 
@@ -440,9 +425,13 @@ public class Session implements ISession, ITransportHandler {
         if (!isConnected()) {
             throw new IllegalStateException("The transport must be connected first");
         }
+
         CompletableFuture<CallResult> future = new CompletableFuture<>();
+
         long requestID = mIDGenerator.next();
+
         mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options));
+
         if (options == null) {
             this.send(new Call(requestID, procedure, args, kwargs, 0));
         } else {
@@ -450,21 +439,7 @@ public class Session implements ISession, ITransportHandler {
         }
         return future;
     }
-/*
-    @Override
-    public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
-                                              CallOptions options) {
-        return reallyCall(procedure, args, kwargs, options, new TypeReference<CallResult>() {});
-    }
-*/
 
-/*
-    @Override
-    public <T> CompletableFuture<T> call(String procedure, TypeReference<T> resultType, CallOptions options,
-                                         Object... args) {
-        return null;
-    }
-*/
     @Override
     public <T> CompletableFuture<T> call(String procedure, List<Object> args, Map<String, Object> kwargs,
                                          TypeReference<T> resultType, CallOptions options) {
