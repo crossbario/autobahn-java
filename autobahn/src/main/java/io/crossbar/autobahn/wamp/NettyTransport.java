@@ -18,11 +18,6 @@ import java.util.concurrent.ForkJoinPool;
 
 import javax.net.ssl.SSLException;
 
-import io.crossbar.autobahn.wamp.interfaces.IMessage;
-import io.crossbar.autobahn.wamp.interfaces.ISerializer;
-import io.crossbar.autobahn.wamp.interfaces.ITransport;
-import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
-import io.crossbar.autobahn.wamp.types.CBORSerializer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -37,6 +32,7 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
@@ -44,6 +40,13 @@ import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketCl
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+
+import io.crossbar.autobahn.wamp.interfaces.IMessage;
+import io.crossbar.autobahn.wamp.interfaces.ISerializer;
+import io.crossbar.autobahn.wamp.interfaces.ITransport;
+import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
+import io.crossbar.autobahn.wamp.types.CBORSerializer;
+
 
 public class NettyTransport implements ITransport {
 
@@ -148,11 +151,13 @@ public class NettyTransport implements ITransport {
     }
 
     @Override
-    public void send(IMessage message) {
-        System.out.println("  >>> TX : " + message);
-
-        byte[] data = mSerializer.serialize(message.marshal());
-        WebSocketFrame frame = new BinaryWebSocketFrame(toByteBuf(data));
+    public void send(byte[] payload, boolean isBinary) {
+        WebSocketFrame frame;
+        if (isBinary) {
+            frame = new BinaryWebSocketFrame(toByteBuf(payload));
+        } else {
+            frame = new TextWebSocketFrame(toByteBuf(payload));
+        }
         mChannel.writeAndFlush(frame);
     }
 

@@ -24,6 +24,7 @@ import io.netty.channel.ChannelPromise;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
@@ -75,7 +76,7 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
         if (!mHandshaker.isHandshakeComplete()) {
             mHandshaker.finishHandshake(ch, (FullHttpResponse) msg);
             mHandshakeFuture.setSuccess();
-            mTransportHandler.onConnect(mTransport);
+            mTransportHandler.onConnect(mTransport, mSerializer);
             return;
         }
 
@@ -89,19 +90,19 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
         WebSocketFrame frame = (WebSocketFrame) msg;
         if (frame instanceof BinaryWebSocketFrame) {
             BinaryWebSocketFrame binaryWebSocketFrame = (BinaryWebSocketFrame) frame;
-            byte[] output = new byte[binaryWebSocketFrame.content().readableBytes()];
-            binaryWebSocketFrame.content().readBytes(output);
-            List<Object> message = mSerializer.unserialize(output, true);
-            mTransportHandler.onMessage(getMessageObject(message));
+            byte[] payload = new byte[binaryWebSocketFrame.content().readableBytes()];
+            binaryWebSocketFrame.content().readBytes(payload);
+            mTransportHandler.onMessage(payload, true);
+
+        } else if (frame instanceof TextWebSocketFrame) {
+            TextWebSocketFrame textWebSocketFrame = (TextWebSocketFrame) frame;
+            byte[] payload = new byte[textWebSocketFrame.content().readableBytes()];
+            textWebSocketFrame.content().readBytes(payload);
+            mTransportHandler.onMessage(payload, false);
+
         } else if (frame instanceof CloseWebSocketFrame) {
             ch.close();
         }
-    }
-
-    private IMessage getMessageObject(List<Object> rawMessage) throws Exception {
-        int messageType = (int) rawMessage.get(0);
-        Class<? extends IMessage> messageKlass = MESSAGE_TYPE_MAP.get(messageType);
-        return (IMessage) messageKlass.getMethod("parse", List.class).invoke(null, rawMessage);
     }
 
     @Override

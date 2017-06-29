@@ -11,18 +11,20 @@
 
 package io.crossbar.autobahn.wamp.types;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
-
 import java.io.IOException;
 import java.util.List;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import io.crossbar.autobahn.wamp.interfaces.ISerializer;
+
 
 public class CBORSerializer implements ISerializer {
 
-    private ObjectMapper mMapper;
+    public ObjectMapper mMapper;
 
     public CBORSerializer() {
         mMapper = new ObjectMapper(new CBORFactory());
@@ -46,5 +48,12 @@ public class CBORSerializer implements ISerializer {
             e.printStackTrace();
             return null;
         }
+    }
+
+    @Override
+    public <T> T convertValue(Object fromValue, TypeReference toValueTypeRef) {
+        // https://github.com/FasterXML/jackson-databind#tutorial-fancier-stuff-conversions
+        // ResultType result = mapper.convertValue(sourceObject, ResultType.class);
+        return mMapper.convertValue(fromValue, toValueTypeRef);
     }
 }

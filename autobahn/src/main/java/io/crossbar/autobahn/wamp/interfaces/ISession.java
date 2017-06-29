@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
@@ -45,6 +47,17 @@ public interface ISession {
                                        Map<String, Object> kwargs,
                                        CallOptions options);
 
+    <T> CompletableFuture<T> call(String procedure,
+                                  List<Object> args,
+                                  Map<String, Object> kwargs,
+                                  TypeReference<T> resultType,
+                                  CallOptions options);
+/*
+    <T> CompletableFuture<T> call(String procedure,
+                                  TypeReference<T> resultType,
+                                  CallOptions options,
+                                  Object... args);
+*/
     CompletableFuture<SessionDetails> join(String realm, List<String> authMethods);
 
     void leave(String reason, String message);

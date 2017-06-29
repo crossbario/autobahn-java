@@ -13,6 +13,40 @@ from autobahn.twisted.wamp import ApplicationSession, ApplicationRunner
 from autobahn.wamp.exception import ApplicationError
 
 
+PERSONS = [
+    {
+        u'firstname': u'homer',
+        u'lastname': u'simpson',
+    },
+    {
+        u'firstname': u'joe',
+        u'lastname': u'doe',
+    },
+    {
+        u'firstname': u'freddy',
+        u'lastname': u'krueger',
+    },
+    {
+        u'firstname': u'walter',
+        u'lastname': u'white',
+    },
+    {
+        u'firstname': u'jesse',
+        u'lastname': u'pinkman',
+    },
+    {
+        u'firstname': u'pablo',
+        u'lastname': u'escobar',
+    },
+]
+
+PERSONS_BY_DEPARTMENT = {
+    u'hr': [PERSONS[0], PERSONS[1]],
+    u'sales': [PERSONS[2], PERSONS[3], PERSONS[4]],
+    u'development': [PERSONS[5], PERSONS[4], PERSONS[0]],
+}
+
+
 class ClientSession(ApplicationSession):
     """
     Our WAMP session class .. place your app code here!
@@ -27,6 +61,35 @@ class ClientSession(ApplicationSession):
         raise Exception("We haven't asked for authentication!")
 
     @inlineCallbacks
+    def _init_person_api(self):
+
+        def get_person(emp_no=None):
+            self.log.info('PERSON API: get_person(emp_no={emp_no}) called', emp_no=emp_no)
+            if emp_no:
+                return PERSONS[emp_no]
+            else:
+                return PERSONS[0]
+
+        yield self.register(get_person, u'com.example.get_person')
+
+        def get_all_persons():
+            print('PERSON API: get_all_persons() called')
+            return PERSONS
+
+        yield self.register(get_all_persons, u'com.example.get_all_persons')
+
+        def get_persons_by_department(department=None):
+            self.log.info('PERSON API: get_persons_by_department({department}) called', department=department)
+            if department:
+                return PERSONS_BY_DEPARTMENT[department]
+            else:
+                return PERSONS_BY_DEPARTMENT
+
+        yield self.register(get_persons_by_department, u'com.example.get_persons_by_department')
+
+        self.log.info('PERSON API registered!')
+
+    @inlineCallbacks
     def onJoin(self, details):
 
         self.log.info("Connected:  {details}", details=details)
@@ -36,6 +99,8 @@ class ClientSession(ApplicationSession):
 
         self.log.info("Component ID is  {ident}", ident=self._ident)
         self.log.info("Component type is  {type}", type=self._type)
+
+        yield self._init_person_api()
 
         # REGISTER
         def add2(a, b):

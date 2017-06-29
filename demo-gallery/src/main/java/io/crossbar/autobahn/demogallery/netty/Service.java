@@ -20,6 +20,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import io.crossbar.autobahn.wamp.Client;
 import io.crossbar.autobahn.wamp.NettyTransport;
 import io.crossbar.autobahn.wamp.Session;
@@ -58,9 +60,10 @@ public class Service {
         // when the session joins a realm, run our code
         // .. and we can have multiple listeners! there are other lifecycle
         // events to get notified for as well.
-        mSession.addOnJoinListener(this::onJoinHandler1);
-        mSession.addOnJoinListener(this::onJoinHandler2);
-        mSession.addOnJoinListener(this::onJoinHandler3);
+        //mSession.addOnJoinListener(this::onJoinHandler1);
+        //mSession.addOnJoinListener(this::onJoinHandler2);
+        //mSession.addOnJoinListener(this::onJoinHandler3);
+        mSession.addOnJoinListener(this::onJoinHandler4);
     }
 
 
@@ -186,6 +189,102 @@ public class Service {
     }
 
 
+    public void onJoinHandler4(Session session, SessionDetails details) {
+        System.out.println("onJoinHandler4 fired");
+
+        // no result mapping:
+
+        CompletableFuture<CallResult> f1 = mSession.call("com.example.get_person", null, null, null);
+
+        f1.thenAccept(result -> {
+            System.out.println("get_person() [untyped]: " + result.results.get(0));
+        });
+        f1.exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
+
+        // POJO typed result mappings:
+
+        if (true) {
+            TypeReference<Person> resultType = new TypeReference<Person>() {};
+
+            CompletableFuture<Person> f2 = mSession.call("com.example.get_person", null, null, resultType, null);
+
+            f2.thenAcceptAsync(person -> {
+                System.out.println("get_person() [typed]: " + person.firstname + " " + person.lastname);
+            }, mExecutor);
+
+            f2.exceptionally(throwable -> {
+                throwable.printStackTrace();
+                return null;
+            });
+        }
+
+        if (true) {
+            TypeReference<List<Person>> resultType = new TypeReference<List<Person>>() {};
+
+            CompletableFuture<List<Person>> f2 = mSession.call("com.example.get_all_persons", null, null, resultType, null);
+
+            f2.thenAcceptAsync(persons -> {
+                System.out.println("get_all_persons() [typed]:");
+                persons.forEach(person -> {
+                    System.out.println(person.firstname + " " + person.lastname);
+                });
+            }, mExecutor);
+
+            f2.exceptionally(throwable -> {
+                throwable.printStackTrace();
+                return null;
+            });
+        }
+
+        if (true) {
+            TypeReference<List<Person>> resultType = new TypeReference<List<Person>>() {};
+
+            List<Object> args = new ArrayList<>();
+            args.add("development");
+
+            CompletableFuture<List<Person>> f2 = mSession.call("com.example.get_persons_by_department", args, null, resultType, null);
+
+            f2.thenAcceptAsync(persons -> {
+                System.out.println("get_persons_by_department('development') [typed]:");
+                persons.forEach(person -> {
+                    System.out.println(person.firstname + " " + person.lastname);
+                });
+            }, mExecutor);
+
+            f2.exceptionally(throwable -> {
+                throwable.printStackTrace();
+                return null;
+            });
+        }
+
+        if (true) {
+            TypeReference<Map<String, List<Person>>> resultType = new TypeReference<Map<String, List<Person>>>() {};
+
+            CompletableFuture<Map<String, List<Person>>> f2 = mSession.call("com.example.get_persons_by_department", null, null, resultType, null);
+
+            f2.thenAcceptAsync(persons_by_department -> {
+                System.out.println("get_persons_by_department() [typed]:");
+
+                persons_by_department.forEach((department, persons) -> {
+                    System.out.println("\ndepartment '" + department + "':");
+
+                    persons.forEach(person -> {
+                        System.out.println("     " + person.firstname + " " + person.lastname);
+                    });
+                });
+            }, mExecutor);
+
+            f2.exceptionally(throwable -> {
+                throwable.printStackTrace();
+                return null;
+            });
+        }
+    }
+
+
     // this procedure is registered and can be called remotely
     private CompletableFuture<InvocationResult> add2(List<Object> args, Map<String, Object> kwargs,
                                                      InvocationDetails details) {
@@ -201,5 +300,21 @@ public class Service {
     private Void onCounter(List<Object> args, Map<String, Object> kwargs) {
         System.out.println("received counter: " + args.get(0));
         return null;
+    }
+
+
+    static class Person {
+        public String firstname;
+        public String lastname;
+
+        public Person() {
+            this.firstname = "unknown";
+            this.lastname = "unknown";
+        }
+
+        public Person(String firstname, String lastname) {
+            this.firstname = firstname;
+            this.lastname = lastname;
+        }
     }
 }

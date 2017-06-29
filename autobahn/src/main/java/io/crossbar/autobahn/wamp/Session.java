@@ -19,12 +19,19 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.interfaces.ISession;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
+import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 import io.crossbar.autobahn.wamp.messages.Call;
 import io.crossbar.autobahn.wamp.messages.Error;
 import io.crossbar.autobahn.wamp.messages.Event;
@@ -60,6 +67,8 @@ import io.crossbar.autobahn.wamp.types.SubscribeOptions;
 import io.crossbar.autobahn.wamp.types.Subscription;
 import io.crossbar.autobahn.wamp.utils.IDGenerator;
 
+import static io.crossbar.autobahn.wamp.messages.MessageMap.MESSAGE_TYPE_MAP;
+
 
 public class Session implements ISession, ITransportHandler {
 
@@ -72,6 +81,7 @@ public class Session implements ISession, ITransportHandler {
     private final int STATE_ABORT_SENT = 7;
 
     private ITransport mTransport;
+    private ISerializer mSerializer;
     private ExecutorService mExecutor;
 
     private final ArrayList<OnJoinListener> mOnJoinListeners;
@@ -126,19 +136,51 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
-    public void onConnect(ITransport transport) {
+    public void onConnect(ITransport transport, ISerializer serializer) {
         System.out.println("Session.onConnect");
         if (mTransport != null) {
             // Now allowed to throw here, find a better way.
 //            throw new Exception("already connected");
         }
         mTransport = transport;
+        mSerializer = serializer;
+
         // FIXME: should be async.
         mOnConnectListeners.forEach(onConnectListener -> onConnectListener.onConnect(this));
     }
 
+    private void send(IMessage message) {
+        if (!isConnected()) {
+            throw new IllegalStateException("no transport");
+        }
+        byte[] payload = mSerializer.serialize(message.marshal());
+
+        System.out.println("  >>> TX : " + message);
+        mTransport.send(payload, true);
+    }
+
     @Override
-    public void onMessage(IMessage message) {
+    public void onMessage(byte[] payload, boolean isBinary) {
+        // transform bytes to raw message:
+        List<Object> rawMessage = mSerializer.unserialize(payload, isBinary);
+
+        // transform raw message to typed message:
+        IMessage message = null;
+        try {
+            int messageType = (int) rawMessage.get(0);
+            Class<? extends IMessage> messageKlass = MESSAGE_TYPE_MAP.get(messageType);
+            message = (IMessage) messageKlass.getMethod("parse", List.class).invoke(null, rawMessage);
+
+        } catch (Exception e) {
+            System.out.println("mapping received message bytes to IMessage failed: " + e.getMessage());
+        }
+
+        if (message != null) {
+            this.onMessage(message);
+        }
+    }
+
+    private void onMessage(IMessage message) {
         System.out.println("  <<< RX : " + message);
 
         if (mSessionID == 0) {
@@ -170,7 +212,17 @@ public class Session implements ISession, ITransportHandler {
                 CallRequest request = mCallRequests.getOrDefault(msg.request, null);
                 if (request != null) {
                     mCallRequests.remove(msg.request);
-                    request.onReply.complete(new CallResult(msg.args, msg.kwargs));
+
+                    if (request.resultType != null) {
+                        // FIXME: check args length > 1 and == 0, and kwargs != null
+                        // we cannot currently POJO automap these cases!
+
+                        request.onReply.complete(mSerializer.convertValue(msg.args.get(0), request.resultType));
+
+                    } else {
+                        request.onReply.complete(new CallResult(msg.args, msg.kwargs));
+                    }
+
                 } else {
                     throw new ProtocolError(String.format(
                             "RESULT received for non-pending request ID %s", msg.request));
@@ -245,7 +297,7 @@ public class Session implements ISession, ITransportHandler {
                             System.out.println("FIXME: send call error: " + invocationException.getMessage());
                         }
                         else {
-                            mTransport.send(new Yield(msg.request, invocationResult.results, invocationResult.kwresults));
+                            this.send(new Yield(msg.request, invocationResult.results, invocationResult.kwresults));
                         }
                     }, getExecutor());
                 } else {
@@ -307,6 +359,7 @@ public class Session implements ISession, ITransportHandler {
         d.thenRun(() -> {
             System.out.println("DISCONNECTED NOW");
             mTransport = null;
+            mSerializer = null;
             mState = STATE_DISCONNECTED;
         });
     }
@@ -328,7 +381,7 @@ public class Session implements ISession, ITransportHandler {
         CompletableFuture<Subscription> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
         mSubscribeRequests.put(requestID, new SubscribeRequest(requestID, topic, future, handler));
-        mTransport.send(new Subscribe(requestID, options, topic));
+        this.send(new Subscribe(requestID, options, topic));
         return future;
     }
 
@@ -342,9 +395,9 @@ public class Session implements ISession, ITransportHandler {
         long requestID = mIDGenerator.next();
         mPublishRequests.put(requestID, new PublishRequest(requestID, future));
         if (options != null) {
-            mTransport.send(new Publish(requestID, topic, args, kwargs, options.acknowledge, options.excludeMe));
+            this.send(new Publish(requestID, topic, args, kwargs, options.acknowledge, options.excludeMe));
         } else {
-            mTransport.send(new Publish(requestID, topic, args, kwargs, true, true));
+            this.send(new Publish(requestID, topic, args, kwargs, true, true));
         }
         return future;
     }
@@ -359,9 +412,9 @@ public class Session implements ISession, ITransportHandler {
         long requestID = mIDGenerator.next();
         mRegisterRequest.put(requestID, new RegisterRequest(requestID, future, procedure, endpoint));
         if (options != null) {
-            mTransport.send(new Register(requestID, procedure, options.match, options.invoke));
+            this.send(new Register(requestID, procedure, options.match, options.invoke));
         } else {
-            mTransport.send(new Register(requestID, procedure, null, null));
+            this.send(new Register(requestID, procedure, null, null));
         }
         return future;
     }
@@ -372,13 +425,38 @@ public class Session implements ISession, ITransportHandler {
         if (!isConnected()) {
             throw new IllegalStateException("The transport must be connected first");
         }
+
         CompletableFuture<CallResult> future = new CompletableFuture<>();
+
         long requestID = mIDGenerator.next();
+
         mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options));
+
         if (options == null) {
-            mTransport.send(new Call(requestID, procedure, args, kwargs, 0));
+            this.send(new Call(requestID, procedure, args, kwargs, 0));
         } else {
-            mTransport.send(new Call(requestID, procedure, args, kwargs, options.timeout));
+            this.send(new Call(requestID, procedure, args, kwargs, options.timeout));
+        }
+        return future;
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(String procedure, List<Object> args, Map<String, Object> kwargs,
+                                         TypeReference<T> resultType, CallOptions options) {
+        if (!isConnected()) {
+            throw new IllegalStateException("The transport must be connected first");
+        }
+
+        CompletableFuture<T> future = new CompletableFuture<>();
+
+        long requestID = mIDGenerator.next();
+
+        mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options, resultType));
+
+        if (options == null) {
+            this.send(new Call(requestID, procedure, args, kwargs, 0));
+        } else {
+            this.send(new Call(requestID, procedure, args, kwargs, options.timeout));
         }
         return future;
     }
@@ -393,7 +471,7 @@ public class Session implements ISession, ITransportHandler {
         roles.put("subscriber", new HashMap<>());
         roles.put("caller", new HashMap<>());
         roles.put("callee", new HashMap<>());
-        mTransport.send(new Hello(realm, roles));
+        this.send(new Hello(realm, roles));
         mState = STATE_HELLO_SENT;
         return null;
     }
@@ -401,7 +479,7 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public void leave(String reason, String message) {
         System.out.println("Session.leave");
-        mTransport.send(new Goodbye(reason, message));
+        this.send(new Goodbye(reason, message));
         mState = STATE_GOODBYE_SENT;
     }
 
