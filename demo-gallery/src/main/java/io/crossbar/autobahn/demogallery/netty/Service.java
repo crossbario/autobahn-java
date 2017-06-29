@@ -209,8 +209,27 @@ public class Service {
 
             CompletableFuture<Person> f2 = mSession.call("com.example.get_person", null, null, resultType, null);
 
-            f2.thenAcceptAsync(result -> {
-                System.out.println("got (typed) person: " + result.firstname + " " + result.lastname);
+            f2.thenAcceptAsync(person -> {
+                System.out.println("got (typed) person: " + person.firstname + " " + person.lastname);
+            }, mExecutor);
+
+            f2.exceptionally(throwable -> {
+                throwable.printStackTrace();
+                return null;
+            });
+        }
+
+        if (true) {
+            // POJO typed result mapping
+            TypeReference<List<Person>> resultType = new TypeReference<List<Person>>() {};
+
+            CompletableFuture<List<Person>> f2 = mSession.call("com.example.get_all_persons", null, null, resultType, null);
+
+            f2.thenAcceptAsync(persons -> {
+                System.out.println("got (typed) persons:");
+                persons.forEach(person -> {
+                    System.out.println(person.firstname + " " + person.lastname);
+                });
             }, mExecutor);
 
             f2.exceptionally(throwable -> {

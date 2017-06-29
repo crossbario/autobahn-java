@@ -51,7 +51,13 @@ class ClientSession(ApplicationSession):
 
         yield self.register(get_person, u'com.example.get_person')
 
-        print('PERSON API: registered "com.example.get_person"')
+        def get_all_persons():
+            print('PERSON API: get_all_persons() called')
+            return PERSONS
+
+        yield self.register(get_all_persons, u'com.example.get_all_persons')
+
+        self.log.info('PERSON API registered!')
 
     @inlineCallbacks
     def onJoin(self, details):

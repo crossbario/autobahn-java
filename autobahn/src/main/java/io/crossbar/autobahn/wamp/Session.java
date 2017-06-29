@@ -223,7 +223,8 @@ public class Session implements ISession, ITransportHandler {
 
                         }
 */
-                        System.out.println("resultType SET!");
+                        System.out.println("resultType SET! " + msg.args);
+
 
                         // https://github.com/FasterXML/jackson-databind#tutorial-fancier-stuff-conversions
                         // ResultType result = mapper.convertValue(sourceObject, ResultType.class);
