@@ -155,19 +155,18 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public void onMessage(byte[] rawMessage) throws Exception {
-        int messageTypeID;
-        IMessage message;
         // This JsonNode _should_ be passed on to each message class so that
         // all the casting inside each Message class can be removed.
         // Currently we pass List<Object>.
         JsonNode msgNode = mSerializer.getMapper().readValue(rawMessage, JsonNode.class);
-        if (msgNode.isArray() && (msgNode.get(0).isInt() || msgNode.get(0).isLong())) {
-            List<Object> incoming = mSerializer.unserialize(rawMessage, true);
-            messageTypeID = msgNode.get(0).asInt();
-            message = getMessageObject(messageTypeID, incoming);
-        } else {
+
+        if (!msgNode.isArray() || !(msgNode.get(0).isInt() || msgNode.get(0).isLong())) {
             throw new ProtocolError("Invalid message received");
         }
+
+        List<Object> incoming = mSerializer.unserialize(rawMessage, true);
+        int messageTypeID = msgNode.get(0).asInt();
+        IMessage message = getMessageObject(messageTypeID, incoming);
 
         if (mSessionID == 0) {
             if (messageTypeID == Welcome.MESSAGE_TYPE) {
