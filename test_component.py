@@ -26,7 +26,25 @@ PERSONS = [
         u'firstname': u'freddy',
         u'lastname': u'krueger',
     },
+    {
+        u'firstname': u'walter',
+        u'lastname': u'white',
+    },
+    {
+        u'firstname': u'jesse',
+        u'lastname': u'pinkman',
+    },
+    {
+        u'firstname': u'pablo',
+        u'lastname': u'escobar',
+    },
 ]
+
+PERSONS_BY_DEPARTMENT = {
+    u'hr': [PERSONS[0], PERSONS[1]],
+    u'sales': [PERSONS[2], PERSONS[3], PERSONS[4]],
+    u'development': [PERSONS[5], PERSONS[4], PERSONS[0]],
+}
 
 
 class ClientSession(ApplicationSession):
@@ -45,9 +63,12 @@ class ClientSession(ApplicationSession):
     @inlineCallbacks
     def _init_person_api(self):
 
-        def get_person():
-            print('PERSON API: get_person() called')
-            return PERSONS[0]
+        def get_person(emp_no=None):
+            self.log.info('PERSON API: get_person(emp_no={emp_no}) called', emp_no=emp_no)
+            if emp_no:
+                return PERSONS[emp_no]
+            else:
+                return PERSONS[0]
 
         yield self.register(get_person, u'com.example.get_person')
 
@@ -56,6 +77,15 @@ class ClientSession(ApplicationSession):
             return PERSONS
 
         yield self.register(get_all_persons, u'com.example.get_all_persons')
+
+        def get_persons_by_department(department=None):
+            self.log.info('PERSON API: get_persons_by_department({department}) called', department=department)
+            if department:
+                return PERSONS_BY_DEPARTMENT[department]
+            else:
+                return PERSONS_BY_DEPARTMENT
+
+        yield self.register(get_persons_by_department, u'com.example.get_persons_by_department')
 
         self.log.info('PERSON API registered!')
 
