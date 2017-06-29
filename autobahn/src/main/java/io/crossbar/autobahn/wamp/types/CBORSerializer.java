@@ -22,7 +22,7 @@ import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 
 public class CBORSerializer implements ISerializer {
 
-    private ObjectMapper mMapper;
+    public ObjectMapper mMapper;
 
     public CBORSerializer() {
         mMapper = new ObjectMapper(new CBORFactory());

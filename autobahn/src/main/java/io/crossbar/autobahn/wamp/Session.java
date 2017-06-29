@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
@@ -211,21 +212,31 @@ public class Session implements ISession, ITransportHandler {
                 CallRequest request = mCallRequests.getOrDefault(msg.request, null);
                 if (request != null) {
                     mCallRequests.remove(msg.request);
+
                     if (request.resultType != null) {
+/*
+                        if (msg.args.length() == 0) {
+
+                        } else if (msg.args.length() == 1) {
+
+                        } else {
+
+                        }
+*/
                         System.out.println("resultType SET!");
+
+                        // https://github.com/FasterXML/jackson-databind#tutorial-fancier-stuff-conversions
+                        // ResultType result = mapper.convertValue(sourceObject, ResultType.class);
+                        ObjectMapper mapper = new ObjectMapper();
+                        request.onReply.complete(mapper.convertValue(msg.args.get(0), request.resultType));
+
+                        System.out.println("resultType SET CALLED!");
+
                     } else {
                         System.out.println("resultType UNSET");
                         request.onReply.complete(new CallResult(msg.args, msg.kwargs));
                     }
-/*
-                    try {
-                        System.out.println("1");
-                        request.onReply.complete(new CallResult(msg.args, msg.kwargs));
-                        System.out.println("2");
-                    } catch (Exception e) {
-                        System.err.println("exception while firing onReply: " + e.getMessage());
-                    }
-*/
+
                 } else {
                     throw new ProtocolError(String.format(
                             "RESULT received for non-pending request ID %s", msg.request));
