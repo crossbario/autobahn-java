@@ -206,7 +206,8 @@ public class Session implements ISession, ITransportHandler {
 
                         // FIXME: This is bad, v.bad.
                         // The problem is, we don't have a way to know if the request.resultType
-                        // is a collection/list or just an object.
+                        // is a collection/list or just an object. So we are first trying to
+                        // map it to a list and fallback to a single object mapping.
                         try {
                             request.onReply.complete(reader.readValue(msgNode.get(3)));
                         } catch (JsonMappingException e) {
