@@ -11,8 +11,7 @@
 
 package io.crossbar.autobahn.wamp.types;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 
@@ -23,12 +22,9 @@ import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 public class CBORSerializer implements ISerializer {
 
     private ObjectMapper mMapper;
-    private CBORFactory mFactory;
 
     public CBORSerializer() {
         mMapper = new ObjectMapper(new CBORFactory());
-        mFactory = new CBORFactory();
-        mFactory.setCodec(mMapper);
     }
 
     @Override
@@ -38,19 +34,7 @@ public class CBORSerializer implements ISerializer {
 
     @Override
     public List<Object> unserialize(byte[] payload, boolean isBinary) throws Exception {
-        return mMapper.readValue(payload, List.class);
-    }
-
-    @Override
-    public <T> T unserialize(byte[] payload, boolean isBinary, Class<?> collectionClass, Class<?>... subclasses)
-            throws Exception {
-        JavaType type = mMapper.getTypeFactory().constructParametricType(collectionClass, subclasses);
-        return mMapper.readValue(payload, type);
-    }
-
-    @Override
-    public JsonParser getParser(byte[] rawMessage) throws Exception {
-        return mFactory.createParser(rawMessage);
+        return mMapper.readValue(payload, new TypeReference<List<Object>>() {});
     }
 
     @Override
