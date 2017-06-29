@@ -20,6 +20,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import io.crossbar.autobahn.wamp.Client;
 import io.crossbar.autobahn.wamp.NettyTransport;
 import io.crossbar.autobahn.wamp.Session;
@@ -61,6 +63,7 @@ public class Service {
         mSession.addOnJoinListener(this::onJoinHandler1);
         mSession.addOnJoinListener(this::onJoinHandler2);
         mSession.addOnJoinListener(this::onJoinHandler3);
+        mSession.addOnJoinListener(this::onJoinHandler4);
     }
 
 
@@ -186,6 +189,37 @@ public class Service {
     }
 
 
+    public void onJoinHandler4(Session session, SessionDetails details) {
+        System.out.println("onJoinHandler4 fired");
+
+        // no result mapping
+        CompletableFuture<CallResult> f1 = mSession.call("com.example.get_person", null, null, null);
+
+        f1.thenAccept(result -> {
+            System.out.println("got (untyped) person: " + result.results.get(0));
+        });
+        f1.exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
+/*
+        // POJO typed result mapping
+        TypeReference<Person> resultType = new TypeReference<Person>() {};
+
+        CompletableFuture<Person> f2 = mSession.call("com.example.get_person", null, null, resultType, null);
+
+        f2.thenAcceptAsync(result -> {
+            System.out.println("got (typed) person: " + result.firstname + " " result.lastname);
+        }), mExecutor);
+
+        f2.exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
+*/
+    }
+
+
     // this procedure is registered and can be called remotely
     private CompletableFuture<InvocationResult> add2(List<Object> args, Map<String, Object> kwargs,
                                                      InvocationDetails details) {
@@ -201,5 +235,21 @@ public class Service {
     private Void onCounter(List<Object> args, Map<String, Object> kwargs) {
         System.out.println("received counter: " + args.get(0));
         return null;
+    }
+
+
+    static class Person {
+        public String firstname;
+        public String lastname;
+
+        public Person() {
+            this.firstname = "unknown";
+            this.lastname = "unknown";
+        }
+
+        public Person(String firstname, String lastname) {
+            this.firstname = firstname;
+            this.lastname = lastname;
+        }
     }
 }

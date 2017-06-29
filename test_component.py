@@ -13,6 +13,22 @@ from autobahn.twisted.wamp import ApplicationSession, ApplicationRunner
 from autobahn.wamp.exception import ApplicationError
 
 
+PERSONS = [
+    {
+        u'firstname': u'homer',
+        u'lastname': u'simpson',
+    },
+    {
+        u'firstname': u'joe',
+        u'lastname': u'doe',
+    },
+    {
+        u'firstname': u'freddy',
+        u'lastname': u'krueger',
+    },
+]
+
+
 class ClientSession(ApplicationSession):
     """
     Our WAMP session class .. place your app code here!
@@ -27,6 +43,17 @@ class ClientSession(ApplicationSession):
         raise Exception("We haven't asked for authentication!")
 
     @inlineCallbacks
+    def _init_person_api(self):
+
+        def get_person():
+            print('PERSON API: get_person() called')
+            return PERSONS[0]
+
+        yield self.register(get_person, u'com.example.get_person')
+
+        print('PERSON API: registered "com.example.get_person"')
+
+    @inlineCallbacks
     def onJoin(self, details):
 
         self.log.info("Connected:  {details}", details=details)
@@ -36,6 +63,8 @@ class ClientSession(ApplicationSession):
 
         self.log.info("Component ID is  {ident}", ident=self._ident)
         self.log.info("Component type is  {type}", type=self._type)
+
+        yield self._init_person_api()
 
         # REGISTER
         def add2(a, b):
