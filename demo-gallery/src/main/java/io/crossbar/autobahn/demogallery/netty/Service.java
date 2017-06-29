@@ -60,9 +60,9 @@ public class Service {
         // when the session joins a realm, run our code
         // .. and we can have multiple listeners! there are other lifecycle
         // events to get notified for as well.
-        mSession.addOnJoinListener(this::onJoinHandler1);
-        mSession.addOnJoinListener(this::onJoinHandler2);
-        mSession.addOnJoinListener(this::onJoinHandler3);
+        //mSession.addOnJoinListener(this::onJoinHandler1);
+        //mSession.addOnJoinListener(this::onJoinHandler2);
+        //mSession.addOnJoinListener(this::onJoinHandler3);
         mSession.addOnJoinListener(this::onJoinHandler4);
     }
 
@@ -202,21 +202,22 @@ public class Service {
             throwable.printStackTrace();
             return null;
         });
-/*
-        // POJO typed result mapping
-        TypeReference<Person> resultType = new TypeReference<Person>() {};
 
-        CompletableFuture<Person> f2 = mSession.call("com.example.get_person", null, null, resultType, null);
+        if (true) {
+            // POJO typed result mapping
+            TypeReference<Person> resultType = new TypeReference<Person>() {};
 
-        f2.thenAcceptAsync(result -> {
-            System.out.println("got (typed) person: " + result.firstname + " " result.lastname);
-        }), mExecutor);
+            CompletableFuture<Person> f2 = mSession.call("com.example.get_person", null, null, resultType, null);
 
-        f2.exceptionally(throwable -> {
-            throwable.printStackTrace();
-            return null;
-        });
-*/
+            f2.thenAcceptAsync(result -> {
+                System.out.println("got (typed) person: " + result.firstname + " " + result.lastname);
+            }, mExecutor);
+
+            f2.exceptionally(throwable -> {
+                throwable.printStackTrace();
+                return null;
+            });
+        }
     }
 
 

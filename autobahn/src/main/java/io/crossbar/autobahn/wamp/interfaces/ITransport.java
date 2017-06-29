@@ -11,13 +11,13 @@
 
 package io.crossbar.autobahn.wamp.interfaces;
 
-// FIXME: data types to be discussed/changed.
+import io.crossbar.autobahn.wamp.interfaces.ISerializer;
+
+
 public interface ITransport {
 
-    // this is the only method needed by Session ..
-    void send(IMessage message);
+    void send(byte[] payload, boolean isBinary);
 
-    // .. not sure about the following, we'll see
     void connect(ITransportHandler transportHandler);
 
     boolean isOpen();
