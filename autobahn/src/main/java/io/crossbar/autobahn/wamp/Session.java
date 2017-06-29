@@ -11,9 +11,10 @@
 
 package io.crossbar.autobahn.wamp;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectReader;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -156,11 +157,13 @@ public class Session implements ISession, ITransportHandler {
     public void onMessage(byte[] rawMessage) throws Exception {
         int messageTypeID;
         IMessage message;
-        JsonParser parser = mSerializer.getParser(rawMessage);
-        if (parser.nextToken() == JsonToken.START_ARRAY
-                && parser.nextToken() == JsonToken.VALUE_NUMBER_INT) {
+        // This JsonNode _should_ be passed on to each message class so that
+        // all the casting inside each Message class can be removed.
+        // Currently we pass List<Object>.
+        JsonNode msgNode = mSerializer.getMapper().readValue(rawMessage, JsonNode.class);
+        if (msgNode.isArray() && (msgNode.get(0).isInt() || msgNode.get(0).isLong())) {
             List<Object> incoming = mSerializer.unserialize(rawMessage, true);
-            messageTypeID = parser.getIntValue();
+            messageTypeID = msgNode.get(0).asInt();
             message = getMessageObject(messageTypeID, incoming);
         } else {
             throw new ProtocolError("Invalid message received");
@@ -191,8 +194,7 @@ public class Session implements ISession, ITransportHandler {
         } else {
             // Now that we have an active session handle all incoming messages here.
             if (messageTypeID == Result.MESSAGE_TYPE) {
-                parser.nextToken();
-                long requestID = parser.readValueAs(long.class);
+                long requestID = msgNode.get(1).asLong();
 
                 CallRequest request = mCallRequests.getOrDefault(requestID, null);
                 if (request != null) {
@@ -201,11 +203,16 @@ public class Session implements ISession, ITransportHandler {
                         Result msg = (Result) message;
                         request.onReply.complete(new CallResult(msg.args, msg.kwargs));
                     } else {
-                        TypeReference<Map<String, Object>> detailsType = new TypeReference<Map<String, Object>>() {};
-                        @SuppressWarnings("Variable unused for now.")
-                        Map<String, Object> details = parser.readValueAs(detailsType);
+                        ObjectReader reader = mSerializer.getMapper().readerFor(request.resultType);
 
-                        request.onReply.complete(parser.readValueAs(request.resultType));
+                        // FIXME: This is bad, v.bad.
+                        // The problem is, we don't have a way to know if the request.resultType
+                        // is a collection/list or just an object.
+                        try {
+                            request.onReply.complete(reader.readValue(msgNode.get(3)));
+                        } catch (JsonMappingException e) {
+                            request.onReply.complete(reader.readValue(msgNode.get(3).get(0)));
+                        }
                     }
                 } else {
                     throw new ProtocolError(String.format(

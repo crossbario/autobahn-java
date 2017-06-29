@@ -12,6 +12,7 @@
 package io.crossbar.autobahn.wamp.interfaces;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -25,5 +26,7 @@ public interface ISerializer {
             throws Exception;
 
     JsonParser getParser(byte[] rawMessage) throws Exception;
+
+    ObjectMapper getMapper();
 
 }

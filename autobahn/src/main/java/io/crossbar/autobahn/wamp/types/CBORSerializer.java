@@ -52,4 +52,9 @@ public class CBORSerializer implements ISerializer {
     public JsonParser getParser(byte[] rawMessage) throws Exception {
         return mFactory.createParser(rawMessage);
     }
+
+    @Override
+    public ObjectMapper getMapper() {
+        return mMapper;
+    }
 }
