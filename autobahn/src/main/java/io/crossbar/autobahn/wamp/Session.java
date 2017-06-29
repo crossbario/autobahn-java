@@ -11,7 +11,13 @@
 
 package io.crossbar.autobahn.wamp;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectReader;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +28,7 @@ import java.util.concurrent.ForkJoinPool;
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
+import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 import io.crossbar.autobahn.wamp.interfaces.ISession;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
@@ -60,6 +67,8 @@ import io.crossbar.autobahn.wamp.types.SubscribeOptions;
 import io.crossbar.autobahn.wamp.types.Subscription;
 import io.crossbar.autobahn.wamp.utils.IDGenerator;
 
+import static io.crossbar.autobahn.wamp.messages.MessageMap.MESSAGE_TYPE_MAP;
+
 
 public class Session implements ISession, ITransportHandler {
 
@@ -72,6 +81,7 @@ public class Session implements ISession, ITransportHandler {
     private final int STATE_ABORT_SENT = 7;
 
     private ITransport mTransport;
+    private ISerializer mSerializer;
     private ExecutorService mExecutor;
 
     private final ArrayList<OnJoinListener> mOnJoinListeners;
@@ -125,26 +135,43 @@ public class Session implements ISession, ITransportHandler {
         return mExecutor;
     }
 
+    private IMessage getMessageObject(int messageType, List<Object> rawMessage) throws Exception {
+        Class<? extends IMessage> messageKlass = MESSAGE_TYPE_MAP.get(messageType);
+        return (IMessage) messageKlass.getMethod("parse", List.class).invoke(null, rawMessage);
+    }
+
     @Override
-    public void onConnect(ITransport transport) {
+    public void onConnect(ITransport transport, ISerializer serializer) {
         System.out.println("Session.onConnect");
         if (mTransport != null) {
             // Now allowed to throw here, find a better way.
 //            throw new Exception("already connected");
         }
         mTransport = transport;
+        mSerializer = serializer;
         // FIXME: should be async.
         mOnConnectListeners.forEach(onConnectListener -> onConnectListener.onConnect(this));
     }
 
     @Override
-    public void onMessage(IMessage message) {
-        System.out.println("  <<< RX : " + message);
+    public void onMessage(byte[] rawMessage) throws Exception {
+        // This JsonNode _should_ be passed on to each message class so that
+        // all the casting inside each Message class can be removed.
+        // Currently we pass List<Object>.
+        JsonNode msgNode = mSerializer.getMapper().readValue(rawMessage, JsonNode.class);
+
+        if (!msgNode.isArray() || !(msgNode.get(0).isInt() || msgNode.get(0).isLong())) {
+            throw new ProtocolError("Invalid message received");
+        }
+
+        List<Object> incoming = mSerializer.unserialize(rawMessage, true);
+        int messageTypeID = msgNode.get(0).asInt();
+        IMessage message = getMessageObject(messageTypeID, incoming);
 
         if (mSessionID == 0) {
-            if (message instanceof Welcome) {
-                mState = STATE_JOINED;
+            if (messageTypeID == Welcome.MESSAGE_TYPE) {
                 Welcome msg = (Welcome) message;
+                mState = STATE_JOINED;
                 mSessionID = msg.session;
                 SessionDetails details = new SessionDetails(msg.realm, msg.session);
                 List<CompletableFuture<?>> futures = new ArrayList<>();
@@ -165,15 +192,31 @@ public class Session implements ISession, ITransportHandler {
             }
         } else {
             // Now that we have an active session handle all incoming messages here.
-            if (message instanceof Result) {
-                Result msg = (Result) message;
-                CallRequest request = mCallRequests.getOrDefault(msg.request, null);
+            if (messageTypeID == Result.MESSAGE_TYPE) {
+                long requestID = msgNode.get(1).asLong();
+
+                CallRequest request = mCallRequests.getOrDefault(requestID, null);
                 if (request != null) {
-                    mCallRequests.remove(msg.request);
-                    request.onReply.complete(new CallResult(msg.args, msg.kwargs));
+                    mCallRequests.remove(requestID);
+                    if (request.resultType.getType() == CallResult.class) {
+                        Result msg = (Result) message;
+                        request.onReply.complete(new CallResult(msg.args, msg.kwargs));
+                    } else {
+                        ObjectReader reader = mSerializer.getMapper().readerFor(request.resultType);
+
+                        // FIXME: This is bad, v.bad.
+                        // The problem is, we don't have a way to know if the request.resultType
+                        // is a collection/list or just an object. So we are first trying to
+                        // map it to a list and fallback to a single object mapping.
+                        try {
+                            request.onReply.complete(reader.readValue(msgNode.get(3)));
+                        } catch (JsonMappingException e) {
+                            request.onReply.complete(reader.readValue(msgNode.get(3).get(0)));
+                        }
+                    }
                 } else {
                     throw new ProtocolError(String.format(
-                            "RESULT received for non-pending request ID %s", msg.request));
+                            "RESULT received for non-pending request ID %s", requestID));
                 }
             } else if (message instanceof Subscribed) {
                 Subscribed msg = (Subscribed) message;
@@ -366,21 +409,44 @@ public class Session implements ISession, ITransportHandler {
         return future;
     }
 
-    @Override
-    public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
-                                              CallOptions options) {
+    private <T> CompletableFuture<T> reallyCall(String procedure, List<Object> args, Map<String, Object> kwargs,
+                             CallOptions options, TypeReference<T> resultType, Object... posArgs) {
+        if (args != null && posArgs != null) {
+            throw new IllegalArgumentException("Pass only one of args or posArgs");
+        }
+        if (posArgs != null) {
+            args = Arrays.asList(posArgs);
+        }
         if (!isConnected()) {
             throw new IllegalStateException("The transport must be connected first");
         }
-        CompletableFuture<CallResult> future = new CompletableFuture<>();
+        CompletableFuture<T> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
-        mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options));
+        mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options, resultType));
         if (options == null) {
             mTransport.send(new Call(requestID, procedure, args, kwargs, 0));
         } else {
             mTransport.send(new Call(requestID, procedure, args, kwargs, options.timeout));
         }
         return future;
+    }
+
+    @Override
+    public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
+                                              CallOptions options) {
+        return reallyCall(procedure, args, kwargs, options, new TypeReference<CallResult>() {});
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(String procedure, TypeReference<T> resultType, CallOptions options,
+                                         Object... args) {
+        return reallyCall(procedure, null, null, options, resultType, args);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(String procedure, List<Object> args, Map<String, Object> kwargs,
+                                         TypeReference<T> resultType, CallOptions options) {
+        return reallyCall(procedure, args, kwargs, options, resultType);
     }
 
     @Override

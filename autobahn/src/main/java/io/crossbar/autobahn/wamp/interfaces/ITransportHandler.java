@@ -15,9 +15,9 @@ public interface ITransportHandler {
 
     // all of the following methods need to be implemented in Session
 
-    void onConnect(ITransport transport);
+    void onConnect(ITransport transport, ISerializer serializer);
 
-    void onMessage(IMessage message);
+    void onMessage(byte[] rawMessage) throws Exception;
 
     void onDisconnect(boolean wasClean);
 

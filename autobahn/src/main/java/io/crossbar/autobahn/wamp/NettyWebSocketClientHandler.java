@@ -11,9 +11,6 @@
 
 package io.crossbar.autobahn.wamp;
 
-import java.util.List;
-
-import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
@@ -28,8 +25,6 @@ import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.util.CharsetUtil;
-
-import static io.crossbar.autobahn.wamp.messages.MessageMap.MESSAGE_TYPE_MAP;
 
 public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
 
@@ -75,7 +70,7 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
         if (!mHandshaker.isHandshakeComplete()) {
             mHandshaker.finishHandshake(ch, (FullHttpResponse) msg);
             mHandshakeFuture.setSuccess();
-            mTransportHandler.onConnect(mTransport);
+            mTransportHandler.onConnect(mTransport, mSerializer);
             return;
         }
 
@@ -91,17 +86,10 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
             BinaryWebSocketFrame binaryWebSocketFrame = (BinaryWebSocketFrame) frame;
             byte[] output = new byte[binaryWebSocketFrame.content().readableBytes()];
             binaryWebSocketFrame.content().readBytes(output);
-            List<Object> message = mSerializer.unserialize(output, true);
-            mTransportHandler.onMessage(getMessageObject(message));
+            mTransportHandler.onMessage(output);
         } else if (frame instanceof CloseWebSocketFrame) {
             ch.close();
         }
-    }
-
-    private IMessage getMessageObject(List<Object> rawMessage) throws Exception {
-        int messageType = (int) rawMessage.get(0);
-        Class<? extends IMessage> messageKlass = MESSAGE_TYPE_MAP.get(messageType);
-        return (IMessage) messageKlass.getMethod("parse", List.class).invoke(null, rawMessage);
     }
 
     @Override

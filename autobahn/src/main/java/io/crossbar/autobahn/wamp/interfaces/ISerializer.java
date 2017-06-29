@@ -11,12 +11,16 @@
 
 package io.crossbar.autobahn.wamp.interfaces;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.List;
 
 public interface ISerializer {
 
-    byte[] serialize(List<Object> message);
+    byte[] serialize(List<Object> message) throws Exception;
 
-    List<Object> unserialize(byte[] payload, boolean isBinary);
+    List<Object> unserialize(byte[] payload, boolean isBinary) throws Exception;
+
+    ObjectMapper getMapper();
 
 }

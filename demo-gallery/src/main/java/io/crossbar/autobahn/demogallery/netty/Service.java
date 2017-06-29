@@ -11,6 +11,8 @@
 
 package io.crossbar.autobahn.demogallery.netty;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -134,6 +136,8 @@ public class Service {
         args.add(2);
         args.add(3);
 
+        test();
+
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
         executorService.scheduleAtFixedRate(() -> {
 
@@ -201,5 +205,34 @@ public class Service {
     private Void onCounter(List<Object> args, Map<String, Object> kwargs) {
         System.out.println("received counter: " + args.get(0));
         return null;
+    }
+
+    private void test() {
+        TypeReference<List<RandomClass>> resultType = new TypeReference<List<RandomClass>>() {};
+        CompletableFuture<List<RandomClass>> r = mSession.call(
+                "com.example.pojo", null, null, resultType, null);
+        r.thenAcceptAsync(randomClasses -> randomClasses.forEach(randomClass -> {
+            System.out.println(randomClass.firstName);
+            System.out.println(randomClass.lastName);
+        }), mExecutor);
+        r.exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
+    }
+
+    // XXXX - For demonstration purpose only, to be removed.
+    static class RandomClass {
+        public String firstName;
+        public String lastName;
+
+        public RandomClass() {
+
+        }
+
+        public RandomClass(String firstName, String lastName) {
+            this.firstName = firstName;
+            this.lastName = lastName;
+        }
     }
 }

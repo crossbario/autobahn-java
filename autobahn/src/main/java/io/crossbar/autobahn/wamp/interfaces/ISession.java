@@ -11,6 +11,8 @@
 
 package io.crossbar.autobahn.wamp.interfaces;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -44,6 +46,17 @@ public interface ISession {
                                        List<Object> args,
                                        Map<String, Object> kwargs,
                                        CallOptions options);
+
+    <T> CompletableFuture<T> call(String procedure,
+                                  TypeReference<T> resultType,
+                                  CallOptions options,
+                                  Object... args);
+
+    <T> CompletableFuture<T> call(String procedure,
+                                  List<Object> args,
+                                  Map<String, Object> kwargs,
+                                  TypeReference<T> resultType,
+                                  CallOptions options);
 
     CompletableFuture<SessionDetails> join(String realm, List<String> authMethods);
 
