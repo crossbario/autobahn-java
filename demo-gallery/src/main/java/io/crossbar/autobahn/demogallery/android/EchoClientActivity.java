@@ -9,25 +9,21 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-package io.crossbar.autobahn.demogallery;
+package io.crossbar.autobahn.demogallery.android;
 
-import android.app.Activity;
 import android.util.Log;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.content.SharedPreferences;
 
 import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
 
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import io.crossbar.autobahn.demogallery.R;
 import io.crossbar.autobahn.websocket.WebSocket;
 import io.crossbar.autobahn.websocket.WebSocketConnection;
 import io.crossbar.autobahn.websocket.WebSocketException;
@@ -73,22 +69,14 @@ public class EchoClientActivity extends AppCompatActivity {
         mHostname.setEnabled(true);
         mPort.setEnabled(true);
         mStart.setText("Connect");
-        mStart.setOnClickListener(new Button.OnClickListener() {
-            public void onClick(View v) {
-                start();
-            }
-        });
+        mStart.setOnClickListener(v -> start());
     }
 
     private void setButtonDisconnect() {
         mHostname.setEnabled(false);
         mPort.setEnabled(false);
         mStart.setText("Disconnect");
-        mStart.setOnClickListener(new Button.OnClickListener() {
-            public void onClick(View v) {
-                mConnection.disconnect();
-            }
-        });
+        mStart.setOnClickListener(v -> mConnection.disconnect());
     }
 
     private final WebSocket mConnection = new WebSocketConnection();
@@ -150,11 +138,7 @@ public class EchoClientActivity extends AppCompatActivity {
         mSendMessage.setEnabled(false);
         mMessage.setEnabled(false);
 
-        mSendMessage.setOnClickListener(new Button.OnClickListener() {
-            public void onClick(View v) {
-                mConnection.sendTextMessage(mMessage.getText().toString());
-            }
-        });
+        mSendMessage.setOnClickListener(v -> mConnection.sendTextMessage(mMessage.getText().toString()));
     }
 
     @Override

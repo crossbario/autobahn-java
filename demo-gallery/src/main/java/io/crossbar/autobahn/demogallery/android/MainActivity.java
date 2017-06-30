@@ -9,14 +9,14 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-package io.crossbar.autobahn.demogallery;
+package io.crossbar.autobahn.demogallery.android;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
-import io.crossbar.autobahn.wamp.Playground;
+import io.crossbar.autobahn.demogallery.R;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -25,8 +25,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Playground playground = new Playground();
-        playground.showTransportAttachment();
     }
 
     @Override
