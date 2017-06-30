@@ -47,12 +47,12 @@ public class MessageUtil {
 
     /**
      *
-     * Cast the supplied object as long.
+     * Parse the supplied object as long.
      *
      * @param object the object to cast
      * @return long value of the object
      */
-    public static long castRequestID(Object object) {
+    public static long parseRequestID(Object object) {
         try {
             return (int) object;
         } catch (ClassCastException ignore) {

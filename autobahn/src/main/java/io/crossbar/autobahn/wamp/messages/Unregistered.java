@@ -45,7 +45,7 @@ public class Unregistered implements IMessage {
             reason = (String) details.getOrDefault("reason", reason);
         }
 
-        return new Unregistered(MessageUtil.castRequestID(wmsg.get(1)), registration, reason);
+        return new Unregistered(MessageUtil.parseRequestID(wmsg.get(1)), registration, reason);
     }
 
     @Override

@@ -49,7 +49,7 @@ public class Yield implements IMessage {
         if (wmsg.size() > 4) {
             kwargs = (Map<String, Object>) wmsg.get(4);
         }
-        return new Yield(MessageUtil.castRequestID(wmsg.get(1)), args, kwargs);
+        return new Yield(MessageUtil.parseRequestID(wmsg.get(1)), args, kwargs);
     }
 
     @Override
