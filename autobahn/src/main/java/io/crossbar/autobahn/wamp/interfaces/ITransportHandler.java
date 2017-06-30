@@ -11,6 +11,7 @@
 
 package io.crossbar.autobahn.wamp.interfaces;
 
+
 public interface ITransportHandler {
 
     void onConnect(ITransport transport, ISerializer serializer);

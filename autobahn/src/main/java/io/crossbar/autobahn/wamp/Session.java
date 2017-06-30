@@ -27,11 +27,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
+
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.interfaces.ISession;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.interfaces.ISerializer;
+import io.crossbar.autobahn.wamp.interfaces.IEventHandler;
+import io.crossbar.autobahn.wamp.interfaces.IInvocationHandler;
+
 import io.crossbar.autobahn.wamp.messages.Call;
 import io.crossbar.autobahn.wamp.messages.Error;
 import io.crossbar.autobahn.wamp.messages.Event;
@@ -47,15 +51,16 @@ import io.crossbar.autobahn.wamp.messages.Subscribe;
 import io.crossbar.autobahn.wamp.messages.Subscribed;
 import io.crossbar.autobahn.wamp.messages.Welcome;
 import io.crossbar.autobahn.wamp.messages.Yield;
+
 import io.crossbar.autobahn.wamp.requests.CallRequest;
 import io.crossbar.autobahn.wamp.requests.PublishRequest;
 import io.crossbar.autobahn.wamp.requests.RegisterRequest;
 import io.crossbar.autobahn.wamp.requests.SubscribeRequest;
+
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.CloseDetails;
-import io.crossbar.autobahn.wamp.types.IEventHandler;
-import io.crossbar.autobahn.wamp.types.IInvocationHandler;
+import io.crossbar.autobahn.wamp.types.EventDetails;
 import io.crossbar.autobahn.wamp.types.InvocationDetails;
 import io.crossbar.autobahn.wamp.types.InvocationResult;
 import io.crossbar.autobahn.wamp.types.Publication;
@@ -246,11 +251,22 @@ public class Session implements ISession, ITransportHandler {
                 Event msg = (Event) message;
                 List<Subscription> subscriptions = mSubscriptions.getOrDefault(msg.subscription, null);
                 if (subscriptions != null) {
+
                     List<CompletableFuture<?>> futures = new ArrayList<>();
+
                     subscriptions.forEach(
-                            subscription -> futures.add(
-                                    CompletableFuture.runAsync(() -> subscription.handler.run(msg.args, msg.kwargs),
-                                    getExecutor())));
+                            subscription -> {
+                                EventDetails details = new EventDetails(
+                                        subscription, subscription.topic, -1, null, null, this);
+                                futures.add(
+                                    CompletableFuture.runAsync(
+                                        () -> subscription.handler.run(msg.args, msg.kwargs, details)
+                                        , getExecutor()
+                                    )
+                                );
+                            }
+                    );
+
                     // Not really doing anything with the combined futures.
                     combineFutures(futures);
                 } else {

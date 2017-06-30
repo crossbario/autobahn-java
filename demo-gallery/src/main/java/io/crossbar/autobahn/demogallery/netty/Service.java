@@ -23,13 +23,18 @@ import java.util.concurrent.TimeUnit;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import io.crossbar.autobahn.wamp.Client;
-import io.crossbar.autobahn.wamp.NettyTransport;
 import io.crossbar.autobahn.wamp.Session;
+
+import io.crossbar.autobahn.wamp.transports.NettyTransport;
+
 import io.crossbar.autobahn.wamp.auth.AnonymousAuth;
+
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
+
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
+import io.crossbar.autobahn.wamp.types.EventDetails;
 import io.crossbar.autobahn.wamp.types.InvocationDetails;
 import io.crossbar.autobahn.wamp.types.InvocationResult;
 import io.crossbar.autobahn.wamp.types.Publication;
@@ -313,7 +318,7 @@ public class Service {
 
 
     // this handler will process incoming events for the topic we subscribe it to
-    private Void onCounter(List<Object> args, Map<String, Object> kwargs) {
+    private Void onCounter(List<Object> args, Map<String, Object> kwargs, EventDetails details) {
         System.out.println("received counter: " + args.get(0));
         return null;
     }

@@ -9,14 +9,18 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-package io.crossbar.autobahn.wamp.types;
+package io.crossbar.autobahn.websocket;
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
-@FunctionalInterface
-public interface IInvocationHandler {
-    CompletableFuture<InvocationResult> run(List<Object> args, Map<String, Object> kwargs,
-                                            InvocationDetails details);
+public class WebSocketException extends Exception {
+
+    private static final long serialVersionUID = 1L;
+
+    public WebSocketException(String message) {
+        super(message);
+    }
+
+    public WebSocketException(String message, Throwable t) {
+        super(message, t);
+    }
 }

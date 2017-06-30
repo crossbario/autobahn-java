@@ -9,12 +9,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-package io.crossbar.autobahn;
-
-import android.os.Handler;
-import android.os.Message;
-import android.util.Log;
-import android.util.Pair;
+package io.crossbar.autobahn.websocket;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -25,6 +20,12 @@ import java.net.SocketException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
+import android.util.Pair;
+
 
 /**
  * WebSocket reader, the receiving leg of a WebSockets connection.

@@ -9,7 +9,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-package io.crossbar.autobahn;
+package io.crossbar.autobahn.websocket;
+
 
 public interface WebSocket {
 

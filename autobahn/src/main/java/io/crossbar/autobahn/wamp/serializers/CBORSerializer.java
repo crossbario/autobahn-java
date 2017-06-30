@@ -9,7 +9,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-package io.crossbar.autobahn.wamp.types;
+package io.crossbar.autobahn.wamp.serializers;
 
 import java.io.IOException;
 import java.util.List;

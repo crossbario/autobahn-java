@@ -19,10 +19,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import io.crossbar.autobahn.WebSocketConnection;
-import io.crossbar.autobahn.WebSocketConnectionHandler;
-import io.crossbar.autobahn.WebSocketException;
-import io.crossbar.autobahn.WebSocketOptions;
+import io.crossbar.autobahn.websocket.WebSocketConnection;
+import io.crossbar.autobahn.websocket.WebSocketConnectionHandler;
+import io.crossbar.autobahn.websocket.WebSocketException;
+import io.crossbar.autobahn.websocket.WebSocketOptions;
+
 
 public class TestSuiteClientActivity extends AppCompatActivity implements View.OnClickListener {
 

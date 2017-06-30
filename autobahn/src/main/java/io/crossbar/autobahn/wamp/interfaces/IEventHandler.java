@@ -9,12 +9,17 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-package io.crossbar.autobahn.wamp.types;
+package io.crossbar.autobahn.wamp.interfaces;
 
 import java.util.List;
 import java.util.Map;
 
+import io.crossbar.autobahn.wamp.types.EventDetails;
+
+
 @FunctionalInterface
 public interface IEventHandler<R> {
-    R run(List<Object> args, Map<String, Object> kwargs);
+    R run(List<Object> args,
+          Map<String, Object> kwargs,
+          EventDetails details);
 }

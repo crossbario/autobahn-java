@@ -9,11 +9,12 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-package io.crossbar.autobahn;
+package io.crossbar.autobahn.websocket;
+
+import java.util.List;
 
 import org.apache.http.message.BasicNameValuePair;
 
-import java.util.List;
 
 /**
  * WebSockets message classes.
