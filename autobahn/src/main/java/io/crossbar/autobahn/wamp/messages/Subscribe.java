@@ -17,10 +17,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.types.SubscribeOptions;
 import io.crossbar.autobahn.wamp.utils.Cast;
+import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
 public class Subscribe implements IMessage {
 
@@ -54,13 +54,7 @@ public class Subscribe implements IMessage {
     }
 
     public static Subscribe parse(List<Object> wmsg) {
-        if (wmsg.size() == 0 || !(wmsg.get(0) instanceof Integer) || (int) wmsg.get(0) != MESSAGE_TYPE) {
-            throw new IllegalArgumentException("Invalid message.");
-        }
-
-        if (wmsg.size() != 4) {
-            throw new ProtocolError(String.format("invalid message length %s for SUBSCRIBE", wmsg.size()));
-        }
+        MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "SUBSCRIBE", 4);
 
         long request = Cast.castRequestID(wmsg.get(1));
         Map<String, Object> options = (Map<String, Object>) wmsg.get(2);

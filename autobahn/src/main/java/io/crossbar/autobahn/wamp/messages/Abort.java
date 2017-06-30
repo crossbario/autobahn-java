@@ -16,8 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
+import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
 public class Abort implements IMessage {
 
@@ -32,13 +32,7 @@ public class Abort implements IMessage {
     }
 
     public static Abort parse(List<Object> wmsg) {
-        if (wmsg.size() == 0 || !(wmsg.get(0) instanceof Integer) || (int) wmsg.get(0) != MESSAGE_TYPE) {
-            throw new IllegalArgumentException("Invalid message.");
-        }
-
-        if (wmsg.size() != 3) {
-            throw new ProtocolError(String.format("invalid message length %s for ABORT", wmsg.size()));
-        }
+        MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "ABORT", 3);
 
         Map<String, Object> details = (Map<String, Object>) wmsg.get(1);
         String message = null;

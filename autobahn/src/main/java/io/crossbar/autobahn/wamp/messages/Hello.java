@@ -16,8 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
+import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
 public class Hello implements IMessage {
 
@@ -38,13 +38,7 @@ public class Hello implements IMessage {
     }
 
     public static Hello parse(List<Object> wmsg) {
-        if (wmsg.size() == 0 || !(wmsg.get(0) instanceof Integer) || (int) wmsg.get(0) != MESSAGE_TYPE) {
-            throw new IllegalArgumentException("Invalid message.");
-        }
-
-        if (wmsg.size() != 3) {
-            throw new ProtocolError(String.format("invalid message length %s for HELLO", wmsg.size()));
-        }
+        MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "HELLO", 3);
 
         String realm = (String) wmsg.get(1);
 

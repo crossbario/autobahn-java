@@ -19,6 +19,7 @@ import java.util.Map;
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.utils.Cast;
+import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
 public class Invocation implements IMessage {
 
@@ -37,13 +38,7 @@ public class Invocation implements IMessage {
     }
 
     public static Invocation parse(List<Object> wmsg) {
-        if (wmsg.size() == 0 || !(wmsg.get(0) instanceof Integer) || (int) wmsg.get(0) != MESSAGE_TYPE) {
-            throw new IllegalArgumentException("Invalid message.");
-        }
-
-        if (wmsg.size() < 3 || wmsg.size() > 6) {
-            throw new ProtocolError(String.format("invalid message length %s for INVOCATION", wmsg.size()));
-        }
+        MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "INNVOCATION", 3, 6);
 
         long request = Cast.castRequestID(wmsg.get(1));
         long registration = (long) wmsg.get(2);

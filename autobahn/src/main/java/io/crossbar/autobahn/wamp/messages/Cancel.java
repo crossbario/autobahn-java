@@ -17,9 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.utils.Cast;
+import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
 public class Cancel implements IMessage {
 
@@ -43,14 +43,7 @@ public class Cancel implements IMessage {
     }
 
     public static Cancel parse(List<Object> wmsg) {
-        if (wmsg.size() == 0 || !(wmsg.get(0) instanceof Integer) || (int) wmsg.get(0) != MESSAGE_TYPE) {
-            throw new IllegalArgumentException("Invalid message.");
-        }
-
-        if (wmsg.size() != 3) {
-            throw new ProtocolError(String.format("invalid message length %s for CANCEL", wmsg.size()));
-        }
-
+        MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "CANCEL", 3);
         long request = Cast.castRequestID(wmsg.get(1));
         Map<String, Object> options = (Map<String, Object>) wmsg.get(2);
         String mode = (String) options.getOrDefault("mode", null);
