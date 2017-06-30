@@ -30,6 +30,7 @@ public class InvocationDetails {
     // The WAMP authrole of the caller.
     public final String callerAuthRole;
 
+    // The WAMP session on which this event is delivered.
     public final Session session;
 
     // FIXME
