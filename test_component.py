@@ -12,39 +12,52 @@ from autobahn.wamp.types import RegisterOptions, PublishOptions
 from autobahn.twisted.wamp import ApplicationSession, ApplicationRunner
 from autobahn.wamp.exception import ApplicationError
 
+DEPARTMENTS = [u'hr', u'sales', u'development']
 
 PERSONS = [
     {
         u'firstname': u'homer',
         u'lastname': u'simpson',
+        u'department': u'hr',
     },
     {
         u'firstname': u'joe',
         u'lastname': u'doe',
+        u'department': u'development',
+    },
+    {
+        u'firstname': u'sammy',
+        u'lastname': u'davis',
+        u'department': u'development',
     },
     {
         u'firstname': u'freddy',
         u'lastname': u'krueger',
+        u'department': u'hr',
     },
     {
         u'firstname': u'walter',
         u'lastname': u'white',
+        u'department': u'sales',
     },
     {
         u'firstname': u'jesse',
         u'lastname': u'pinkman',
+        u'department': u'sales',
     },
     {
         u'firstname': u'pablo',
         u'lastname': u'escobar',
+        u'department': u'sales',
     },
 ]
 
-PERSONS_BY_DEPARTMENT = {
-    u'hr': [PERSONS[0], PERSONS[1]],
-    u'sales': [PERSONS[2], PERSONS[3], PERSONS[4]],
-    u'development': [PERSONS[5], PERSONS[4], PERSONS[0]],
-}
+PERSONS_BY_DEPARTMENT = {}
+
+for person in PERSONS:
+    if person[u'department'] not in PERSONS_BY_DEPARTMENT:
+        PERSONS_BY_DEPARTMENT[person[u'department']] = []
+    PERSONS_BY_DEPARTMENT[person[u'department']].append(person)
 
 
 class ClientSession(ApplicationSession):
@@ -72,6 +85,18 @@ class ClientSession(ApplicationSession):
 
         yield self.register(get_person, u'com.example.get_person')
 
+        @inlineCallbacks
+        def get_person_delayed(emp_no=None, delay=3):
+            self.log.info('PERSON API: get_person_delayed(emp_no={emp_no}, delay={delay}) called', emp_no=emp_no, delay=delay)
+            if delay:
+                yield sleep(delay)
+            if emp_no:
+                return PERSONS[emp_no]
+            else:
+                return PERSONS[0]
+
+        yield self.register(get_person_delayed, u'com.example.get_person_delayed')
+
         def get_all_persons():
             print('PERSON API: get_all_persons() called')
             return PERSONS
@@ -86,6 +111,17 @@ class ClientSession(ApplicationSession):
                 return PERSONS_BY_DEPARTMENT
 
         yield self.register(get_persons_by_department, u'com.example.get_persons_by_department')
+
+        def add_person(person):
+            self.log.info('PERSON API: add_person({person}) called', person=person)
+            department = person.get(u'department', None)
+            if department not in DEPARTMENTS:
+                raise Exception('no such department: {}'.format(department))
+
+            PERSONS.append(person)
+            PERSONS_BY_DEPARTMENT[department].append(person)
+
+        yield self.register(add_person, u'com.example.add_person')
 
         self.log.info('PERSON API registered!')
 
@@ -102,6 +138,8 @@ class ClientSession(ApplicationSession):
 
         yield self._init_person_api()
 
+    @inlineCallbacks
+    def test(self):
         # REGISTER
         def add2(a, b):
             print('----------------------------')
@@ -148,7 +186,6 @@ class ClientSession(ApplicationSession):
             counter += 1
 
             yield sleep(2)
-
 
     def onLeave(self, details):
         self.log.info("Router session closed ({details})", details=details)
