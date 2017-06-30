@@ -193,7 +193,7 @@ public class Service {
         System.out.println("onJoinHandler4 fired");
 
         // no result mapping:
-
+/*
         CompletableFuture<CallResult> f1 = mSession.call("com.example.get_person", null, null, null);
 
         f1.thenAccept(result -> {
@@ -203,85 +203,154 @@ public class Service {
             throwable.printStackTrace();
             return null;
         });
-
+*/
         // POJO typed result mappings:
 
-        if (true) {
-            TypeReference<Person> resultType = new TypeReference<Person>() {};
+        // call a remote procedure that returns a Person
+//        TypeReference<Person> resultType2 = new TypeReference<Person>() {};
+        //TypeReference<Person> resultType2 = new TypeReference<Person>();
 
-            CompletableFuture<Person> f2 = mSession.call("com.example.get_person", null, null, resultType, null);
+        //List<Object> args = new ArrayList<>();
+        //args.add("development");
 
-            f2.thenAcceptAsync(person -> {
-                System.out.println("get_person() [typed]: " + person.firstname + " " + person.lastname);
-            }, mExecutor);
+        //List<CompletableFuture<Void>> done = new ArrayList<>();
 
-            f2.exceptionally(throwable -> {
-                throwable.printStackTrace();
-                return null;
+        CompletableFuture<Void> f1 =
+            mSession.call("com.example.get_person", null, null, new TypeReference<Person>() {}, null)
+                .handleAsync(
+                    (person, throwable) -> {
+                        if (throwable != null) {
+                            throwable.printStackTrace();
+                        } else {
+                            System.out.println("get_person() [typed]: " + person.firstname + " " + person.lastname + " (" + person.department + ")");
+                        }
+                        return null;
+                    }, mExecutor
+                )
+        ;
+
+        CompletableFuture<Void> f2 =
+            mSession.call("com.example.get_person_delayed", null, null, new TypeReference<Person>() {}, null)
+                .handleAsync(
+                    (person, throwable) -> {
+                        if (throwable != null) {
+                            throwable.printStackTrace();
+                        } else {
+                            System.out.println("get_person_delayed() [typed]: " + person.firstname + " " + person.lastname + " (" + person.department + ")");
+                        }
+                        return null;
+                    }, mExecutor
+                )
+        ;
+
+        CompletableFuture<Void> f3 =
+            mSession.call("com.example.get_all_persons", null, null, new TypeReference<List<Person>>() {}, null)
+                .handleAsync(
+                    (persons, throwable) -> {
+                        if (throwable != null) {
+                            throwable.printStackTrace();
+                        } else {
+                            System.out.println("get_all_persons() [typed]:");
+                            persons.forEach(person -> {
+                                System.out.println(person.firstname + " " + person.lastname + " (" + person.department + ")");
+                            });
+                        }
+                        return null;
+                    }, mExecutor
+                )
+        ;
+
+        CompletableFuture.allOf(f1, f2, f3)
+            .thenRunAsync(
+                () -> {
+                    System.out.println("all done!");
+                    mSession.leave("wamp.close.normal", "all done!");
+                }, mExecutor
+            )
+        ;
+
+/*
+        CompletableFuture<Void> f2_ok = f2.thenAcceptAsync(person -> {
+            System.out.println("get_person() [typed]: " + person.firstname + " " + person.lastname + " (" + person.department + ")");
+        }, mExecutor);
+
+        CompletableFuture<Void> f2_err = f2.exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
+
+        // call a remote procedure that returns a List<Person>
+        TypeReference<List<Person>> resultType3 = new TypeReference<List<Person>>() {};
+
+        CompletableFuture<List<Person>> f3 = mSession.call("com.example.get_all_persons", null, null, resultType3, null);
+
+        f3.thenAcceptAsync(persons -> {
+            System.out.println("get_all_persons() [typed]:");
+            persons.forEach(person -> {
+                System.out.println(person.firstname + " " + person.lastname + " (" + person.department + ")");
             });
-        }
+        }, mExecutor);
 
-        if (true) {
-            TypeReference<List<Person>> resultType = new TypeReference<List<Person>>() {};
+        f3.exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
 
-            CompletableFuture<List<Person>> f2 = mSession.call("com.example.get_all_persons", null, null, resultType, null);
 
-            f2.thenAcceptAsync(persons -> {
-                System.out.println("get_all_persons() [typed]:");
+        // call a remote procedure that returns a List<Person>
+        TypeReference<List<Person>> resultType4 = new TypeReference<List<Person>>() {};
+
+        List<Object> args = new ArrayList<>();
+        args.add("development");
+
+        CompletableFuture<List<Person>> f4 = mSession.call("com.example.get_persons_by_department", args, null, resultType4, null);
+
+        f4.thenAcceptAsync(persons -> {
+            System.out.println("get_persons_by_department('development') [typed]:");
+            persons.forEach(person -> {
+                System.out.println(person.firstname + " " + person.lastname);
+            });
+        }, mExecutor);
+
+        f4.exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
+
+
+        // call a remote procedure that returns a Map<String, List<Person>>
+        TypeReference<Map<String, List<Person>>> resultType5 = new TypeReference<Map<String, List<Person>>>() {};
+
+        CompletableFuture<Map<String, List<Person>>> f5 = mSession.call("com.example.get_persons_by_department", null, null, resultType5, null);
+
+        f5.thenAcceptAsync(persons_by_department -> {
+            System.out.println("get_persons_by_department() [typed]:");
+
+            persons_by_department.forEach((department, persons) -> {
+                System.out.println("\ndepartment '" + department + "':");
+
                 persons.forEach(person -> {
-                    System.out.println(person.firstname + " " + person.lastname);
+                    System.out.println("     " + person.firstname + " " + person.lastname);
                 });
-            }, mExecutor);
-
-            f2.exceptionally(throwable -> {
-                throwable.printStackTrace();
-                return null;
             });
-        }
+        }, mExecutor);
 
-        if (true) {
-            TypeReference<List<Person>> resultType = new TypeReference<List<Person>>() {};
+        f5.exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
+*/
 
-            List<Object> args = new ArrayList<>();
-            args.add("development");
+/*
+        List<Object> arr = new ArrayList<>();
+        arr.add(res);
+        arr.add("Java");
 
-            CompletableFuture<List<Person>> f2 = mSession.call("com.example.get_persons_by_department", args, null, resultType, null);
+CompletableFuture<Void>
 
-            f2.thenAcceptAsync(persons -> {
-                System.out.println("get_persons_by_department('development') [typed]:");
-                persons.forEach(person -> {
-                    System.out.println(person.firstname + " " + person.lastname);
-                });
-            }, mExecutor);
-
-            f2.exceptionally(throwable -> {
-                throwable.printStackTrace();
-                return null;
-            });
-        }
-
-        if (true) {
-            TypeReference<Map<String, List<Person>>> resultType = new TypeReference<Map<String, List<Person>>>() {};
-
-            CompletableFuture<Map<String, List<Person>>> f2 = mSession.call("com.example.get_persons_by_department", null, null, resultType, null);
-
-            f2.thenAcceptAsync(persons_by_department -> {
-                System.out.println("get_persons_by_department() [typed]:");
-
-                persons_by_department.forEach((department, persons) -> {
-                    System.out.println("\ndepartment '" + department + "':");
-
-                    persons.forEach(person -> {
-                        System.out.println("     " + person.firstname + " " + person.lastname);
-                    });
-                });
-            }, mExecutor);
-
-            f2.exceptionally(throwable -> {
-                throwable.printStackTrace();
-                return null;
-            });
-        }
+    CompletableFuture<Void> allFuturesResult =
+    CompletableFuture.allOf(futuresList.toArray());
+*/
     }
 
 
@@ -306,15 +375,18 @@ public class Service {
     static class Person {
         public String firstname;
         public String lastname;
+        public String department;
 
         public Person() {
             this.firstname = "unknown";
             this.lastname = "unknown";
+            this.department = "unknown";
         }
 
-        public Person(String firstname, String lastname) {
+        public Person(String firstname, String lastname, String department) {
             this.firstname = firstname;
             this.lastname = lastname;
+            this.department = department;
         }
     }
 }
