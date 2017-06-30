@@ -18,7 +18,6 @@ import java.util.Map;
 
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
-import io.crossbar.autobahn.wamp.utils.Cast;
 import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
 public class Error implements IMessage {
@@ -45,7 +44,7 @@ public class Error implements IMessage {
         int requestType = (int) wmsg.get(1);
         // FIXME: add validation here. see:
         // https://github.com/crossbario/autobahn-python/blob/886973ca139916176d5db707ffc7fa20f9529010/autobahn/wamp/message.py#L1291
-        long request = Cast.castRequestID(wmsg.get(2));
+        long request = MessageUtil.parseRequestID(wmsg.get(2));
         Map<String, Object> details = (Map<String, Object>) wmsg.get(3);
         String error = (String) wmsg.get(4);
 

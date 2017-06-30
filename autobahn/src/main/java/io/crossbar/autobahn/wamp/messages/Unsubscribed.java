@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
-import io.crossbar.autobahn.wamp.utils.Cast;
 import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
 public class Unsubscribed implements IMessage {
@@ -38,7 +37,7 @@ public class Unsubscribed implements IMessage {
     public static Unsubscribed parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "UNSUBSCRIBED", 2, 3);
 
-        long request = Cast.castRequestID(wmsg.get(1));
+        long request = MessageUtil.parseRequestID(wmsg.get(1));
 
         long subscription = SUBSCRIPTION_NULL;
         String reason = null;

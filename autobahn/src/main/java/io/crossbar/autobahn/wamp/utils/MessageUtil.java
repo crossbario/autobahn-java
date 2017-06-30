@@ -1,3 +1,14 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+//   AutobahnJava - http://crossbar.io/autobahn
+//
+//   Copyright (c) Crossbar.io Technologies GmbH and contributors
+//
+//   Licensed under the MIT License.
+//   http://www.opensource.org/licenses/mit-license.php
+//
+///////////////////////////////////////////////////////////////////////////////
+
 package io.crossbar.autobahn.wamp.utils;
 
 import java.util.List;
@@ -7,6 +18,9 @@ import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 public class MessageUtil {
 
     /**
+     *
+     * Validate a raw WAMP message object based on supplied criteria.
+     *
      * @param wmsg wamp message to validate
      * @param messageType type of the wamp message
      * @param lengthMin minimum number of items the wamp message is expected to have
@@ -28,6 +42,9 @@ public class MessageUtil {
     }
 
     /**
+     *
+     * Validate a raw WAMP message object based on supplied criteria.
+     *
      * @param wmsg wamp message to validate
      * @param messageType type of the wamp message
      * @param length number of items the wamp message is expected to have
@@ -37,5 +54,20 @@ public class MessageUtil {
                                        String messageVerboseName,
                                        int length) {
         validateMessage(wmsg, messageType, messageVerboseName, length, length);
+    }
+
+    /**
+     *
+     * Parse the supplied object as long.
+     *
+     * @param object the object to cast
+     * @return long value of the object
+     */
+    public static long parseRequestID(Object object) {
+        try {
+            return (int) object;
+        } catch (ClassCastException ignore) {
+            return (long) object;
+        }
     }
 }

@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
-import io.crossbar.autobahn.wamp.utils.Cast;
 import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
 public class Unsubscribe implements IMessage {
@@ -31,7 +30,7 @@ public class Unsubscribe implements IMessage {
 
     public static Unsubscribe parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "UNSUBSCRIBE", 3);
-        return new Unsubscribe(Cast.castRequestID(wmsg.get(1)), (long) wmsg.get(2));
+        return new Unsubscribe(MessageUtil.parseRequestID(wmsg.get(1)), (long) wmsg.get(2));
     }
 
     @Override
