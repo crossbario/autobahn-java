@@ -11,9 +11,6 @@
 
 package io.crossbar.autobahn.wamp.interfaces;
 
-import io.crossbar.autobahn.wamp.interfaces.ISerializer;
-
-
 public interface ITransport {
 
     void send(byte[] payload, boolean isBinary);

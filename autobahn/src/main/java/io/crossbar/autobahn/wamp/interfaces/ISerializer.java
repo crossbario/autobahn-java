@@ -11,9 +11,9 @@
 
 package io.crossbar.autobahn.wamp.interfaces;
 
-import java.util.List;
-
 import com.fasterxml.jackson.core.type.TypeReference;
+
+import java.util.List;
 
 
 public interface ISerializer {
