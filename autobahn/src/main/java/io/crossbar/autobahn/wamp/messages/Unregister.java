@@ -14,9 +14,9 @@ package io.crossbar.autobahn.wamp.messages;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.utils.Cast;
+import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
 public class Unregister implements IMessage {
 
@@ -30,14 +30,7 @@ public class Unregister implements IMessage {
     }
 
     public static Unregister parse(List<Object> wmsg) {
-        if (wmsg.size() == 0 || !(wmsg.get(0) instanceof Integer) || (int) wmsg.get(0) != MESSAGE_TYPE) {
-            throw new IllegalArgumentException("Invalid message.");
-        }
-
-        if (wmsg.size() != 3) {
-            throw new ProtocolError(String.format("invalid message length %s for UNREGISTER", wmsg.size()));
-        }
-
+        MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "UNREGISTER", 3);
         return new Unregister(Cast.castRequestID(wmsg.get(1)), (long) wmsg.get(2));
     }
 

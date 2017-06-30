@@ -16,9 +16,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.utils.Cast;
+import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
 public class Unregistered implements IMessage {
 
@@ -35,14 +35,8 @@ public class Unregistered implements IMessage {
         this.reason = reason;
     }
 
-    public static Unsubscribed parse(List<Object> wmsg) {
-        if (wmsg.size() == 0 || !(wmsg.get(0) instanceof Integer) || (int) wmsg.get(0) != MESSAGE_TYPE) {
-            throw new IllegalArgumentException("Invalid message.");
-        }
-
-        if (wmsg.size() < 2 || wmsg.size() > 3) {
-            throw new ProtocolError(String.format("invalid message length %s for UNSUBSCRIBED", wmsg.size()));
-        }
+    public static Unregistered parse(List<Object> wmsg) {
+        MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "UNREGISTERED", 2, 3);
 
         long registration = REGISTRATION_NULL;
         String reason = null;
@@ -52,7 +46,7 @@ public class Unregistered implements IMessage {
             reason = (String) details.getOrDefault("reason", reason);
         }
 
-        return new Unsubscribed(Cast.castRequestID(wmsg.get(1)), registration, reason);
+        return new Unregistered(Cast.castRequestID(wmsg.get(1)), registration, reason);
     }
 
     @Override

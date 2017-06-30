@@ -16,9 +16,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.utils.Cast;
+import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
 public class Unsubscribed implements IMessage {
 
@@ -36,13 +36,7 @@ public class Unsubscribed implements IMessage {
     }
 
     public static Unsubscribed parse(List<Object> wmsg) {
-        if (wmsg.size() == 0 || !(wmsg.get(0) instanceof Integer) || (int) wmsg.get(0) != MESSAGE_TYPE) {
-            throw new IllegalArgumentException("Invalid message.");
-        }
-
-        if (wmsg.size() < 2 || wmsg.size() > 3) {
-            throw new ProtocolError(String.format("invalid message length %s for UNSUBSCRIBED", wmsg.size()));
-        }
+        MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "UNSUBSCRIBED", 2, 3);
 
         long request = Cast.castRequestID(wmsg.get(1));
 
