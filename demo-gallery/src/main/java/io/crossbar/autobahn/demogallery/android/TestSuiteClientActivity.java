@@ -9,7 +9,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-package io.crossbar.autobahn.demogallery;
+package io.crossbar.autobahn.demogallery.android;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -19,6 +19,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import io.crossbar.autobahn.demogallery.R;
 import io.crossbar.autobahn.websocket.WebSocketConnection;
 import io.crossbar.autobahn.websocket.WebSocketConnectionHandler;
 import io.crossbar.autobahn.websocket.WebSocketException;
@@ -77,12 +78,7 @@ public class TestSuiteClientActivity extends AppCompatActivity implements View.O
     }
 
     private void updateText(final TextView textView, final String text) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                textView.setText(text);
-            }
-        });
+        runOnUiThread(() -> textView.setText(text));
     }
 
     private void runTest() throws WebSocketException {
