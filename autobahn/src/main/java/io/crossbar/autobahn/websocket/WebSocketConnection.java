@@ -9,15 +9,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-package io.crossbar.autobahn;
+package io.crossbar.autobahn.websocket;
 
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
-import android.os.Message;
-import android.util.Log;
-
-import org.apache.http.message.BasicNameValuePair;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -28,6 +21,15 @@ import java.util.List;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLSocketFactory;
+
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
+import android.os.Message;
+import android.util.Log;
+
+import org.apache.http.message.BasicNameValuePair;
+
 
 public class WebSocketConnection implements WebSocket {
 

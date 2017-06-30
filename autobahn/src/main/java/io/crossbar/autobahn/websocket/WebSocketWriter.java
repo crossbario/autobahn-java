@@ -9,7 +9,13 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-package io.crossbar.autobahn;
+package io.crossbar.autobahn.websocket;
+
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.net.Socket;
+import java.net.SocketException;
+import java.util.Random;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -19,11 +25,6 @@ import android.util.Log;
 
 import org.apache.http.NameValuePair;
 
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.net.Socket;
-import java.net.SocketException;
-import java.util.Random;
 
 /**
  * WebSocket writer, the sending leg of a WebSockets connection.

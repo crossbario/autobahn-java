@@ -12,24 +12,27 @@
 package io.crossbar.autobahn.demogallery;
 
 import android.app.Activity;
-import android.content.SharedPreferences;
+import android.util.Log;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.content.SharedPreferences;
+
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import io.crossbar.autobahn.WebSocket;
-import io.crossbar.autobahn.WebSocketConnection;
-import io.crossbar.autobahn.WebSocketException;
-import io.crossbar.autobahn.WebSocketConnectionHandler;
+import io.crossbar.autobahn.websocket.WebSocket;
+import io.crossbar.autobahn.websocket.WebSocketConnection;
+import io.crossbar.autobahn.websocket.WebSocketException;
+import io.crossbar.autobahn.websocket.WebSocketConnectionHandler;
+
 
 public class EchoClientActivity extends AppCompatActivity {
 
