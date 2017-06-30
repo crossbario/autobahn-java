@@ -11,6 +11,9 @@
 
 package io.crossbar.autobahn.wamp.types;
 
+import io.crossbar.autobahn.wamp.interfaces.IInvocationHandler;
+
+
 public class Registration {
     public final long registration;
     public final String procedure;

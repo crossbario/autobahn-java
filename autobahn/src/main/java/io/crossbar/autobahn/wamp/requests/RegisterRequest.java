@@ -13,8 +13,9 @@ package io.crossbar.autobahn.wamp.requests;
 
 import java.util.concurrent.CompletableFuture;
 
-import io.crossbar.autobahn.wamp.types.IInvocationHandler;
+import io.crossbar.autobahn.wamp.interfaces.IInvocationHandler;
 import io.crossbar.autobahn.wamp.types.Registration;
+
 
 public class RegisterRequest extends Request {
     public final CompletableFuture<Registration> onReply;

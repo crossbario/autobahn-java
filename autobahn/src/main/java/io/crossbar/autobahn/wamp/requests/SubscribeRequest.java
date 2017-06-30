@@ -13,8 +13,9 @@ package io.crossbar.autobahn.wamp.requests;
 
 import java.util.concurrent.CompletableFuture;
 
-import io.crossbar.autobahn.wamp.types.IEventHandler;
+import io.crossbar.autobahn.wamp.interfaces.IEventHandler;
 import io.crossbar.autobahn.wamp.types.Subscription;
+
 
 public class SubscribeRequest extends Request {
     public final String topic;

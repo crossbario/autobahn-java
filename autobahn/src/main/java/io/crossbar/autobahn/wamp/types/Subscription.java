@@ -11,6 +11,9 @@
 
 package io.crossbar.autobahn.wamp.types;
 
+import io.crossbar.autobahn.wamp.interfaces.IEventHandler;
+
+
 public class Subscription {
     public final long subscription;
     public final String topic;

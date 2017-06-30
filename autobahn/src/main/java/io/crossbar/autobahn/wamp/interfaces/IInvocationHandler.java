@@ -9,12 +9,18 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-package io.crossbar.autobahn.wamp.types;
+package io.crossbar.autobahn.wamp.interfaces;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
+import io.crossbar.autobahn.wamp.types.InvocationDetails;
+import io.crossbar.autobahn.wamp.types.InvocationResult;
+
 
 @FunctionalInterface
-public interface IEventHandler<R> {
-    R run(List<Object> args, Map<String, Object> kwargs);
+public interface IInvocationHandler {
+    CompletableFuture<InvocationResult> run(List<Object> args, Map<String, Object> kwargs,
+                                            InvocationDetails details);
 }
