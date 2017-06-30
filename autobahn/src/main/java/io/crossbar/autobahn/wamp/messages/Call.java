@@ -18,7 +18,6 @@ import java.util.Map;
 
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
-import io.crossbar.autobahn.wamp.utils.Cast;
 import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
 public class Call implements IMessage {
@@ -48,7 +47,7 @@ public class Call implements IMessage {
     public static Call parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "CALL", 4);
 
-        long request = Cast.castRequestID(wmsg.get(1));
+        long request = MessageUtil.castRequestID(wmsg.get(1));
         Map<String, Object> options = (Map<String, Object>) wmsg.get(2);
         String procedure = (String) wmsg.get(3);
 

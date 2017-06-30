@@ -18,7 +18,6 @@ import java.util.Map;
 
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
-import io.crossbar.autobahn.wamp.utils.Cast;
 import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
 public class Yield implements IMessage {
@@ -50,7 +49,7 @@ public class Yield implements IMessage {
         if (wmsg.size() > 4) {
             kwargs = (Map<String, Object>) wmsg.get(4);
         }
-        return new Yield(Cast.castRequestID(wmsg.get(1)), args, kwargs);
+        return new Yield(MessageUtil.castRequestID(wmsg.get(1)), args, kwargs);
     }
 
     @Override

@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
-import io.crossbar.autobahn.wamp.utils.Cast;
 import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
 public class Registered implements IMessage {
@@ -31,7 +30,7 @@ public class Registered implements IMessage {
 
     public static Registered parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "REGISTERED", 3);
-        return new Registered(Cast.castRequestID(wmsg.get(1)), (long) wmsg.get(2));
+        return new Registered(MessageUtil.castRequestID(wmsg.get(1)), (long) wmsg.get(2));
     }
 
     @Override

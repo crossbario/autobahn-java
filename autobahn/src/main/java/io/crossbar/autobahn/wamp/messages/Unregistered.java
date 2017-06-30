@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
-import io.crossbar.autobahn.wamp.utils.Cast;
 import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
 public class Unregistered implements IMessage {
@@ -46,7 +45,7 @@ public class Unregistered implements IMessage {
             reason = (String) details.getOrDefault("reason", reason);
         }
 
-        return new Unregistered(Cast.castRequestID(wmsg.get(1)), registration, reason);
+        return new Unregistered(MessageUtil.castRequestID(wmsg.get(1)), registration, reason);
     }
 
     @Override

@@ -18,7 +18,6 @@ import java.util.Map;
 
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
-import io.crossbar.autobahn.wamp.utils.Cast;
 import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
 public class Result implements IMessage {
@@ -37,7 +36,7 @@ public class Result implements IMessage {
     public static Result parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "RESULT", 4, 6);
 
-        long request = Cast.castRequestID(wmsg.get(1));
+        long request = MessageUtil.castRequestID(wmsg.get(1));
         List<Object> args = null;
         if (wmsg.size() > 3) {
             if (wmsg.get(3) instanceof byte[]) {

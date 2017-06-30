@@ -19,7 +19,6 @@ import java.util.Objects;
 
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.types.SubscribeOptions;
-import io.crossbar.autobahn.wamp.utils.Cast;
 import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
 public class Subscribe implements IMessage {
@@ -56,7 +55,7 @@ public class Subscribe implements IMessage {
     public static Subscribe parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "SUBSCRIBE", 4);
 
-        long request = Cast.castRequestID(wmsg.get(1));
+        long request = MessageUtil.castRequestID(wmsg.get(1));
         Map<String, Object> options = (Map<String, Object>) wmsg.get(2);
         String match = (String) options.get("match");
         boolean getRetained = (boolean) options.get("get_retained");
