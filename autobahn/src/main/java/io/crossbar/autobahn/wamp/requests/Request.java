@@ -12,7 +12,7 @@
 package io.crossbar.autobahn.wamp.requests;
 
 
-public class Request {
+public abstract class Request {
 
     public final long request;
 
