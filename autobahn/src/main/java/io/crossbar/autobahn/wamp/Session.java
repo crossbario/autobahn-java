@@ -11,6 +11,8 @@
 
 package io.crossbar.autobahn.wamp;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,23 +21,15 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
-
+import io.crossbar.autobahn.wamp.interfaces.IEventHandler;
+import io.crossbar.autobahn.wamp.interfaces.IInvocationHandler;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
+import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 import io.crossbar.autobahn.wamp.interfaces.ISession;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
-import io.crossbar.autobahn.wamp.interfaces.ISerializer;
-import io.crossbar.autobahn.wamp.interfaces.IEventHandler;
-import io.crossbar.autobahn.wamp.interfaces.IInvocationHandler;
-
 import io.crossbar.autobahn.wamp.messages.Call;
 import io.crossbar.autobahn.wamp.messages.Error;
 import io.crossbar.autobahn.wamp.messages.Event;
@@ -51,12 +45,10 @@ import io.crossbar.autobahn.wamp.messages.Subscribe;
 import io.crossbar.autobahn.wamp.messages.Subscribed;
 import io.crossbar.autobahn.wamp.messages.Welcome;
 import io.crossbar.autobahn.wamp.messages.Yield;
-
 import io.crossbar.autobahn.wamp.requests.CallRequest;
 import io.crossbar.autobahn.wamp.requests.PublishRequest;
 import io.crossbar.autobahn.wamp.requests.RegisterRequest;
 import io.crossbar.autobahn.wamp.requests.SubscribeRequest;
-
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.CloseDetails;
@@ -435,30 +427,8 @@ public class Session implements ISession, ITransportHandler {
         return future;
     }
 
-    @Override
-    public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
-                                              CallOptions options) {
-        if (!isConnected()) {
-            throw new IllegalStateException("The transport must be connected first");
-        }
-
-        CompletableFuture<CallResult> future = new CompletableFuture<>();
-
-        long requestID = mIDGenerator.next();
-
-        mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options));
-
-        if (options == null) {
-            this.send(new Call(requestID, procedure, args, kwargs, 0));
-        } else {
-            this.send(new Call(requestID, procedure, args, kwargs, options.timeout));
-        }
-        return future;
-    }
-
-    @Override
-    public <T> CompletableFuture<T> call(String procedure, List<Object> args, Map<String, Object> kwargs,
-                                         TypeReference<T> resultType, CallOptions options) {
+    private <T> CompletableFuture<T> reallyCall(String procedure, List<Object> args, Map<String, Object> kwargs,
+                                                TypeReference<T> resultType, CallOptions options) {
         if (!isConnected()) {
             throw new IllegalStateException("The transport must be connected first");
         }
@@ -475,6 +445,18 @@ public class Session implements ISession, ITransportHandler {
             this.send(new Call(requestID, procedure, args, kwargs, options.timeout));
         }
         return future;
+    }
+
+    @Override
+    public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
+                                              CallOptions options) {
+        return reallyCall(procedure, args, kwargs, null, options);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(String procedure, List<Object> args, Map<String, Object> kwargs,
+                                         TypeReference<T> resultType, CallOptions options) {
+        return reallyCall(procedure, args, kwargs, resultType, options);
     }
 
     @Override
