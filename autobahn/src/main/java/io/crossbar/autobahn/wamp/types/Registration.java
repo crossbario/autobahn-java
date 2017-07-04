@@ -11,15 +11,12 @@
 
 package io.crossbar.autobahn.wamp.types;
 
-import io.crossbar.autobahn.wamp.interfaces.IInvocationHandler;
-
-
 public class Registration {
     public final long registration;
     public final String procedure;
-    public final IInvocationHandler endpoint;
+    public final Object endpoint;
 
-    public Registration(long registration, String procedure, IInvocationHandler endpoint) {
+    public Registration(long registration, String procedure, Object endpoint) {
         this.registration = registration;
         this.procedure = procedure;
         this.endpoint = endpoint;

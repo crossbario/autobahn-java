@@ -36,6 +36,7 @@ import io.crossbar.autobahn.wamp.interfaces.ISession;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.interfaces.TriConsumer;
+import io.crossbar.autobahn.wamp.interfaces.TriFunction;
 import io.crossbar.autobahn.wamp.messages.Call;
 import io.crossbar.autobahn.wamp.messages.Error;
 import io.crossbar.autobahn.wamp.messages.Event;
@@ -309,8 +310,21 @@ public class Session implements ISession, ITransportHandler {
 
                     InvocationDetails details = new InvocationDetails(
                             registration, registration.procedure, -1, null, null, this);
-                    CompletableFuture<InvocationResult> result = registration.endpoint.run(
-                            msg.args, msg.kwargs, details);
+
+                    CompletableFuture<InvocationResult> result;
+                    if (registration.endpoint instanceof Function) {
+                        Function endpoint = (Function) registration.endpoint;
+                        result = (CompletableFuture<InvocationResult>) endpoint.apply(msg.args);
+                    } else if (registration.endpoint instanceof BiFunction) {
+                        BiFunction endpoint = (BiFunction) registration.endpoint;
+                        result = (CompletableFuture<InvocationResult>) endpoint.apply(msg.args, details);
+                    } else if (registration.endpoint instanceof TriFunction) {
+                        TriFunction endpoint = (TriFunction) registration.endpoint;
+                        result = (CompletableFuture<InvocationResult>) endpoint.apply(msg.args, msg.kwargs, details);
+                    } else {
+                        IInvocationHandler endpoint = (IInvocationHandler) registration.endpoint;
+                        result = endpoint.apply(msg.args, msg.kwargs, details);
+                    }
 
                     result.whenCompleteAsync((invocationResult, invocationException) -> {
                         if (invocationException != null) {
@@ -469,9 +483,8 @@ public class Session implements ISession, ITransportHandler {
         return reallyPublish(topic, null, null, null);
     }
 
-    @Override
-    public CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint,
-                                                    RegisterOptions options) {
+    private CompletableFuture<Registration> reallyRegister(String procedure, Object endpoint,
+                                                           RegisterOptions options) {
         throwIfNotConnected();
         CompletableFuture<Registration> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
@@ -485,10 +498,16 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
+    public CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint,
+                                                    RegisterOptions options) {
+        return reallyRegister(procedure, endpoint, options);
+    }
+
+    @Override
     public <T> CompletableFuture<Registration> register(String procedure,
                                                         Function<T, CompletableFuture<InvocationResult>> endpoint,
                                                         RegisterOptions options) {
-        return null;
+        return reallyRegister(procedure, endpoint, options);
     }
 
     @Override
@@ -496,7 +515,15 @@ public class Session implements ISession, ITransportHandler {
                                                         BiFunction<T, InvocationDetails,
                                                                 CompletableFuture<InvocationResult>> endpoint,
                                                         RegisterOptions options) {
-        return null;
+        return reallyRegister(procedure, endpoint, options);
+    }
+
+    @Override
+    public <T, U> CompletableFuture<Registration> register(String procedure,
+                                                           TriFunction<T, U, InvocationDetails,
+                                                                   CompletableFuture<InvocationResult>> endpoint,
+                                                           RegisterOptions options) {
+        return reallyRegister(procedure, endpoint, options);
     }
 
     private <T> CompletableFuture<T> reallyCall(String procedure, List<Object> args, Map<String, Object> kwargs,

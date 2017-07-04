@@ -76,6 +76,11 @@ public interface ISession {
                                                          CompletableFuture<InvocationResult>> endpoint,
                                                  RegisterOptions options);
 
+    <T, U> CompletableFuture<Registration> register(String procedure,
+                                                    TriFunction<T, U, InvocationDetails,
+                                                            CompletableFuture<InvocationResult>> endpoint,
+                                                    RegisterOptions options);
+
     CompletableFuture<CallResult> call(String procedure,
                                        List<Object> args,
                                        Map<String, Object> kwargs,
