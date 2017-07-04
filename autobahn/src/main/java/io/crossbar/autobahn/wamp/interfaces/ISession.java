@@ -43,6 +43,10 @@ public interface ISession {
 
     CompletableFuture<Publication> publish(String topic, PublishOptions options, Object... objects);
 
+    CompletableFuture<Publication> publish(String topic, PublishOptions options);
+
+    CompletableFuture<Publication> publish(String topic);
+
     CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint, RegisterOptions options);
 
     CompletableFuture<CallResult> call(String procedure,

@@ -430,6 +430,16 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
+    public CompletableFuture<Publication> publish(String topic, PublishOptions options) {
+        return reallyPublish(topic, null, null, options);
+    }
+
+    @Override
+    public CompletableFuture<Publication> publish(String topic) {
+        return reallyPublish(topic, null, null, null);
+    }
+
+    @Override
     public CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint,
                                                     RegisterOptions options) {
         if (!isConnected()) {
