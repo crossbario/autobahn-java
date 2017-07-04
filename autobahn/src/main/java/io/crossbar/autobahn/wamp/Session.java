@@ -494,6 +494,12 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
+    public <T> CompletableFuture<T> call(String procedure, TypeReference<T> resultType, CallOptions options,
+                                         Object... args) {
+        return reallyCall(procedure, Arrays.asList(args), null, resultType, options);
+    }
+
+    @Override
     public CompletableFuture<SessionDetails> join(String realm, List<String> authMethods) {
         System.out.println("Session.join");
         mRealm = realm;
