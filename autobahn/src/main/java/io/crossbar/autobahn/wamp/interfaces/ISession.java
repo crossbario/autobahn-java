@@ -39,6 +39,8 @@ public interface ISession {
                                            Map<String, Object> kwargs,
                                            PublishOptions options);
 
+    CompletableFuture<Publication> publish(String topic, Object object, PublishOptions options);
+
     CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint, RegisterOptions options);
 
     CompletableFuture<CallResult> call(String procedure,

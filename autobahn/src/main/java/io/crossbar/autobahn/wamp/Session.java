@@ -393,9 +393,9 @@ public class Session implements ISession, ITransportHandler {
         return future;
     }
 
-    @Override
-    public CompletableFuture<Publication> publish(String topic, List<Object> args, Map<String, Object> kwargs,
-                                                  PublishOptions options) {
+    private CompletableFuture<Publication> reallyPublish(String topic, List<Object> args,
+                                                         Map<String, Object> kwargs,
+                                                         PublishOptions options) {
         if (!isConnected()) {
             throw new IllegalStateException("The transport must be connected first");
         }
@@ -408,6 +408,19 @@ public class Session implements ISession, ITransportHandler {
             this.send(new Publish(requestID, topic, args, kwargs, true, true));
         }
         return future;
+    }
+
+    @Override
+    public CompletableFuture<Publication> publish(String topic, List<Object> args, Map<String, Object> kwargs,
+                                                  PublishOptions options) {
+        return reallyPublish(topic, args, kwargs, options);
+    }
+
+    @Override
+    public CompletableFuture<Publication> publish(String topic, Object object, PublishOptions options) {
+        List<Object> args = new ArrayList<>();
+        args.add(object);
+        return reallyPublish(topic, args, null, options);
     }
 
     @Override
