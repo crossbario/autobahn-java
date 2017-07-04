@@ -33,6 +33,7 @@ import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 import io.crossbar.autobahn.wamp.interfaces.ISession;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
+import io.crossbar.autobahn.wamp.interfaces.TriConsumer;
 import io.crossbar.autobahn.wamp.messages.Call;
 import io.crossbar.autobahn.wamp.messages.Error;
 import io.crossbar.autobahn.wamp.messages.Event;
@@ -407,7 +408,13 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
-    public <T, U> CompletableFuture<Subscription> subscribe(String topic, BiConsumer<T, U> handler,
+    public <T> CompletableFuture<Subscription> subscribe(String topic, BiConsumer<T, EventDetails> handler,
+                                                         SubscribeOptions options) {
+        return null;
+    }
+
+    @Override
+    public <T, U> CompletableFuture<Subscription> subscribe(String topic, TriConsumer<T, U, EventDetails> handler,
                                                             SubscribeOptions options) {
         return null;
     }

@@ -23,6 +23,7 @@ import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.CloseDetails;
+import io.crossbar.autobahn.wamp.types.EventDetails;
 import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.PublishOptions;
 import io.crossbar.autobahn.wamp.types.RegisterOptions;
@@ -38,7 +39,10 @@ public interface ISession {
 
     <T> CompletableFuture<Subscription> subscribe(String topic, Consumer<T> handler, SubscribeOptions options);
 
-    <T, U> CompletableFuture<Subscription> subscribe(String topic, BiConsumer<T, U> handler,
+    <T> CompletableFuture<Subscription> subscribe(String topic, BiConsumer<T, EventDetails> handler,
+                                                  SubscribeOptions options);
+
+    <T, U> CompletableFuture<Subscription> subscribe(String topic, TriConsumer<T, U, EventDetails> handler,
                                                      SubscribeOptions options);
 
     CompletableFuture<Publication> publish(String topic,
@@ -56,7 +60,8 @@ public interface ISession {
 
     CompletableFuture<Publication> publish(String topic);
 
-    CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint, RegisterOptions options);
+    CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint,
+                                             RegisterOptions options);
 
     CompletableFuture<CallResult> call(String procedure,
                                        List<Object> args,
