@@ -22,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -486,6 +487,14 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public <T> CompletableFuture<Registration> register(String procedure,
                                                         Function<T, CompletableFuture<InvocationResult>> endpoint,
+                                                        RegisterOptions options) {
+        return null;
+    }
+
+    @Override
+    public <T> CompletableFuture<Registration> register(String procedure,
+                                                        BiFunction<T, InvocationDetails,
+                                                                CompletableFuture<InvocationResult>> endpoint,
                                                         RegisterOptions options) {
         return null;
     }
