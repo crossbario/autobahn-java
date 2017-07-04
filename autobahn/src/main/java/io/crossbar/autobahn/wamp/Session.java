@@ -430,6 +430,11 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
+    public CompletableFuture<Publication> publish(String topic, Object... objects) {
+        return reallyPublish(topic, Arrays.asList(objects), null, null);
+    }
+
+    @Override
     public CompletableFuture<Publication> publish(String topic, PublishOptions options) {
         return reallyPublish(topic, null, null, options);
     }

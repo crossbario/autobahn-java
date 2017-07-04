@@ -43,6 +43,8 @@ public interface ISession {
 
     CompletableFuture<Publication> publish(String topic, PublishOptions options, Object... objects);
 
+    CompletableFuture<Publication> publish(String topic, Object... objects);
+
     CompletableFuture<Publication> publish(String topic, PublishOptions options);
 
     CompletableFuture<Publication> publish(String topic);
