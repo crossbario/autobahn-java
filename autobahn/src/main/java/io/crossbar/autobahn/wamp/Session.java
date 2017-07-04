@@ -135,6 +135,12 @@ public class Session implements ISession, ITransportHandler {
         return mExecutor;
     }
 
+    private void throwIfNotConnected() {
+        if (!isConnected()) {
+            throw new IllegalStateException("The transport must be connected first");
+        }
+    }
+
     @Override
     public void onConnect(ITransport transport, ISerializer serializer) {
         System.out.println("Session.onConnect");
@@ -386,9 +392,7 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public CompletableFuture<Subscription> subscribe(String topic, IEventHandler handler, SubscribeOptions options) {
-        if (!isConnected()) {
-            throw new IllegalStateException("The transport must be connected first");
-        }
+        throwIfNotConnected();
         CompletableFuture<Subscription> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
         mSubscribeRequests.put(requestID, new SubscribeRequest(requestID, topic, future, handler));
@@ -411,9 +415,7 @@ public class Session implements ISession, ITransportHandler {
     private CompletableFuture<Publication> reallyPublish(String topic, List<Object> args,
                                                          Map<String, Object> kwargs,
                                                          PublishOptions options) {
-        if (!isConnected()) {
-            throw new IllegalStateException("The transport must be connected first");
-        }
+        throwIfNotConnected();
         CompletableFuture<Publication> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
         mPublishRequests.put(requestID, new PublishRequest(requestID, future));
@@ -461,9 +463,7 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint,
                                                     RegisterOptions options) {
-        if (!isConnected()) {
-            throw new IllegalStateException("The transport must be connected first");
-        }
+        throwIfNotConnected();
         CompletableFuture<Registration> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
         mRegisterRequest.put(requestID, new RegisterRequest(requestID, future, procedure, endpoint));
@@ -477,9 +477,7 @@ public class Session implements ISession, ITransportHandler {
 
     private <T> CompletableFuture<T> reallyCall(String procedure, List<Object> args, Map<String, Object> kwargs,
                                                 TypeReference<T> resultType, CallOptions options) {
-        if (!isConnected()) {
-            throw new IllegalStateException("The transport must be connected first");
-        }
+        throwIfNotConnected();
 
         CompletableFuture<T> future = new CompletableFuture<>();
 
