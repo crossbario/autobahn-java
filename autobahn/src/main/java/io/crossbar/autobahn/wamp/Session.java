@@ -14,6 +14,7 @@ package io.crossbar.autobahn.wamp;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -421,6 +422,11 @@ public class Session implements ISession, ITransportHandler {
         List<Object> args = new ArrayList<>();
         args.add(object);
         return reallyPublish(topic, args, null, options);
+    }
+
+    @Override
+    public CompletableFuture<Publication> publish(String topic, PublishOptions options, Object... objects) {
+        return reallyPublish(topic, Arrays.asList(objects), null, options);
     }
 
     @Override
