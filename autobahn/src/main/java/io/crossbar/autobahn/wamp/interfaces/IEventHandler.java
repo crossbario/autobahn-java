@@ -18,8 +18,8 @@ import io.crossbar.autobahn.wamp.types.EventDetails;
 
 
 @FunctionalInterface
-public interface IEventHandler<R> {
-    R run(List<Object> args,
-          Map<String, Object> kwargs,
-          EventDetails details);
+public interface IEventHandler {
+    void run(List<Object> args,
+             Map<String, Object> kwargs,
+             EventDetails details);
 }

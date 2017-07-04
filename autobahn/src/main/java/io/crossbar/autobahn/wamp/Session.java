@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
@@ -392,6 +394,18 @@ public class Session implements ISession, ITransportHandler {
         mSubscribeRequests.put(requestID, new SubscribeRequest(requestID, topic, future, handler));
         this.send(new Subscribe(requestID, options, topic));
         return future;
+    }
+
+    @Override
+    public <T> CompletableFuture<Subscription> subscribe(String topic, Consumer<T> handler,
+                                                         SubscribeOptions options) {
+        return null;
+    }
+
+    @Override
+    public <T, U> CompletableFuture<Subscription> subscribe(String topic, BiConsumer<T, U> handler,
+                                                            SubscribeOptions options) {
+        return null;
     }
 
     private CompletableFuture<Publication> reallyPublish(String topic, List<Object> args,

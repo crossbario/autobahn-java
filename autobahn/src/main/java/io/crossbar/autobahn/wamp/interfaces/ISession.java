@@ -16,6 +16,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.types.CallOptions;
@@ -33,6 +35,11 @@ import io.crossbar.autobahn.wamp.types.Subscription;
 public interface ISession {
 
     CompletableFuture<Subscription> subscribe(String topic, IEventHandler handler, SubscribeOptions options);
+
+    <T> CompletableFuture<Subscription> subscribe(String topic, Consumer<T> handler, SubscribeOptions options);
+
+    <T, U> CompletableFuture<Subscription> subscribe(String topic, BiConsumer<T, U> handler,
+                                                     SubscribeOptions options);
 
     CompletableFuture<Publication> publish(String topic,
                                            List<Object> args,
