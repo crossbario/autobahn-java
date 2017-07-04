@@ -23,6 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
@@ -480,6 +481,13 @@ public class Session implements ISession, ITransportHandler {
             this.send(new Register(requestID, procedure, null, null));
         }
         return future;
+    }
+
+    @Override
+    public <T> CompletableFuture<Registration> register(String procedure,
+                                                        Function<T, CompletableFuture<InvocationResult>> endpoint,
+                                                        RegisterOptions options) {
+        return null;
     }
 
     private <T> CompletableFuture<T> reallyCall(String procedure, List<Object> args, Map<String, Object> kwargs,
