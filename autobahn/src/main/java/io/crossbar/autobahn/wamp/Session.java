@@ -255,29 +255,40 @@ public class Session implements ISession, ITransportHandler {
             } else if (message instanceof Event) {
                 Event msg = (Event) message;
                 List<Subscription> subscriptions = mSubscriptions.getOrDefault(msg.subscription, null);
-                if (subscriptions != null) {
-
-                    List<CompletableFuture<?>> futures = new ArrayList<>();
-
-                    subscriptions.forEach(
-                            subscription -> {
-                                EventDetails details = new EventDetails(
-                                        subscription, subscription.topic, -1, null, null, this);
-                                futures.add(
-                                    CompletableFuture.runAsync(
-                                        () -> subscription.handler.run(msg.args, msg.kwargs, details)
-                                        , getExecutor()
-                                    )
-                                );
-                            }
-                    );
-
-                    // Not really doing anything with the combined futures.
-                    combineFutures(futures);
-                } else {
+                if (subscriptions == null) {
                     throw new ProtocolError(String.format(
                             "EVENT received for non-subscribed subscription ID %s", msg.subscription));
                 }
+
+                List<CompletableFuture<?>> futures = new ArrayList<>();
+
+                subscriptions.forEach(subscription -> {
+                            EventDetails details = new EventDetails(
+                                    subscription, subscription.topic, -1, null, null, this);
+                            CompletableFuture future;
+                            if (subscription.handler instanceof Consumer) {
+                                Consumer handler = (Consumer) subscription.handler;
+                                future = CompletableFuture.runAsync(
+                                        () -> handler.accept(msg.args.get(0)), getExecutor());
+                            } else if (subscription.handler instanceof BiConsumer) {
+                                BiConsumer handler = (BiConsumer) subscription.handler;
+                                future = CompletableFuture.runAsync(
+                                        () -> handler.accept(msg.args.get(0), details), getExecutor());
+                            } else if (subscription.handler instanceof TriConsumer) {
+                                TriConsumer handler = (TriConsumer) subscription.handler;
+                                future = CompletableFuture.runAsync(
+                                        () -> handler.accept(msg.args, msg.kwargs, details), getExecutor());
+                            } else {
+                                IEventHandler handler = (IEventHandler) subscription.handler;
+                                future = CompletableFuture.runAsync(
+                                        () -> handler.accept(msg.args, msg.kwargs, details), getExecutor());
+                            }
+                            futures.add(future);
+                        }
+                );
+
+                // Not really doing anything with the combined futures.
+                combineFutures(futures);
             } else if (message instanceof Published) {
                 Published msg = (Published) message;
                 PublishRequest request = mPublishRequests.getOrDefault(msg.request, null);
@@ -407,8 +418,8 @@ public class Session implements ISession, ITransportHandler {
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
     }
 
-    @Override
-    public CompletableFuture<Subscription> subscribe(String topic, IEventHandler handler, SubscribeOptions options) {
+    private CompletableFuture<Subscription> reallySubscribe(String topic, Object handler,
+                                                            SubscribeOptions options) {
         throwIfNotConnected();
         CompletableFuture<Subscription> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
@@ -418,21 +429,26 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
+    public CompletableFuture<Subscription> subscribe(String topic, IEventHandler handler, SubscribeOptions options) {
+        return reallySubscribe(topic, handler, options);
+    }
+
+    @Override
     public <T> CompletableFuture<Subscription> subscribe(String topic, Consumer<T> handler,
                                                          SubscribeOptions options) {
-        return null;
+        return reallySubscribe(topic, handler, options);
     }
 
     @Override
     public <T> CompletableFuture<Subscription> subscribe(String topic, BiConsumer<T, EventDetails> handler,
                                                          SubscribeOptions options) {
-        return null;
+        return reallySubscribe(topic, handler, options);
     }
 
     @Override
     public <T, U> CompletableFuture<Subscription> subscribe(String topic, TriConsumer<T, U, EventDetails> handler,
                                                             SubscribeOptions options) {
-        return null;
+        return reallySubscribe(topic, handler, options);
     }
 
     private CompletableFuture<Publication> reallyPublish(String topic, List<Object> args,

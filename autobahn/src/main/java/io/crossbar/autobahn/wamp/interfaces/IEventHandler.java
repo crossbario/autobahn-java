@@ -19,7 +19,7 @@ import io.crossbar.autobahn.wamp.types.EventDetails;
 
 @FunctionalInterface
 public interface IEventHandler {
-    void run(List<Object> args,
-             Map<String, Object> kwargs,
-             EventDetails details);
+    void accept(List<Object> args,
+                Map<String, Object> kwargs,
+                EventDetails details);
 }
