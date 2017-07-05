@@ -11,31 +11,32 @@
 
 package io.crossbar.autobahn.wamp;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
-
+import io.crossbar.autobahn.wamp.interfaces.IEventHandler;
+import io.crossbar.autobahn.wamp.interfaces.IInvocationHandler;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
+import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 import io.crossbar.autobahn.wamp.interfaces.ISession;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
-import io.crossbar.autobahn.wamp.interfaces.ISerializer;
-import io.crossbar.autobahn.wamp.interfaces.IEventHandler;
-import io.crossbar.autobahn.wamp.interfaces.IInvocationHandler;
-
+import io.crossbar.autobahn.wamp.interfaces.TriConsumer;
+import io.crossbar.autobahn.wamp.interfaces.TriFunction;
 import io.crossbar.autobahn.wamp.messages.Call;
 import io.crossbar.autobahn.wamp.messages.Error;
 import io.crossbar.autobahn.wamp.messages.Event;
@@ -51,12 +52,10 @@ import io.crossbar.autobahn.wamp.messages.Subscribe;
 import io.crossbar.autobahn.wamp.messages.Subscribed;
 import io.crossbar.autobahn.wamp.messages.Welcome;
 import io.crossbar.autobahn.wamp.messages.Yield;
-
 import io.crossbar.autobahn.wamp.requests.CallRequest;
 import io.crossbar.autobahn.wamp.requests.PublishRequest;
 import io.crossbar.autobahn.wamp.requests.RegisterRequest;
 import io.crossbar.autobahn.wamp.requests.SubscribeRequest;
-
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.CloseDetails;
@@ -138,6 +137,12 @@ public class Session implements ISession, ITransportHandler {
             mExecutor = ForkJoinPool.commonPool();
         }
         return mExecutor;
+    }
+
+    private void throwIfNotConnected() {
+        if (!isConnected()) {
+            throw new IllegalStateException("The transport must be connected first");
+        }
     }
 
     @Override
@@ -250,29 +255,40 @@ public class Session implements ISession, ITransportHandler {
             } else if (message instanceof Event) {
                 Event msg = (Event) message;
                 List<Subscription> subscriptions = mSubscriptions.getOrDefault(msg.subscription, null);
-                if (subscriptions != null) {
-
-                    List<CompletableFuture<?>> futures = new ArrayList<>();
-
-                    subscriptions.forEach(
-                            subscription -> {
-                                EventDetails details = new EventDetails(
-                                        subscription, subscription.topic, -1, null, null, this);
-                                futures.add(
-                                    CompletableFuture.runAsync(
-                                        () -> subscription.handler.run(msg.args, msg.kwargs, details)
-                                        , getExecutor()
-                                    )
-                                );
-                            }
-                    );
-
-                    // Not really doing anything with the combined futures.
-                    combineFutures(futures);
-                } else {
+                if (subscriptions == null) {
                     throw new ProtocolError(String.format(
                             "EVENT received for non-subscribed subscription ID %s", msg.subscription));
                 }
+
+                List<CompletableFuture<?>> futures = new ArrayList<>();
+
+                subscriptions.forEach(subscription -> {
+                            EventDetails details = new EventDetails(
+                                    subscription, subscription.topic, -1, null, null, this);
+                            CompletableFuture future;
+                            if (subscription.handler instanceof Consumer) {
+                                Consumer handler = (Consumer) subscription.handler;
+                                future = CompletableFuture.runAsync(
+                                        () -> handler.accept(msg.args.get(0)), getExecutor());
+                            } else if (subscription.handler instanceof BiConsumer) {
+                                BiConsumer handler = (BiConsumer) subscription.handler;
+                                future = CompletableFuture.runAsync(
+                                        () -> handler.accept(msg.args.get(0), details), getExecutor());
+                            } else if (subscription.handler instanceof TriConsumer) {
+                                TriConsumer handler = (TriConsumer) subscription.handler;
+                                future = CompletableFuture.runAsync(
+                                        () -> handler.accept(msg.args, msg.kwargs, details), getExecutor());
+                            } else {
+                                IEventHandler handler = (IEventHandler) subscription.handler;
+                                future = CompletableFuture.runAsync(
+                                        () -> handler.accept(msg.args, msg.kwargs, details), getExecutor());
+                            }
+                            futures.add(future);
+                        }
+                );
+
+                // Not really doing anything with the combined futures.
+                combineFutures(futures);
             } else if (message instanceof Published) {
                 Published msg = (Published) message;
                 PublishRequest request = mPublishRequests.getOrDefault(msg.request, null);
@@ -305,8 +321,21 @@ public class Session implements ISession, ITransportHandler {
 
                     InvocationDetails details = new InvocationDetails(
                             registration, registration.procedure, -1, null, null, this);
-                    CompletableFuture<InvocationResult> result = registration.endpoint.run(
-                            msg.args, msg.kwargs, details);
+
+                    CompletableFuture<InvocationResult> result;
+                    if (registration.endpoint instanceof Function) {
+                        Function endpoint = (Function) registration.endpoint;
+                        result = (CompletableFuture<InvocationResult>) endpoint.apply(msg.args);
+                    } else if (registration.endpoint instanceof BiFunction) {
+                        BiFunction endpoint = (BiFunction) registration.endpoint;
+                        result = (CompletableFuture<InvocationResult>) endpoint.apply(msg.args, details);
+                    } else if (registration.endpoint instanceof TriFunction) {
+                        TriFunction endpoint = (TriFunction) registration.endpoint;
+                        result = (CompletableFuture<InvocationResult>) endpoint.apply(msg.args, msg.kwargs, details);
+                    } else {
+                        IInvocationHandler endpoint = (IInvocationHandler) registration.endpoint;
+                        result = endpoint.apply(msg.args, msg.kwargs, details);
+                    }
 
                     result.whenCompleteAsync((invocationResult, invocationException) -> {
                         if (invocationException != null) {
@@ -389,11 +418,9 @@ public class Session implements ISession, ITransportHandler {
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
     }
 
-    @Override
-    public CompletableFuture<Subscription> subscribe(String topic, IEventHandler handler, SubscribeOptions options) {
-        if (!isConnected()) {
-            throw new IllegalStateException("The transport must be connected first");
-        }
+    private CompletableFuture<Subscription> reallySubscribe(String topic, Object handler,
+                                                            SubscribeOptions options) {
+        throwIfNotConnected();
         CompletableFuture<Subscription> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
         mSubscribeRequests.put(requestID, new SubscribeRequest(requestID, topic, future, handler));
@@ -402,11 +429,32 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
-    public CompletableFuture<Publication> publish(String topic, List<Object> args, Map<String, Object> kwargs,
-                                                  PublishOptions options) {
-        if (!isConnected()) {
-            throw new IllegalStateException("The transport must be connected first");
-        }
+    public CompletableFuture<Subscription> subscribe(String topic, IEventHandler handler, SubscribeOptions options) {
+        return reallySubscribe(topic, handler, options);
+    }
+
+    @Override
+    public <T> CompletableFuture<Subscription> subscribe(String topic, Consumer<T> handler,
+                                                         SubscribeOptions options) {
+        return reallySubscribe(topic, handler, options);
+    }
+
+    @Override
+    public <T> CompletableFuture<Subscription> subscribe(String topic, BiConsumer<T, EventDetails> handler,
+                                                         SubscribeOptions options) {
+        return reallySubscribe(topic, handler, options);
+    }
+
+    @Override
+    public <T, U> CompletableFuture<Subscription> subscribe(String topic, TriConsumer<T, U, EventDetails> handler,
+                                                            SubscribeOptions options) {
+        return reallySubscribe(topic, handler, options);
+    }
+
+    private CompletableFuture<Publication> reallyPublish(String topic, List<Object> args,
+                                                         Map<String, Object> kwargs,
+                                                         PublishOptions options) {
+        throwIfNotConnected();
         CompletableFuture<Publication> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
         mPublishRequests.put(requestID, new PublishRequest(requestID, future));
@@ -419,11 +467,41 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
-    public CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint,
-                                                    RegisterOptions options) {
-        if (!isConnected()) {
-            throw new IllegalStateException("The transport must be connected first");
-        }
+    public CompletableFuture<Publication> publish(String topic, List<Object> args, Map<String, Object> kwargs,
+                                                  PublishOptions options) {
+        return reallyPublish(topic, args, kwargs, options);
+    }
+
+    @Override
+    public CompletableFuture<Publication> publish(String topic, Object object, PublishOptions options) {
+        List<Object> args = new ArrayList<>();
+        args.add(object);
+        return reallyPublish(topic, args, null, options);
+    }
+
+    @Override
+    public CompletableFuture<Publication> publish(String topic, PublishOptions options, Object... objects) {
+        return reallyPublish(topic, Arrays.asList(objects), null, options);
+    }
+
+    @Override
+    public CompletableFuture<Publication> publish(String topic, Object... objects) {
+        return reallyPublish(topic, Arrays.asList(objects), null, null);
+    }
+
+    @Override
+    public CompletableFuture<Publication> publish(String topic, PublishOptions options) {
+        return reallyPublish(topic, null, null, options);
+    }
+
+    @Override
+    public CompletableFuture<Publication> publish(String topic) {
+        return reallyPublish(topic, null, null, null);
+    }
+
+    private CompletableFuture<Registration> reallyRegister(String procedure, Object endpoint,
+                                                           RegisterOptions options) {
+        throwIfNotConnected();
         CompletableFuture<Registration> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
         mRegisterRequest.put(requestID, new RegisterRequest(requestID, future, procedure, endpoint));
@@ -436,32 +514,37 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
-    public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
-                                              CallOptions options) {
-        if (!isConnected()) {
-            throw new IllegalStateException("The transport must be connected first");
-        }
-
-        CompletableFuture<CallResult> future = new CompletableFuture<>();
-
-        long requestID = mIDGenerator.next();
-
-        mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options));
-
-        if (options == null) {
-            this.send(new Call(requestID, procedure, args, kwargs, 0));
-        } else {
-            this.send(new Call(requestID, procedure, args, kwargs, options.timeout));
-        }
-        return future;
+    public CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint,
+                                                    RegisterOptions options) {
+        return reallyRegister(procedure, endpoint, options);
     }
 
     @Override
-    public <T> CompletableFuture<T> call(String procedure, List<Object> args, Map<String, Object> kwargs,
-                                         TypeReference<T> resultType, CallOptions options) {
-        if (!isConnected()) {
-            throw new IllegalStateException("The transport must be connected first");
-        }
+    public <T> CompletableFuture<Registration> register(String procedure,
+                                                        Function<T, CompletableFuture<InvocationResult>> endpoint,
+                                                        RegisterOptions options) {
+        return reallyRegister(procedure, endpoint, options);
+    }
+
+    @Override
+    public <T> CompletableFuture<Registration> register(String procedure,
+                                                        BiFunction<T, InvocationDetails,
+                                                                CompletableFuture<InvocationResult>> endpoint,
+                                                        RegisterOptions options) {
+        return reallyRegister(procedure, endpoint, options);
+    }
+
+    @Override
+    public <T, U> CompletableFuture<Registration> register(String procedure,
+                                                           TriFunction<T, U, InvocationDetails,
+                                                                   CompletableFuture<InvocationResult>> endpoint,
+                                                           RegisterOptions options) {
+        return reallyRegister(procedure, endpoint, options);
+    }
+
+    private <T> CompletableFuture<T> reallyCall(String procedure, List<Object> args, Map<String, Object> kwargs,
+                                                TypeReference<T> resultType, CallOptions options) {
+        throwIfNotConnected();
 
         CompletableFuture<T> future = new CompletableFuture<>();
 
@@ -475,6 +558,24 @@ public class Session implements ISession, ITransportHandler {
             this.send(new Call(requestID, procedure, args, kwargs, options.timeout));
         }
         return future;
+    }
+
+    @Override
+    public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
+                                              CallOptions options) {
+        return reallyCall(procedure, args, kwargs, null, options);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(String procedure, List<Object> args, Map<String, Object> kwargs,
+                                         TypeReference<T> resultType, CallOptions options) {
+        return reallyCall(procedure, args, kwargs, resultType, options);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(String procedure, TypeReference<T> resultType, CallOptions options,
+                                         Object... args) {
+        return reallyCall(procedure, Arrays.asList(args), null, resultType, options);
     }
 
     @Override

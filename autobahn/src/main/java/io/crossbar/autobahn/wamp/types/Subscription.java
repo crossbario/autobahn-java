@@ -11,15 +11,12 @@
 
 package io.crossbar.autobahn.wamp.types;
 
-import io.crossbar.autobahn.wamp.interfaces.IEventHandler;
-
-
 public class Subscription {
     public final long subscription;
     public final String topic;
-    public final IEventHandler<?> handler;
+    public final Object handler;
 
-    public Subscription(long subscription, String topic, IEventHandler<?> handler) {
+    public Subscription(long subscription, String topic, Object handler) {
         this.subscription = subscription;
         this.topic = topic;
         this.handler = handler;

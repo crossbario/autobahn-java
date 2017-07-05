@@ -21,7 +21,7 @@ import io.crossbar.autobahn.wamp.types.InvocationResult;
 
 @FunctionalInterface
 public interface IInvocationHandler {
-    CompletableFuture<InvocationResult> run(List<Object> args,
-                                            Map<String, Object> kwargs,
-                                            InvocationDetails details);
+    CompletableFuture<InvocationResult> apply(List<Object> args,
+                                              Map<String, Object> kwargs,
+                                              InvocationDetails details);
 }
