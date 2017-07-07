@@ -36,6 +36,9 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
             baseName = 'autobahn'
         }
     }
+    jar {
+        version = project.properties.get("buildVersion", "")
+    }
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }

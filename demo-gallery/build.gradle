@@ -53,4 +53,7 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_APP)) {
             }
         }
     }
+    jar {
+        version = project.properties.get("buildVersion", "")
+    }
 }
