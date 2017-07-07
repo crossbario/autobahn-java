@@ -39,8 +39,9 @@ ENV PATH=$PATH:/opt/gradle/gradle-${GRADLE_VERSION}/bin
 
 COPY ${PWD} /workspace
 
-RUN gradle installDist -PbuildPlatform=netty
+RUN gradle installDist -PbuildPlatform=netty -Pversion=${AUTOBAHN_JAVA_VERSION}
 
-RUN mkdir -p /autobahn; cp /workspace/demo-gallery/build/install/demo-gallery/lib/* /autobahn
+RUN mkdir -p /autobahn; cp /workspace/demo-gallery/build/install/demo-gallery/lib/* /autobahn; \
+    rm /autobahn/demo-gallery.jar
 
 CMD ["gradle", "installDist", "-PbuildPlatform=netty"]
