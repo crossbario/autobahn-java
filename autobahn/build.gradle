@@ -37,7 +37,7 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
         }
     }
     jar {
-        version = project.properties.get("version", "")
+        version = project.properties.get("buildVersion", "")
     }
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
