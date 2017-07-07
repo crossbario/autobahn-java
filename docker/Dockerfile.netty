@@ -23,9 +23,6 @@ COPY ${PWD} /workspace
 
 RUN gradle installDist -PbuildPlatform=netty
 
-RUN if [ ! -d /autobahn ]; then mkdir /autobahn; \
-    cp /workspace/demo-gallery/build/install/demo-gallery/lib/* /autobahn; \
-    rm /autobahn/demo-gallery.jar; \
-    fi
+RUN mkdir -p /autobahn; cp /workspace/demo-gallery/build/install/demo-gallery/lib/* /autobahn
 
 CMD ["gradle", "installDist", "-PbuildPlatform=netty"]
