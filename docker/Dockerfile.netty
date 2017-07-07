@@ -42,6 +42,6 @@ COPY ${PWD} /workspace
 RUN gradle installDist -PbuildPlatform=netty -PbuildVersion=${AUTOBAHN_JAVA_VERSION}
 
 RUN mkdir -p /autobahn; cp /workspace/demo-gallery/build/install/demo-gallery/lib/* /autobahn; \
-    rm /autobahn/demo-gallery*
+    rm /autobahn/demo-gallery*.jar
 
 CMD ["gradle", "installDist", "-PbuildPlatform=netty"]
