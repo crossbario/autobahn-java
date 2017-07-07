@@ -1,5 +1,23 @@
 FROM ubuntu
 
+MAINTAINER The Crossbar.io Project <support@crossbario.com>
+
+# Metadata
+ARG BUILD_DATE
+ARG AUTOBAHN_JAVA_VERSION
+ARG AUTOBAHN_JAVA_VCS_REF
+
+# Metadata labeling
+LABEL org.label-schema.build-date=$BUILD_DATE \
+      org.label-schema.name="AutobahnJava" \
+      org.label-schema.description="AutobahnJava toolchain image for Netty with Java 8 SDK, AutobahnJava, Jackson and gradle" \
+      org.label-schema.url="http://crossbar.io" \
+      org.label-schema.vcs-ref=$AUTOBAHN_JAVA_VCS_REF \
+      org.label-schema.vcs-url="https://github.com/crossbario/autobahn-java" \
+      org.label-schema.vendor="The Crossbar.io Project" \
+      org.label-schema.version=$AUTOBAHN_JAVA_VERSION \
+      org.label-schema.schema-version="1.0"
+
 USER root
 
 ENV DEBIAN_FRONTEND noninteractive
