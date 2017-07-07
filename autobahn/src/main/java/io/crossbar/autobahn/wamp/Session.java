@@ -25,6 +25,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
@@ -323,7 +324,10 @@ public class Session implements ISession, ITransportHandler {
                             registration, registration.procedure, -1, null, null, this);
 
                     CompletableFuture<InvocationResult> result;
-                    if (registration.endpoint instanceof Function) {
+                    if (registration.endpoint instanceof Supplier) {
+                        Supplier endpoint = (Supplier) registration.endpoint;
+                        result = (CompletableFuture<InvocationResult>) endpoint.get();
+                    } else if (registration.endpoint instanceof Function) {
                         Function endpoint = (Function) registration.endpoint;
                         result = (CompletableFuture<InvocationResult>) endpoint.apply(msg.args);
                     } else if (registration.endpoint instanceof BiFunction) {
@@ -511,6 +515,11 @@ public class Session implements ISession, ITransportHandler {
             this.send(new Register(requestID, procedure, null, null));
         }
         return future;
+    }
+
+    @Override
+    public CompletableFuture<Registration> register(String procedure, Supplier endpoint, RegisterOptions options) {
+        return reallyRegister(procedure, endpoint, options);
     }
 
     @Override
