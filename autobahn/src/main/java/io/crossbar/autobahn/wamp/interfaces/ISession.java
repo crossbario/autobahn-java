@@ -20,6 +20,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.types.CallOptions;
@@ -63,6 +64,10 @@ public interface ISession {
     CompletableFuture<Publication> publish(String topic, PublishOptions options);
 
     CompletableFuture<Publication> publish(String topic);
+
+    CompletableFuture<Registration> register(String procedure,
+                                             Supplier<CompletableFuture<InvocationResult>> endpoint,
+                                             RegisterOptions options);
 
     CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint,
                                              RegisterOptions options);
