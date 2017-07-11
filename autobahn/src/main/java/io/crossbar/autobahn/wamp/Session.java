@@ -26,6 +26,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.logging.Logger;
 
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
@@ -76,6 +77,8 @@ import static io.crossbar.autobahn.wamp.messages.MessageMap.MESSAGE_TYPE_MAP;
 
 
 public class Session implements ISession, ITransportHandler {
+
+    private static final Logger LOGGER = Logger.getLogger(Session.class.getName());
 
     private final int STATE_DISCONNECTED = 1;
     private final int STATE_HELLO_SENT = 2;

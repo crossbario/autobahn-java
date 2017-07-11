@@ -15,9 +15,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
+import java.util.logging.Logger;
 
 import javax.net.ssl.SSLException;
 
+import io.crossbar.autobahn.wamp.Session;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -41,7 +43,6 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 
-import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
@@ -49,6 +50,8 @@ import io.crossbar.autobahn.wamp.serializers.CBORSerializer;
 
 
 public class NettyTransport implements ITransport {
+
+    private static final Logger LOGGER = Logger.getLogger(NettyTransport.class.getName());
 
     private Channel mChannel;
     private ISerializer mSerializer;
