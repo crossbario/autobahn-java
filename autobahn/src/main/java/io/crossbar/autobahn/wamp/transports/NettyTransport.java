@@ -15,6 +15,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
+import java.util.logging.Logger;
 
 import javax.net.ssl.SSLException;
 
@@ -41,7 +42,6 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 
-import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
@@ -49,6 +49,8 @@ import io.crossbar.autobahn.wamp.serializers.CBORSerializer;
 
 
 public class NettyTransport implements ITransport {
+
+    private static final Logger LOGGER = Logger.getLogger(NettyTransport.class.getName());
 
     private Channel mChannel;
     private ISerializer mSerializer;
@@ -76,7 +78,7 @@ public class NettyTransport implements ITransport {
     private int validateURIAndGetPort(URI uri) {
         String scheme = uri.getScheme();
         if (!"ws".equalsIgnoreCase(scheme) && !"wss".equalsIgnoreCase(scheme)) {
-            System.err.println("Only WS(S) is supported.");
+            throw new IllegalArgumentException("Only WS(S) is supported.");
         }
         int port = uri.getPort();
         if (port == -1) {
@@ -168,7 +170,7 @@ public class NettyTransport implements ITransport {
 
     @Override
     public void close() {
-        System.out.println("ITransport.close()");
+        LOGGER.info("close()");
         try {
             mChannel.close().sync();
         } catch (InterruptedException e) {
@@ -178,7 +180,7 @@ public class NettyTransport implements ITransport {
 
     @Override
     public void abort() {
-        System.out.println("ITransport.abort()");
+        LOGGER.info("abort()");
         close();
     }
 
