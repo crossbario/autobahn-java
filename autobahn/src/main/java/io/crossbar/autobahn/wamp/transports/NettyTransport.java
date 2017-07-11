@@ -19,7 +19,6 @@ import java.util.logging.Logger;
 
 import javax.net.ssl.SSLException;
 
-import io.crossbar.autobahn.wamp.Session;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -79,7 +78,7 @@ public class NettyTransport implements ITransport {
     private int validateURIAndGetPort(URI uri) {
         String scheme = uri.getScheme();
         if (!"ws".equalsIgnoreCase(scheme) && !"wss".equalsIgnoreCase(scheme)) {
-            System.err.println("Only WS(S) is supported.");
+            throw new IllegalArgumentException("Only WS(S) is supported.");
         }
         int port = uri.getPort();
         if (port == -1) {
@@ -171,7 +170,7 @@ public class NettyTransport implements ITransport {
 
     @Override
     public void close() {
-        System.out.println("ITransport.close()");
+        LOGGER.info("close()");
         try {
             mChannel.close().sync();
         } catch (InterruptedException e) {
@@ -181,7 +180,7 @@ public class NettyTransport implements ITransport {
 
     @Override
     public void abort() {
-        System.out.println("ITransport.abort()");
+        LOGGER.info("abort()");
         close();
     }
 

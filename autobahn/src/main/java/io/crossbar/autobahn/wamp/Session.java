@@ -151,7 +151,7 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public void onConnect(ITransport transport, ISerializer serializer) {
-        System.out.println("Session.onConnect");
+        LOGGER.info("onConnect()");
         if (mTransport != null) {
             // Now allowed to throw here, find a better way.
 //            throw new Exception("already connected");
@@ -169,7 +169,7 @@ public class Session implements ISession, ITransportHandler {
         }
         byte[] payload = mSerializer.serialize(message.marshal());
 
-        System.out.println("  >>> TX : " + message);
+        LOGGER.info("  >>> TX : " + message);
         mTransport.send(payload, true);
     }
 
@@ -186,7 +186,7 @@ public class Session implements ISession, ITransportHandler {
             message = (IMessage) messageKlass.getMethod("parse", List.class).invoke(null, rawMessage);
 
         } catch (Exception e) {
-            System.out.println("mapping received message bytes to IMessage failed: " + e.getMessage());
+            LOGGER.info("mapping received message bytes to IMessage failed: " + e.getMessage());
         }
 
         if (message != null) {
@@ -195,7 +195,7 @@ public class Session implements ISession, ITransportHandler {
     }
 
     private void onMessage(IMessage message) {
-        System.out.println("  <<< RX : " + message);
+        LOGGER.info("  <<< RX : " + message);
 
         if (mSessionID == 0) {
             if (message instanceof Welcome) {
@@ -216,8 +216,8 @@ public class Session implements ISession, ITransportHandler {
             } else {
                 // with (mSessionID == 0), we can only receive
                 // WELCOME, ABORT or CHALLENGE
-                System.out.println("FIXME (no session): unprocessed message:");
-                System.out.println(message);
+                LOGGER.info("FIXME (no session): unprocessed message:");
+                LOGGER.info(message.toString());
             }
         } else {
             // Now that we have an active session handle all incoming messages here.
@@ -346,7 +346,7 @@ public class Session implements ISession, ITransportHandler {
 
                     result.whenCompleteAsync((invocationResult, invocationException) -> {
                         if (invocationException != null) {
-                            System.out.println("FIXME: send call error: " + invocationException.getMessage());
+                            LOGGER.info("FIXME: send call error: " + invocationException.getMessage());
                         }
                         else {
                             this.send(new Yield(msg.request, invocationResult.results, invocationResult.kwresults));
@@ -364,7 +364,7 @@ public class Session implements ISession, ITransportHandler {
                                 CompletableFuture.runAsync(() -> l.onLeave(this, details), getExecutor())));
                 CompletableFuture d = combineFutures(futures);
                 d.thenRun(() -> {
-                    System.out.println("CLOSED NOW");
+                    LOGGER.info("Notified Session.onLeave listeners, now closing transport");
                     mState = STATE_DISCONNECTED;
                     if (mTransport != null && mTransport.isOpen()) {
                         mTransport.close();
@@ -401,7 +401,7 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public void onDisconnect(boolean wasClean) {
-        System.out.println("Session.onDisconnect");
+        LOGGER.info("onDisconnect(), wasClean=" + wasClean);
 
         List<CompletableFuture<?>> futures = new ArrayList<>();
         mOnDisconnectListeners.forEach(
@@ -409,7 +409,7 @@ public class Session implements ISession, ITransportHandler {
                         CompletableFuture.runAsync(() -> l.onDisconnect(this, wasClean), getExecutor())));
         CompletableFuture d = combineFutures(futures);
         d.thenRun(() -> {
-            System.out.println("DISCONNECTED NOW");
+            LOGGER.info("Notified all Session.onDisconnect listeners.");
             mTransport = null;
             mSerializer = null;
             mState = STATE_DISCONNECTED;
@@ -592,7 +592,7 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public CompletableFuture<SessionDetails> join(String realm, List<String> authMethods) {
-        System.out.println("Session.join");
+        LOGGER.info("Called join() with realm=" + realm);
         mRealm = realm;
         mGoodbyeSent = false;
         Map<String, Map> roles = new HashMap<>();
@@ -607,7 +607,7 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public void leave(String reason, String message) {
-        System.out.println("Session.leave");
+        LOGGER.info(String.format("Called leave(), reason=%s message=%s", reason, message));
         this.send(new Goodbye(reason, message));
         mState = STATE_GOODBYE_SENT;
     }
