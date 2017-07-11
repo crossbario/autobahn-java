@@ -13,13 +13,15 @@ package io.crossbar.autobahn.wamp.interfaces;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.types.EventDetails;
+import io.crossbar.autobahn.wamp.types.ReceptionResult;
 
 
 @FunctionalInterface
 public interface IEventHandler {
-    void accept(List<Object> args,
-                Map<String, Object> kwargs,
-                EventDetails details);
+    CompletableFuture<ReceptionResult> apply(List<Object> args,
+                                             Map<String, Object> kwargs,
+                                             EventDetails details);
 }
