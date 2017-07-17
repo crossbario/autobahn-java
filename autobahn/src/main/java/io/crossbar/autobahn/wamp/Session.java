@@ -270,23 +270,37 @@ public class Session implements ISession, ITransportHandler {
                 subscriptions.forEach(subscription -> {
                             EventDetails details = new EventDetails(
                                     subscription, subscription.topic, -1, null, null, this);
-                            CompletableFuture future;
-                            if (subscription.handler instanceof Function) {
+
+                            CompletableFuture future = null;
+                            if (subscription.handler instanceof Consumer) {
+                                Consumer handler = (Consumer) subscription.handler;
+                                future = CompletableFuture.runAsync(
+                                        () -> handler.accept(msg.args.get(0)), getExecutor());
+                            } else if (subscription.handler instanceof Function) {
                                 Function handler = (Function) subscription.handler;
                                 future = CompletableFuture.runAsync(
                                         () -> handler.apply(msg.args.get(0)), getExecutor());
+                            } else if (subscription.handler instanceof BiConsumer) {
+                                BiConsumer handler = (BiConsumer) subscription.handler;
+                                future = CompletableFuture.runAsync(
+                                        () -> handler.accept(msg.args.get(0), details), getExecutor());
                             } else if (subscription.handler instanceof BiFunction) {
                                 BiFunction handler = (BiFunction) subscription.handler;
                                 future = CompletableFuture.runAsync(
                                         () -> handler.apply(msg.args.get(0), details), getExecutor());
+                            } else if (subscription.handler instanceof TriConsumer) {
+                                TriConsumer handler = (TriConsumer) subscription.handler;
+                                future = CompletableFuture.runAsync(
+                                        () -> handler.accept(msg.args, msg.kwargs, details), getExecutor());
                             } else if (subscription.handler instanceof TriFunction) {
                                 TriFunction handler = (TriFunction) subscription.handler;
                                 future = CompletableFuture.runAsync(
                                         () -> handler.apply(msg.args, msg.kwargs, details), getExecutor());
                             } else {
-                                IEventHandler handler = (IEventHandler) subscription.handler;
-                                future = CompletableFuture.runAsync(
-                                        () -> handler.apply(msg.args, msg.kwargs, details), getExecutor());
+                                // FIXME: never going to reach here, though would be better to throw here.
+//                                IEventHandler handler = (IEventHandler) subscription.handler;
+//                                future = CompletableFuture.runAsync(
+//                                        () -> handler.accept(msg.args, msg.kwargs, details), getExecutor());
                             }
                             futures.add(future);
                         }
@@ -436,10 +450,17 @@ public class Session implements ISession, ITransportHandler {
         return future;
     }
 
+//    @Override
+//    public CompletableFuture<Subscription> subscribe(String topic,
+//                                                     IEventHandler handler,
+//                                                     SubscribeOptions options) {
+//        return reallySubscribe(topic, handler, options);
+//    }
+
     @Override
-    public CompletableFuture<Subscription> subscribe(String topic,
-                                                     IEventHandler handler,
-                                                     SubscribeOptions options) {
+    public <T> CompletableFuture<Subscription> subscribe(String topic,
+                                                         Consumer<T> handler,
+                                                         SubscribeOptions options) {
         return reallySubscribe(topic, handler, options);
     }
 
@@ -452,9 +473,24 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
+    public <T> CompletableFuture<Subscription> subscribe(String topic,
+                                                         BiConsumer<T, EventDetails> handler,
+                                                         SubscribeOptions options) {
+        return reallySubscribe(topic, handler, options);
+    }
+
+    @Override
     public <T> CompletableFuture<Subscription> subscribe(
             String topic,
             BiFunction<T, EventDetails, CompletableFuture<ReceptionResult>> handler,
+            SubscribeOptions options) {
+        return reallySubscribe(topic, handler, options);
+    }
+
+    @Override
+    public <T, U> CompletableFuture<Subscription> subscribe(
+            String topic,
+            TriConsumer<T, U, EventDetails> handler,
             SubscribeOptions options) {
         return reallySubscribe(topic, handler, options);
     }

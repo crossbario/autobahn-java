@@ -316,12 +316,17 @@ public class Service {
 
 
     // this handler will process incoming events for the topic we subscribe it to
-    private CompletableFuture<ReceptionResult> onCounter(List<Object> args,
-                                                      Map<String, Object> kwargs,
-                                                      EventDetails details) {
+    private void onCounter(List<Object> args,
+                           Map<String, Object> kwargs,
+                           EventDetails details) {
         System.out.println("received counter: " + args.get(0));
-        CompletableFuture<ReceptionResult> future = new CompletableFuture<>();
-        return future;
+    }
+
+    private CompletableFuture<ReceptionResult> onCounter1(List<Object> args,
+                            Map<String, Object> kwargs,
+                            EventDetails details) {
+        System.out.println("received counter: " + args.get(0));
+        return CompletableFuture.completedFuture(new ReceptionResult());
     }
 
     private void onCounterSimple(String object, EventDetails details) {

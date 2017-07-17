@@ -41,7 +41,15 @@ import io.crossbar.autobahn.wamp.types.Subscription;
 
 public interface ISession {
 
-    CompletableFuture<Subscription> subscribe(String topic, IEventHandler handler, SubscribeOptions options);
+//    CompletableFuture<Subscription> subscribe(
+//            String topic,
+//            IEventHandler handler,
+//            SubscribeOptions options);
+
+    <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            Consumer<T> handler,
+            SubscribeOptions options);
 
     <T> CompletableFuture<Subscription> subscribe(
             String topic,
@@ -50,7 +58,17 @@ public interface ISession {
 
     <T> CompletableFuture<Subscription> subscribe(
             String topic,
+            BiConsumer<T, EventDetails> handler,
+            SubscribeOptions options);
+
+    <T> CompletableFuture<Subscription> subscribe(
+            String topic,
             BiFunction<T, EventDetails, CompletableFuture<ReceptionResult>> handler,
+            SubscribeOptions options);
+
+    <T, U> CompletableFuture<Subscription> subscribe(
+            String topic,
+            TriConsumer<T, U, EventDetails> handler,
             SubscribeOptions options);
 
     <T, U> CompletableFuture<Subscription> subscribe(
