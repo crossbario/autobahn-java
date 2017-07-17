@@ -35,10 +35,12 @@ import io.crossbar.autobahn.wamp.types.InvocationDetails;
 import io.crossbar.autobahn.wamp.types.InvocationResult;
 import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.PublishOptions;
+import io.crossbar.autobahn.wamp.types.ReceptionResult;
 import io.crossbar.autobahn.wamp.types.RegisterOptions;
 import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
 import io.crossbar.autobahn.wamp.types.Subscription;
+import io.netty.util.concurrent.CompleteFuture;
 
 
 public class Service {
@@ -314,8 +316,17 @@ public class Service {
 
 
     // this handler will process incoming events for the topic we subscribe it to
-    private void onCounter(List<Object> args, Map<String, Object> kwargs, EventDetails details) {
+    private void onCounter(List<Object> args,
+                           Map<String, Object> kwargs,
+                           EventDetails details) {
         System.out.println("received counter: " + args.get(0));
+    }
+
+    private CompletableFuture<ReceptionResult> onCounter1(List<Object> args,
+                            Map<String, Object> kwargs,
+                            EventDetails details) {
+        System.out.println("received counter: " + args.get(0));
+        return CompletableFuture.completedFuture(new ReceptionResult());
     }
 
     private void onCounterSimple(String object, EventDetails details) {
