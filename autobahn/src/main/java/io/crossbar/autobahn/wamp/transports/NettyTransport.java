@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 
 import javax.net.ssl.SSLException;
 
-import io.crossbar.autobahn.websocket.WebSocketOptions;
+import io.crossbar.autobahn.wamp.types.WebSocketOptions;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
