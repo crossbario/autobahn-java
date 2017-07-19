@@ -13,6 +13,12 @@ package io.crossbar.autobahn.wamp.transports;
 
 import java.util.logging.Logger;
 
+import io.crossbar.autobahn.wamp.interfaces.ISerializer;
+import io.crossbar.autobahn.wamp.interfaces.ITransport;
+import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
+import io.crossbar.autobahn.wamp.serializers.CBORSerializer;
+import io.crossbar.autobahn.wamp.serializers.JSONSerializer;
+import io.crossbar.autobahn.wamp.serializers.MessagePackSerializer;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -20,15 +26,11 @@ import io.netty.channel.ChannelPromise;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.util.CharsetUtil;
-
-import io.crossbar.autobahn.wamp.interfaces.ISerializer;
-import io.crossbar.autobahn.wamp.interfaces.ITransport;
-import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 
 
 public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
@@ -38,16 +40,14 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
 
     private final WebSocketClientHandshaker mHandshaker;
     private final ITransport mTransport;
-    private final ISerializer mSerializer;
     private ChannelPromise mHandshakeFuture;
     private ITransportHandler mTransportHandler;
 
     public NettyWebSocketClientHandler(WebSocketClientHandshaker handshaker, ITransport transport,
-                                       ITransportHandler transportHandler, ISerializer serializer) {
+                                       ITransportHandler transportHandler) {
         mHandshaker = handshaker;
         mTransport = transport;
         mTransportHandler = transportHandler;
-        mSerializer = serializer;
     }
 
     public ChannelFuture getHandshakeFuture() {
@@ -75,9 +75,12 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
     public void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
         Channel ch = ctx.channel();
         if (!mHandshaker.isHandshakeComplete()) {
-            mHandshaker.finishHandshake(ch, (FullHttpResponse) msg);
+            FullHttpResponse response = (FullHttpResponse) msg;
+            ISerializer serializer = initializeSerializer(
+                    response.headers().get("Sec-WebSocket-Protocol"));
+            mHandshaker.finishHandshake(ch, response);
             mHandshakeFuture.setSuccess();
-            mTransportHandler.onConnect(mTransport, mSerializer);
+            mTransportHandler.onConnect(mTransport, serializer);
             return;
         }
 
@@ -113,5 +116,18 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
             mHandshakeFuture.setFailure(cause);
         }
         ctx.close();
+    }
+
+    private ISerializer initializeSerializer(String negotiatedSerializer) throws Exception {
+        switch (negotiatedSerializer) {
+            case CBORSerializer.NAME:
+                return new CBORSerializer();
+            case JSONSerializer.NAME:
+                return new JSONSerializer();
+            case MessagePackSerializer.NAME:
+                return new MessagePackSerializer();
+            default:
+                throw new IllegalArgumentException("Unsupported serializer.");
+        }
     }
 }

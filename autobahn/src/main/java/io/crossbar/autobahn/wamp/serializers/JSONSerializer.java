@@ -18,7 +18,14 @@ import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 
 public class JSONSerializer extends ISerializer {
 
+    public static final String NAME = "wamp.2.json";
+
     public JSONSerializer() {
         super(new JsonFactory());
+    }
+
+    @Override
+    public boolean isBinary() {
+        return false;
     }
 }

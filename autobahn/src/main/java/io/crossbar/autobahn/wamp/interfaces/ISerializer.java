@@ -51,4 +51,8 @@ public abstract class ISerializer {
         // ResultType result = mapper.convertValue(sourceObject, ResultType.class);
         return mapper.convertValue(fromValue, toValueTypeRef);
     }
+
+    public boolean isBinary() {
+        return true;
+    }
 }

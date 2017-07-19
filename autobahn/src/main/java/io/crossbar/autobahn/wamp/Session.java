@@ -30,7 +30,6 @@ import java.util.logging.Logger;
 
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
-import io.crossbar.autobahn.wamp.interfaces.IEventHandler;
 import io.crossbar.autobahn.wamp.interfaces.IInvocationHandler;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.interfaces.ISerializer;
@@ -171,7 +170,7 @@ public class Session implements ISession, ITransportHandler {
         byte[] payload = mSerializer.serialize(message.marshal());
 
         LOGGER.info("  >>> TX : " + message);
-        mTransport.send(payload, true);
+        mTransport.send(payload, mSerializer.isBinary());
     }
 
     @Override
