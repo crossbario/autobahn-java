@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 
 import javax.net.ssl.SSLException;
 
+import io.crossbar.autobahn.wamp.types.WebSocketOptions;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -57,10 +58,16 @@ public class NettyTransport implements ITransport {
     private final String mUri;
 
     private ExecutorService mExecutor;
+    private WebSocketOptions mOptions;
 
     public NettyTransport(String uri) {
         mUri = uri;
         mSerializer = new CBORSerializer();
+    }
+
+    public NettyTransport(String uri, WebSocketOptions options) {
+        this(uri);
+        mOptions = options;
     }
 
     public NettyTransport(String uri, ExecutorService executor) {
@@ -68,11 +75,24 @@ public class NettyTransport implements ITransport {
         mExecutor = executor;
     }
 
+    public NettyTransport(String uri, ExecutorService executor, WebSocketOptions options) {
+        this(uri);
+        mExecutor = executor;
+        mOptions = options;
+    }
+
     private ExecutorService getExecutor() {
         if (mExecutor == null) {
             mExecutor = ForkJoinPool.commonPool();
         }
         return mExecutor;
+    }
+
+    private WebSocketOptions getOptions() {
+        if (mOptions == null) {
+            mOptions = new WebSocketOptions();
+        }
+        return mOptions;
     }
 
     private int validateURIAndGetPort(URI uri) {
@@ -122,7 +142,7 @@ public class NettyTransport implements ITransport {
         final NettyWebSocketClientHandler handler = new NettyWebSocketClientHandler(
                 WebSocketClientHandshakerFactory.newHandshaker(
                         uri, WebSocketVersion.V13, "wamp.2.cbor",true,
-                        new DefaultHttpHeaders(), 655360),
+                        new DefaultHttpHeaders(), getOptions().getMaxFramePayloadSize()),
                 this, transportHandler, mSerializer);
 
         EventLoopGroup group = new NioEventLoopGroup();
