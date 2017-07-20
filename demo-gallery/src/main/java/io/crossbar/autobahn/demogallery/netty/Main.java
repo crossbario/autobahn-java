@@ -11,12 +11,14 @@
 
 package io.crossbar.autobahn.demogallery.netty;
 
-import java.lang.*;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
 
 public class Main {
+
+    private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
 
     public static void main(String[] args) {
 
@@ -38,13 +40,11 @@ public class Main {
 
         Service service = new Service(executor);
 
-        System.out.println("service.start() ...");
-        System.out.println("----------------------");
+        LOGGER.info("Service.start()");
 
         int returnCode = service.start(url, realm);
 
-        System.out.println("----------------------");
-        System.out.println(".. ended with return code " + returnCode);
+        LOGGER.info(String.format(".. ended with return code %s", returnCode));
 
         System.exit(returnCode);
     }
