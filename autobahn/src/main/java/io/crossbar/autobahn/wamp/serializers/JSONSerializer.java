@@ -11,16 +11,21 @@
 
 package io.crossbar.autobahn.wamp.serializers;
 
-import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
+import com.fasterxml.jackson.core.JsonFactory;
 
 import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 
 
-public class CBORSerializer extends ISerializer {
+public class JSONSerializer extends ISerializer {
 
-    public static final String NAME = "wamp.2.cbor";
+    public static final String NAME = "wamp.2.json";
 
-    public CBORSerializer() {
-        super(new CBORFactory());
+    public JSONSerializer() {
+        super(new JsonFactory());
+    }
+
+    @Override
+    public boolean isBinary() {
+        return false;
     }
 }

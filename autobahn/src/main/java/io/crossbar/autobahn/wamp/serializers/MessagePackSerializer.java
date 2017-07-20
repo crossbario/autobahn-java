@@ -11,16 +11,16 @@
 
 package io.crossbar.autobahn.wamp.serializers;
 
-import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
+import org.msgpack.jackson.dataformat.MessagePackFactory;
 
 import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 
 
-public class CBORSerializer extends ISerializer {
+public class MessagePackSerializer extends ISerializer {
 
-    public static final String NAME = "wamp.2.cbor";
+    public static final String NAME = "wamp.2.msgpack";
 
-    public CBORSerializer() {
-        super(new CBORFactory());
+    public MessagePackSerializer() {
+        super(new MessagePackFactory());
     }
 }

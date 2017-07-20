@@ -13,12 +13,18 @@ package io.crossbar.autobahn.wamp.transports;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.logging.Logger;
 
 import javax.net.ssl.SSLException;
 
+import io.crossbar.autobahn.wamp.interfaces.ITransport;
+import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
+import io.crossbar.autobahn.wamp.serializers.CBORSerializer;
+import io.crossbar.autobahn.wamp.serializers.JSONSerializer;
+import io.crossbar.autobahn.wamp.serializers.MessagePackSerializer;
 import io.crossbar.autobahn.wamp.types.WebSocketOptions;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
@@ -43,26 +49,27 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 
-import io.crossbar.autobahn.wamp.interfaces.ISerializer;
-import io.crossbar.autobahn.wamp.interfaces.ITransport;
-import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
-import io.crossbar.autobahn.wamp.serializers.CBORSerializer;
-
 
 public class NettyTransport implements ITransport {
 
     private static final Logger LOGGER = Logger.getLogger(NettyTransport.class.getName());
+    private static final String SERIALIZERS_DEFAULT = String.format(
+            "%s,%s,%s", CBORSerializer.NAME, MessagePackSerializer.NAME, JSONSerializer.NAME);
 
     private Channel mChannel;
-    private ISerializer mSerializer;
     private final String mUri;
 
     private ExecutorService mExecutor;
     private WebSocketOptions mOptions;
+    private List<String> mSerializers;
 
     public NettyTransport(String uri) {
         mUri = uri;
-        mSerializer = new CBORSerializer();
+    }
+
+    public NettyTransport(String uri, List<String> serializers) {
+        mUri = uri;
+        mSerializers = serializers;
     }
 
     public NettyTransport(String uri, WebSocketOptions options) {
@@ -73,6 +80,12 @@ public class NettyTransport implements ITransport {
     public NettyTransport(String uri, ExecutorService executor) {
         this(uri);
         mExecutor = executor;
+    }
+
+    public NettyTransport(String uri, List<String> serializers, ExecutorService executor) {
+        this(uri);
+        mExecutor = executor;
+        mSerializers = serializers;
     }
 
     public NettyTransport(String uri, ExecutorService executor, WebSocketOptions options) {
@@ -118,6 +131,15 @@ public class NettyTransport implements ITransport {
         return null;
     }
 
+    private String getSerializers() {
+        if (mSerializers != null) {
+            StringBuilder result = new StringBuilder();
+            mSerializers.forEach(s -> result.append(s).append(","));
+            return result.toString();
+        }
+        return SERIALIZERS_DEFAULT;
+    }
+
     @Override
     public void connect(ITransportHandler transportHandler) {
         URI uri;
@@ -141,9 +163,9 @@ public class NettyTransport implements ITransport {
 
         final NettyWebSocketClientHandler handler = new NettyWebSocketClientHandler(
                 WebSocketClientHandshakerFactory.newHandshaker(
-                        uri, WebSocketVersion.V13, "wamp.2.cbor",true,
+                        uri, WebSocketVersion.V13, getSerializers(),true,
                         new DefaultHttpHeaders(), getOptions().getMaxFramePayloadSize()),
-                this, transportHandler, mSerializer);
+                this, transportHandler);
 
         EventLoopGroup group = new NioEventLoopGroup();
         Bootstrap bootstrap = new Bootstrap();
