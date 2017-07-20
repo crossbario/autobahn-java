@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 import io.crossbar.autobahn.wamp.Client;
 import io.crossbar.autobahn.wamp.Session;
@@ -40,10 +41,11 @@ import io.crossbar.autobahn.wamp.types.RegisterOptions;
 import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
 import io.crossbar.autobahn.wamp.types.Subscription;
-import io.netty.util.concurrent.CompleteFuture;
 
 
 public class Service {
+
+    private static final Logger LOGGER = Logger.getLogger(Service.class.getName());
 
     private final ExecutorService mExecutor;
 
@@ -71,6 +73,7 @@ public class Service {
 
 
     public int start(String url, String realm) {
+        LOGGER.info(String.format("Called with url=%s, realm=%s", url, realm));
         // now create a transport list for the transport to try
         // and which will carry our session
         List<ITransport> transports = new ArrayList<>();
@@ -98,43 +101,46 @@ public class Service {
             ExitInfo exitInfo = exitInfoCompletableFuture.get();
             return exitInfo.code;
         } catch (Exception e) {
-            System.out.println(e);
+            LOGGER.severe(e.getMessage());
             return 1;
         }
     }
 
 
     public void onJoinHandler1(Session session, SessionDetails details) {
-        System.out.println("onJoinHandler1 fired: sessionid=" + details.sessionID + ", authid=" + details.authid + ", realm=" + details.realm);
+        LOGGER.info(String.format(
+                "onJoinHandler1 fired: sessionID=%s, authID=%s, realm=%s",
+                details.sessionID, details.authid, details.realm));
 
         // Here we SUBSCRIBE to a topic
         CompletableFuture<Subscription> f1 = mSession.subscribe(
                 "com.example.oncounter", this::onCounter, null);
 
         f1.thenAccept(subscription ->
-            System.out.println("Subscribed to topic: " + subscription.topic)
-        );
+                LOGGER.info(String.format("Subscribed to topic: %s", subscription.topic)));
         f1.exceptionally(throwable -> {
-            System.out.println("ERROR - subscription failed: " + throwable.getMessage());
+            LOGGER.info(String.format("ERROR - subscription failed: %s", throwable.getMessage()));
             return null;
         });
 
         // Here we REGISTER a procedure
-        RegisterOptions options = new RegisterOptions(RegisterOptions.MATCH_EXACT, RegisterOptions.INVOKE_ROUNDROBIN);
+        RegisterOptions options = new RegisterOptions(
+                RegisterOptions.MATCH_EXACT, RegisterOptions.INVOKE_ROUNDROBIN);
         CompletableFuture<Registration> f2 = mSession.register(
                 "com.example.add2", this::add2, options);
+
         f2.thenAccept(registration ->
-            System.out.println("Registered procedure: " + registration.procedure)
-        );
+                LOGGER.info(String.format("Registered procedure: %s", registration.toString())));
+
         f2.exceptionally(throwable -> {
-            System.out.println("ERROR - registration failed: " + throwable.getMessage());
+            LOGGER.info(String.format("ERROR - registration failed: %s", throwable.getMessage()));
             return null;
         });
     }
 
 
     public void onJoinHandler2(Session session, SessionDetails details) {
-        System.out.println("onJoinHandler2 fired");
+        LOGGER.info("onJoinHandler2 fired");
 
         List<Object> args = new ArrayList<>();
         args.add(2);
@@ -147,11 +153,11 @@ public class Service {
             CompletableFuture<CallResult> f =
                 mSession.call("com.example.add2", args, null, null);
 
-            f.thenAccept(result -> {
-                System.out.println("got result: " + result.results.get(0));
-            });
+            f.thenAccept(result ->
+                    LOGGER.info(String.format("Got result: %s, ", result.results.get(0))));
+
             f.exceptionally(throwable -> {
-                System.out.println("ERROR - call failed: " + throwable.getMessage());
+                LOGGER.info(String.format("ERROR - call failed: %s", throwable.getMessage()));
                 return null;
             });
 
@@ -160,7 +166,7 @@ public class Service {
 
 
     public void onJoinHandler3(Session session, SessionDetails details) {
-        System.out.println("onJoinHandler3 fired");
+        LOGGER.info("onJoinHandler3 fired");
 
         PublishOptions options = new PublishOptions(true, false);
 
@@ -179,10 +185,11 @@ public class Service {
                     "com.example.oncounter", argsCounter, null, options);
 
             f.thenAccept(publication ->
-                System.out.println("event published: " + publication.publication)
+                    LOGGER.info(String.format("event published: %s", publication.publication))
             );
+
             f.exceptionally(throwable -> {
-                System.out.println("ERROR - publication failed: " + throwable.getMessage());
+                LOGGER.info(String.format("ERROR - publication failed: %s", throwable.getMessage()));
                 return null;
             });
 
@@ -193,7 +200,7 @@ public class Service {
 
 
     public void onJoinHandler4(Session session, SessionDetails details) {
-        System.out.println("onJoinHandler4 fired");
+        LOGGER.info("onJoinHandler4 fired");
 
         // call a remote procedure that returns a Person
         CompletableFuture<Void> f1 =
@@ -201,10 +208,11 @@ public class Service {
                 .handleAsync(
                     (person, throwable) -> {
                         if (throwable != null) {
-                            System.out.println("get_person() ERROR: " + throwable.getMessage());
-                            //throwable.printStackTrace();
+                            LOGGER.info(String.format("get_person() ERROR: %s", throwable.getMessage()));
                         } else {
-                            System.out.println("get_person() [typed]: " + person.firstname + " " + person.lastname + " (" + person.department + ")");
+                            LOGGER.info(String.format(
+                                    "get_person() [typed]: %s %s (%s)",
+                                    person.firstname, person.lastname, person.department));
                         }
                         return null;
                     }, mExecutor
@@ -217,10 +225,12 @@ public class Service {
                 .handleAsync(
                     (person, throwable) -> {
                         if (throwable != null) {
-                            System.out.println("get_person_delayed() ERROR: " + throwable.getMessage());
-                            //throwable.printStackTrace();
+                            LOGGER.info(String.format("get_person_delayed() ERROR: %s",
+                                    throwable.getMessage()));
                         } else {
-                            System.out.println("get_person_delayed() [typed]: " + person.firstname + " " + person.lastname + " (" + person.department + ")");
+                            LOGGER.info(String.format(
+                                    "get_person_delayed() [typed]: %s %s (%s)",
+                                    person.firstname, person.lastname, person.department));
                         }
                         return null;
                     }, mExecutor
@@ -233,13 +243,13 @@ public class Service {
                 .handleAsync(
                     (persons, throwable) -> {
                         if (throwable != null) {
-                            System.out.println("get_all_persons() ERROR: " + throwable.getMessage());
-                            //throwable.printStackTrace();
+                            LOGGER.info(String.format(
+                                    "get_all_persons() ERROR: %s", throwable.getMessage()));
                         } else {
-                            System.out.println("get_all_persons() [typed]:");
-                            persons.forEach(person -> {
-                                System.out.println(person.firstname + " " + person.lastname + " (" + person.department + ")");
-                            });
+                            LOGGER.info("get_all_persons() [typed]:");
+                            persons.forEach(person ->
+                                    LOGGER.info(String.format("%s %s (%s)",
+                                    person.firstname, person.lastname, person.department)));
                         }
                         return null;
                     }, mExecutor
@@ -255,13 +265,14 @@ public class Service {
                 .handleAsync(
                     (persons, throwable) -> {
                         if (throwable != null) {
-                            System.out.println("get_persons_by_department() ERROR: " + throwable.getMessage());
-                            //throwable.printStackTrace();
+                            LOGGER.info(String.format(
+                                    "get_persons_by_department() ERROR: %s",
+                                    throwable.getMessage()));
                         } else {
-                            System.out.println("get_persons_by_department() [typed]:");
-                            persons.forEach(person -> {
-                                System.out.println(person.firstname + " " + person.lastname + " (" + person.department + ")");
-                            });
+                            LOGGER.info("get_persons_by_department() [typed]:");
+                            persons.forEach(person ->
+                                    LOGGER.info(String.format("%s %s (%s)",
+                                            person.firstname, person.lastname, person.department)));
                         }
                         return null;
                     }, mExecutor
@@ -274,18 +285,19 @@ public class Service {
                 .handleAsync(
                     (persons_by_department, throwable) -> {
                         if (throwable != null) {
-                            System.out.println("get_persons_by_department() ERROR: " + throwable.getMessage());
-                            //throwable.printStackTrace();
+                            LOGGER.info(String.format(
+                                    "get_persons_by_department() ERROR: %s", throwable.getMessage()));
                         } else {
 
-                            System.out.println("get_persons_by_department() [typed]:");
+                            LOGGER.info("get_persons_by_department() [typed]:");
 
                             persons_by_department.forEach((department, persons) -> {
-                                System.out.println("\ndepartment '" + department + "':");
+                                LOGGER.info(String.format("\ndepartment '%s:'", department));
+                                // Fancy.
+                                System.out.println();
 
-                                persons.forEach(person -> {
-                                    System.out.println("     " + person.firstname + " " + person.lastname);
-                                });
+                                persons.forEach(person -> LOGGER.info(String.format(
+                                        "      %s %s", person.firstname, person.lastname)));
                             });
                         }
                         return null;
@@ -296,7 +308,7 @@ public class Service {
         CompletableFuture.allOf(f1, f2, f3, f4, f5)
             .thenRunAsync(
                 () -> {
-                    System.out.println("all done!");
+                    LOGGER.info("all done!");
                     mSession.leave("wamp.close.normal", "all done!");
                 }, mExecutor
             )
@@ -319,18 +331,18 @@ public class Service {
     private void onCounter(List<Object> args,
                            Map<String, Object> kwargs,
                            EventDetails details) {
-        System.out.println("received counter: " + args.get(0));
+        LOGGER.info(String.format("received counter: %s", args.get(0)));
     }
 
     private CompletableFuture<ReceptionResult> onCounter1(List<Object> args,
-                            Map<String, Object> kwargs,
-                            EventDetails details) {
-        System.out.println("received counter: " + args.get(0));
+                                                          Map<String, Object> kwargs,
+                                                          EventDetails details) {
+        LOGGER.info(String.format("received counter: %s", args.get(0)));
         return CompletableFuture.completedFuture(new ReceptionResult());
     }
 
     private void onCounterSimple(String object, EventDetails details) {
-        System.out.println("received counter: " + object);
+        LOGGER.info(String.format("received counter: %s", object));
     }
 
 

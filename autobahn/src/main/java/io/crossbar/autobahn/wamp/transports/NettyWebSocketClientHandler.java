@@ -29,7 +29,6 @@ import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
-import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.util.CharsetUtil;
 
 
@@ -76,35 +75,38 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
         Channel ch = ctx.channel();
         if (!mHandshaker.isHandshakeComplete()) {
             FullHttpResponse response = (FullHttpResponse) msg;
-            ISerializer serializer = initializeSerializer(
-                    response.headers().get("Sec-WebSocket-Protocol"));
+            String negotiatedSerializer = response.headers().get("Sec-WebSocket-Protocol");
+            LOGGER.info(String.format("Negotiated serializer=%s", negotiatedSerializer));
+            ISerializer serializer = initializeSerializer(negotiatedSerializer);
             mHandshaker.finishHandshake(ch, response);
             mHandshakeFuture.setSuccess();
             mTransportHandler.onConnect(mTransport, serializer);
-            return;
-        }
 
-        if (msg instanceof FullHttpResponse) {
+        } else if (msg instanceof FullHttpResponse) {
             FullHttpResponse response = (FullHttpResponse) msg;
             throw new IllegalStateException(
                     "Unexpected FullHttpResponse (getStatus=" + response.status() +
                             ", content=" + response.content().toString(CharsetUtil.UTF_8) + ')');
-        }
 
-        WebSocketFrame frame = (WebSocketFrame) msg;
-        if (frame instanceof BinaryWebSocketFrame) {
-            BinaryWebSocketFrame binaryWebSocketFrame = (BinaryWebSocketFrame) frame;
+        } else if (msg instanceof BinaryWebSocketFrame) {
+            BinaryWebSocketFrame binaryWebSocketFrame = (BinaryWebSocketFrame) msg;
             byte[] payload = new byte[binaryWebSocketFrame.content().readableBytes()];
+            LOGGER.info(String.format("Received binary frame, content length=%s", payload.length));
             binaryWebSocketFrame.content().readBytes(payload);
             mTransportHandler.onMessage(payload, true);
 
-        } else if (frame instanceof TextWebSocketFrame) {
-            TextWebSocketFrame textWebSocketFrame = (TextWebSocketFrame) frame;
+        } else if (msg instanceof TextWebSocketFrame) {
+            TextWebSocketFrame textWebSocketFrame = (TextWebSocketFrame) msg;
             byte[] payload = new byte[textWebSocketFrame.content().readableBytes()];
+            LOGGER.info(String.format("Received Text frame, content length=%s", payload.length));
             textWebSocketFrame.content().readBytes(payload);
             mTransportHandler.onMessage(payload, false);
 
-        } else if (frame instanceof CloseWebSocketFrame) {
+        } else if (msg instanceof CloseWebSocketFrame) {
+            CloseWebSocketFrame textWebSocketFrame = (CloseWebSocketFrame) msg;
+            LOGGER.info(String.format(
+                    "Received Close frame, code=%s, reason=%s",
+                    textWebSocketFrame.statusCode(), textWebSocketFrame.reasonText()));
             ch.close();
         }
     }
