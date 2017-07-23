@@ -59,6 +59,7 @@ public class NettyTransport implements ITransport {
             "%s,%s,%s", CBORSerializer.NAME, MessagePackSerializer.NAME, JSONSerializer.NAME);
 
     private Channel mChannel;
+    private NettyWebSocketClientHandler mHandler;
     private final String mUri;
 
     private ExecutorService mExecutor;
@@ -163,7 +164,7 @@ public class NettyTransport implements ITransport {
             return;
         }
 
-        final NettyWebSocketClientHandler handler = new NettyWebSocketClientHandler(
+        mHandler = new NettyWebSocketClientHandler(
                 WebSocketClientHandshakerFactory.newHandshaker(
                         uri, WebSocketVersion.V13, getSerializers(),true,
                         new DefaultHttpHeaders(), getOptions().getMaxFramePayloadSize()),
@@ -186,13 +187,13 @@ public class NettyTransport implements ITransport {
                         WebSocketClientCompressionHandler.INSTANCE,
                         new IdleStateHandler(
                                 15, 10, 20, TimeUnit.SECONDS),
-                        handler);
+                        mHandler);
             }
         });
 
         try {
             mChannel = bootstrap.connect(uri.getHost(), port).sync().channel();
-            handler.getHandshakeFuture().sync();
+            mHandler.getHandshakeFuture().sync();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -217,11 +218,8 @@ public class NettyTransport implements ITransport {
     @Override
     public void close() {
         LOGGER.info("close()");
-        try {
-            mChannel.close().sync();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        // FIXME: extend the override method to include wasClean.
+        mHandler.close(mChannel, true);
     }
 
     @Override

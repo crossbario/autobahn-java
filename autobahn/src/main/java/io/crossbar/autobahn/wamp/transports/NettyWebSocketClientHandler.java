@@ -154,6 +154,11 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
         mWasCleanClose = wasClean;
     }
 
+    void close(Channel channel, boolean wasClean) {
+        channel.close();
+        mWasCleanClose = wasClean;
+    }
+
     private ISerializer initializeSerializer(String negotiatedSerializer) throws Exception {
         switch (negotiatedSerializer) {
             case CBORSerializer.NAME:
