@@ -16,6 +16,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import javax.net.ssl.SSLException;
@@ -48,6 +49,7 @@ import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketCl
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.handler.timeout.IdleStateHandler;
 
 
 public class NettyTransport implements ITransport {
@@ -182,6 +184,8 @@ public class NettyTransport implements ITransport {
                         new HttpClientCodec(),
                         new HttpObjectAggregator(8192),
                         WebSocketClientCompressionHandler.INSTANCE,
+                        new IdleStateHandler(
+                                15, 10, 20, TimeUnit.SECONDS),
                         handler);
             }
         });

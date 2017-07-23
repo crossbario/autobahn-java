@@ -27,8 +27,12 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.CharsetUtil;
 
 
@@ -41,6 +45,7 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
     private final ITransport mTransport;
     private ChannelPromise mHandshakeFuture;
     private ITransportHandler mTransportHandler;
+    private boolean mWasCleanClose;
 
     public NettyWebSocketClientHandler(WebSocketClientHandshaker handshaker, ITransport transport,
                                        ITransportHandler transportHandler) {
@@ -66,8 +71,12 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         LOGGER.info("WebSocket Client disconnected!");
-        // FIXME: wasClean flag
-        mTransportHandler.onDisconnect(true);
+        mTransportHandler.onDisconnect(mWasCleanClose);
+    }
+
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        ctx.flush();
     }
 
     @Override
@@ -102,12 +111,32 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
             textWebSocketFrame.content().readBytes(payload);
             mTransportHandler.onMessage(payload, false);
 
+        } else if (msg instanceof PingWebSocketFrame) {
+            PingWebSocketFrame pingWebSocketFrame = (PingWebSocketFrame) msg;
+            ctx.writeAndFlush(new PongWebSocketFrame(pingWebSocketFrame.content().retain()));
+
+        } else if (msg instanceof PongWebSocketFrame) {
+            // Not really doing anything here.
+            LOGGER.info("WebSocket Client received pong.");
+
         } else if (msg instanceof CloseWebSocketFrame) {
-            CloseWebSocketFrame textWebSocketFrame = (CloseWebSocketFrame) msg;
+            CloseWebSocketFrame closeWebSocketFrame = (CloseWebSocketFrame) msg;
             LOGGER.info(String.format(
                     "Received Close frame, code=%s, reason=%s",
-                    textWebSocketFrame.statusCode(), textWebSocketFrame.reasonText()));
-            ch.close();
+                    closeWebSocketFrame.statusCode(), closeWebSocketFrame.reasonText()));
+            close(ctx, closeWebSocketFrame.statusCode() == 1000);
+        }
+    }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        if (evt instanceof IdleStateEvent) {
+            IdleStateEvent event = (IdleStateEvent) evt;
+            if (event.state() == IdleState.READER_IDLE) {
+                close(ctx, false);
+            } else if (event.state() == IdleState.WRITER_IDLE) {
+                ctx.writeAndFlush(new PingWebSocketFrame());
+            }
         }
     }
 
@@ -117,7 +146,12 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
         if (!mHandshakeFuture.isDone()) {
             mHandshakeFuture.setFailure(cause);
         }
-        ctx.close();
+        close(ctx, false);
+    }
+
+    private void close(ChannelHandlerContext context, boolean wasClean) {
+        context.close();
+        mWasCleanClose = wasClean;
     }
 
     private ISerializer initializeSerializer(String negotiatedSerializer) throws Exception {
