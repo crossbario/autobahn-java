@@ -11,16 +11,27 @@
 
 package io.crossbar.autobahn.demogallery.netty;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 
 public class Main {
 
+    private static final String LOG_CONFIG = "handlers= java.util.logging.ConsoleHandler\n"
+            + ".level = %s\n" +
+            "java.util.logging.ConsoleHandler.level = %s\n" +
+            "java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter\n";
     private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+
+        readAndSetLogLevel();
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -47,5 +58,12 @@ public class Main {
         LOGGER.info(String.format(".. ended with return code %s", returnCode));
 
         System.exit(returnCode);
+    }
+
+    private static void readAndSetLogLevel() throws IOException {
+        String logLevel = System.getProperty("logLevel", "INFO");
+        String config = String.format(LOG_CONFIG, logLevel, logLevel);
+        InputStream stream = new ByteArrayInputStream(config.getBytes(StandardCharsets.UTF_8));
+        LogManager.getLogManager().readConfiguration(stream);
     }
 }
