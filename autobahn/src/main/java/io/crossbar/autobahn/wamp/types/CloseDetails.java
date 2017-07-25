@@ -12,4 +12,11 @@
 package io.crossbar.autobahn.wamp.types;
 
 public class CloseDetails {
+    public final String reason;
+    public final String message;
+
+    public CloseDetails(String reason, String message) {
+        this.reason = reason;
+        this.message = message;
+    }
 }

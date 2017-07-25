@@ -38,6 +38,7 @@ import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.interfaces.TriConsumer;
 import io.crossbar.autobahn.wamp.interfaces.TriFunction;
+import io.crossbar.autobahn.wamp.messages.Abort;
 import io.crossbar.autobahn.wamp.messages.Call;
 import io.crossbar.autobahn.wamp.messages.Error;
 import io.crossbar.autobahn.wamp.messages.Event;
@@ -213,9 +214,23 @@ public class Session implements ISession, ITransportHandler {
                     mState = STATE_READY;
                     mOnReadyListeners.forEach(listener -> listener.onReady(this));
                 }, getExecutor());
+            } else if (message instanceof Abort) {
+                Abort abortMessage = (Abort) message;
+                CloseDetails details = new CloseDetails(abortMessage.reason, abortMessage.message);
+                List<CompletableFuture<?>> futures = new ArrayList<>();
+                mOnLeaveListeners.forEach(
+                        l -> futures.add(
+                                CompletableFuture.runAsync(() -> l.onLeave(this, details), getExecutor())));
+                CompletableFuture d = combineFutures(futures);
+                d.thenRun(() -> {
+                    LOGGER.info("Notified Session.onLeave listeners, now closing transport");
+                    mState = STATE_DISCONNECTED;
+                    if (mTransport != null && mTransport.isOpen()) {
+                        mTransport.close();
+                    }
+                });
             } else {
-                // with (mSessionID == 0), we can only receive
-                // WELCOME, ABORT or CHALLENGE
+                // FIXME: handle Challenge message here.
                 LOGGER.info("FIXME (no session): unprocessed message:");
                 LOGGER.info(message.toString());
             }
@@ -371,7 +386,8 @@ public class Session implements ISession, ITransportHandler {
                             "INVOCATION received for non-registered registration ID %s", msg.registration));
                 }
             } else if (message instanceof Goodbye) {
-                CloseDetails details = new CloseDetails();
+                Goodbye goodbyeMessage = (Goodbye) message;
+                CloseDetails details = new CloseDetails(goodbyeMessage.reason, goodbyeMessage.message);
                 List<CompletableFuture<?>> futures = new ArrayList<>();
                 mOnLeaveListeners.forEach(
                         l -> futures.add(
