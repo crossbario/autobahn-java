@@ -12,7 +12,6 @@
 package io.crossbar.autobahn.wamp.transports;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
@@ -42,6 +41,7 @@ import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
@@ -98,17 +98,11 @@ public class NettyTransport implements ITransport {
     }
 
     private ExecutorService getExecutor() {
-        if (mExecutor == null) {
-            mExecutor = ForkJoinPool.commonPool();
-        }
-        return mExecutor;
+        return mExecutor == null ? ForkJoinPool.commonPool() : mExecutor;
     }
 
     private WebSocketOptions getOptions() {
-        if (mOptions == null) {
-            mOptions = new WebSocketOptions();
-        }
-        return mOptions;
+        return mOptions == null ? new WebSocketOptions() : mOptions;
     }
 
     private int validateURIAndGetPort(URI uri) {
@@ -128,10 +122,8 @@ public class NettyTransport implements ITransport {
     }
 
     private SslContext getSSLContext(String scheme) throws SSLException {
-        if ("wss".equalsIgnoreCase(scheme)) {
-            return SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build();
-        }
-        return null;
+        return "wss".equalsIgnoreCase(scheme) ? SslContextBuilder.forClient().trustManager(
+                InsecureTrustManagerFactory.INSTANCE).build() : null;
     }
 
     private String getSerializers() {
@@ -144,31 +136,19 @@ public class NettyTransport implements ITransport {
     }
 
     @Override
-    public void connect(ITransportHandler transportHandler) {
+    public void connect(ITransportHandler transportHandler) throws Exception {
         URI uri;
-        try {
-            uri = new URI(mUri);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-            return;
-        }
+        uri = new URI(mUri);
         int port = validateURIAndGetPort(uri);
         String scheme = uri.getScheme();
         String host = uri.getHost();
 
-        final SslContext sslContext;
-        try {
-            sslContext = getSSLContext(scheme);
-        } catch (SSLException e) {
-            e.printStackTrace();
-            return;
-        }
+        final SslContext sslContext = getSSLContext(scheme);
 
-        mHandler = new NettyWebSocketClientHandler(
-                WebSocketClientHandshakerFactory.newHandshaker(
-                        uri, WebSocketVersion.V13, getSerializers(),true,
-                        new DefaultHttpHeaders(), getOptions().getMaxFramePayloadSize()),
-                this, transportHandler);
+        WebSocketClientHandshaker handshaker = WebSocketClientHandshakerFactory.newHandshaker(
+                uri, WebSocketVersion.V13, getSerializers(), true,
+                new DefaultHttpHeaders(), getOptions().getMaxFramePayloadSize());
+        mHandler = new NettyWebSocketClientHandler(handshaker,this, transportHandler);
 
         EventLoopGroup group = new NioEventLoopGroup();
         Bootstrap bootstrap = new Bootstrap();
@@ -185,18 +165,13 @@ public class NettyTransport implements ITransport {
                         new HttpClientCodec(),
                         new HttpObjectAggregator(8192),
                         WebSocketClientCompressionHandler.INSTANCE,
-                        new IdleStateHandler(
-                                15, 10, 20, TimeUnit.SECONDS),
+                        new IdleStateHandler(15, 10, 20, TimeUnit.SECONDS),
                         mHandler);
             }
         });
 
-        try {
-            mChannel = bootstrap.connect(uri.getHost(), port).sync().channel();
-            mHandler.getHandshakeFuture().sync();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        mChannel = bootstrap.connect(uri.getHost(), port).sync().channel();
+        mHandler.getHandshakeFuture().sync();
     }
 
     @Override
@@ -212,18 +187,19 @@ public class NettyTransport implements ITransport {
 
     @Override
     public boolean isOpen() {
-        return mChannel.isOpen();
+        return mChannel != null && mChannel.isOpen();
     }
 
     @Override
-    public void close() {
+    public void close() throws Exception {
         LOGGER.info("close()");
-        // FIXME: extend the override method to include wasClean.
-        mHandler.close(mChannel, true);
+        if (mHandler != null && mChannel != null) {
+            mHandler.close(mChannel, true);
+        }
     }
 
     @Override
-    public void abort() {
+    public void abort() throws Exception {
         LOGGER.info("abort()");
         close();
     }

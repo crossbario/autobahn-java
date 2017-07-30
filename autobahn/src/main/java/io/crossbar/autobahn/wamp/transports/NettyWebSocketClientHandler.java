@@ -54,7 +54,7 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
         mTransportHandler = transportHandler;
     }
 
-    public ChannelFuture getHandshakeFuture() {
+    ChannelFuture getHandshakeFuture() {
         return mHandshakeFuture;
     }
 

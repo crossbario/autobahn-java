@@ -15,11 +15,11 @@ public interface ITransport {
 
     void send(byte[] payload, boolean isBinary);
 
-    void connect(ITransportHandler transportHandler);
+    void connect(ITransportHandler transportHandler) throws Exception;
 
     boolean isOpen();
 
-    void close();
+    void close() throws Exception;
 
-    void abort();
+    void abort() throws Exception;
 }

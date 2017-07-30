@@ -13,6 +13,7 @@ package io.crossbar.autobahn.wamp;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 
@@ -40,10 +41,7 @@ public class Client {
     }
 
     private ExecutorService getExecutor() {
-        if (mExecutor == null) {
-            mExecutor = ForkJoinPool.commonPool();
-        }
-        return mExecutor;
+        return mExecutor == null ? ForkJoinPool.commonPool() : mExecutor;
     }
 
     public void add(Session session, String realm, List<IAuthenticator> authenticators) {
@@ -59,8 +57,13 @@ public class Client {
         CompletableFuture<ExitInfo> exitFuture = new CompletableFuture<>();
         mSession.addOnConnectListener((session) -> mSession.join(mRealm, null));
         mSession.addOnDisconnectListener((session, wasClean) -> exitFuture.complete(new ExitInfo(wasClean)));
-        // FIXME: Add error handling but it probably depends on refactoring of the transport.
-        CompletableFuture.runAsync(() -> mTransports.get(0).connect(mSession), getExecutor());
+        CompletableFuture.runAsync(() -> {
+            try {
+                mTransports.get(0).connect(mSession);
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        }, getExecutor());
         return exitFuture;
     }
 }
