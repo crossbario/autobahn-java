@@ -16,6 +16,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import javax.net.ssl.SSLException;
@@ -48,6 +49,7 @@ import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketCl
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.handler.timeout.IdleStateHandler;
 
 
 public class NettyTransport implements ITransport {
@@ -57,6 +59,7 @@ public class NettyTransport implements ITransport {
             "%s,%s,%s", CBORSerializer.NAME, MessagePackSerializer.NAME, JSONSerializer.NAME);
 
     private Channel mChannel;
+    private NettyWebSocketClientHandler mHandler;
     private final String mUri;
 
     private ExecutorService mExecutor;
@@ -161,7 +164,7 @@ public class NettyTransport implements ITransport {
             return;
         }
 
-        final NettyWebSocketClientHandler handler = new NettyWebSocketClientHandler(
+        mHandler = new NettyWebSocketClientHandler(
                 WebSocketClientHandshakerFactory.newHandshaker(
                         uri, WebSocketVersion.V13, getSerializers(),true,
                         new DefaultHttpHeaders(), getOptions().getMaxFramePayloadSize()),
@@ -182,13 +185,15 @@ public class NettyTransport implements ITransport {
                         new HttpClientCodec(),
                         new HttpObjectAggregator(8192),
                         WebSocketClientCompressionHandler.INSTANCE,
-                        handler);
+                        new IdleStateHandler(
+                                15, 10, 20, TimeUnit.SECONDS),
+                        mHandler);
             }
         });
 
         try {
             mChannel = bootstrap.connect(uri.getHost(), port).sync().channel();
-            handler.getHandshakeFuture().sync();
+            mHandler.getHandshakeFuture().sync();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -213,11 +218,8 @@ public class NettyTransport implements ITransport {
     @Override
     public void close() {
         LOGGER.info("close()");
-        try {
-            mChannel.close().sync();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        // FIXME: extend the override method to include wasClean.
+        mHandler.close(mChannel, true);
     }
 
     @Override
