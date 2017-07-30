@@ -14,9 +14,9 @@ package io.crossbar.autobahn.wamp.interfaces;
 
 public interface ITransportHandler {
 
-    void onConnect(ITransport transport, ISerializer serializer);
+    void onConnect(ITransport transport, ISerializer serializer) throws Exception;
 
-    void onMessage(byte[] payload, boolean isBinary);
+    void onMessage(byte[] payload, boolean isBinary) throws Exception;
 
     void onDisconnect(boolean wasClean);
 

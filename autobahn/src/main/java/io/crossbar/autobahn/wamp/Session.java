@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
@@ -138,10 +139,7 @@ public class Session implements ISession, ITransportHandler {
     }
 
     private ExecutorService getExecutor() {
-        if (mExecutor == null) {
-            mExecutor = ForkJoinPool.commonPool();
-        }
-        return mExecutor;
+        return mExecutor == null ? ForkJoinPool.commonPool() : mExecutor;
     }
 
     private void throwIfNotConnected() {
@@ -151,11 +149,10 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
-    public void onConnect(ITransport transport, ISerializer serializer) {
+    public void onConnect(ITransport transport, ISerializer serializer) throws Exception {
         LOGGER.info("onConnect()");
         if (mTransport != null) {
-            // Now allowed to throw here, find a better way.
-//            throw new Exception("already connected");
+            throw new Exception("already connected");
         }
         mTransport = transport;
         mSerializer = serializer;
@@ -175,27 +172,23 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
-    public void onMessage(byte[] payload, boolean isBinary) {
+    public void onMessage(byte[] payload, boolean isBinary) throws Exception {
         // transform bytes to raw message:
         List<Object> rawMessage = mSerializer.unserialize(payload, isBinary);
 
         // transform raw message to typed message:
-        IMessage message = null;
         try {
             int messageType = (int) rawMessage.get(0);
             Class<? extends IMessage> messageKlass = MESSAGE_TYPE_MAP.get(messageType);
-            message = (IMessage) messageKlass.getMethod("parse", List.class).invoke(null, rawMessage);
-
+            IMessage message = (IMessage) messageKlass.getMethod(
+                    "parse", List.class).invoke(null, rawMessage);
+            onMessage(message);
         } catch (Exception e) {
             LOGGER.info("mapping received message bytes to IMessage failed: " + e.getMessage());
         }
-
-        if (message != null) {
-            this.onMessage(message);
-        }
     }
 
-    private void onMessage(IMessage message) {
+    private void onMessage(IMessage message) throws Exception {
         LOGGER.info("  <<< RX : " + message);
 
         if (mSessionID == 0) {
@@ -226,7 +219,11 @@ public class Session implements ISession, ITransportHandler {
                     LOGGER.info("Notified Session.onLeave listeners, now closing transport");
                     mState = STATE_DISCONNECTED;
                     if (mTransport != null && mTransport.isOpen()) {
-                        mTransport.close();
+                        try {
+                            mTransport.close();
+                        } catch (Exception e) {
+                            throw new CompletionException(e);
+                        }
                     }
                 });
             } else {
@@ -378,7 +375,7 @@ public class Session implements ISession, ITransportHandler {
                             LOGGER.info("FIXME: send call error: " + invocationException.getMessage());
                         }
                         else {
-                            this.send(new Yield(msg.request, invocationResult.results, invocationResult.kwresults));
+                            send(new Yield(msg.request, invocationResult.results, invocationResult.kwresults));
                         }
                     }, getExecutor());
                 } else {
@@ -395,10 +392,14 @@ public class Session implements ISession, ITransportHandler {
                 CompletableFuture d = combineFutures(futures);
                 d.thenRun(() -> {
                     LOGGER.info("Notified Session.onLeave listeners, now closing transport");
-                    mState = STATE_DISCONNECTED;
                     if (mTransport != null && mTransport.isOpen()) {
-                        mTransport.close();
+                        try {
+                            mTransport.close();
+                        } catch (Exception e) {
+                            throw new CompletionException(e);
+                        }
                     }
+                    mState = STATE_DISCONNECTED;
                 });
             } else if (message instanceof Error) {
                 Error msg = (Error) message;
@@ -461,7 +462,7 @@ public class Session implements ISession, ITransportHandler {
         CompletableFuture<Subscription> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
         mSubscribeRequests.put(requestID, new SubscribeRequest(requestID, topic, future, handler));
-        this.send(new Subscribe(requestID, options, topic));
+        send(new Subscribe(requestID, options, topic));
         return future;
     }
 
@@ -526,9 +527,9 @@ public class Session implements ISession, ITransportHandler {
         long requestID = mIDGenerator.next();
         mPublishRequests.put(requestID, new PublishRequest(requestID, future));
         if (options != null) {
-            this.send(new Publish(requestID, topic, args, kwargs, options.acknowledge, options.excludeMe));
+            send(new Publish(requestID, topic, args, kwargs, options.acknowledge, options.excludeMe));
         } else {
-            this.send(new Publish(requestID, topic, args, kwargs, true, true));
+            send(new Publish(requestID, topic, args, kwargs, true, true));
         }
         return future;
     }
@@ -573,9 +574,9 @@ public class Session implements ISession, ITransportHandler {
         long requestID = mIDGenerator.next();
         mRegisterRequest.put(requestID, new RegisterRequest(requestID, future, procedure, endpoint));
         if (options != null) {
-            this.send(new Register(requestID, procedure, options.match, options.invoke));
+            send(new Register(requestID, procedure, options.match, options.invoke));
         } else {
-            this.send(new Register(requestID, procedure, null, null));
+            send(new Register(requestID, procedure, null, null));
         }
         return future;
     }
@@ -625,9 +626,9 @@ public class Session implements ISession, ITransportHandler {
         mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options, resultType));
 
         if (options == null) {
-            this.send(new Call(requestID, procedure, args, kwargs, 0));
+            send(new Call(requestID, procedure, args, kwargs, 0));
         } else {
-            this.send(new Call(requestID, procedure, args, kwargs, options.timeout));
+            send(new Call(requestID, procedure, args, kwargs, options.timeout));
         }
         return future;
     }
@@ -660,81 +661,74 @@ public class Session implements ISession, ITransportHandler {
         roles.put("subscriber", new HashMap<>());
         roles.put("caller", new HashMap<>());
         roles.put("callee", new HashMap<>());
-        this.send(new Hello(realm, roles));
+        send(new Hello(realm, roles));
         mState = STATE_HELLO_SENT;
         return null;
     }
 
     @Override
     public void leave(String reason, String message) {
-        LOGGER.info(String.format("Called leave(), reason=%s message=%s", reason, message));
-        this.send(new Goodbye(reason, message));
+        LOGGER.info(String.format("reason=%s message=%s", reason, message));
+        send(new Goodbye(reason, message));
         mState = STATE_GOODBYE_SENT;
     }
 
     public OnJoinListener addOnJoinListener(OnJoinListener listener) {
-        mOnJoinListeners.add(listener);
-        return listener;
+        return addListener(mOnJoinListeners, listener);
     }
 
     public void removeOnJoinListener(OnJoinListener listener) {
-        if (mOnJoinListeners.contains(listener)) {
-            mOnJoinListeners.remove(listener);
-        }
+        removeListener(mOnJoinListeners, listener);
     }
 
     public OnReadyListener adOnReadyListener(OnReadyListener listener) {
-        mOnReadyListeners.add(listener);
-        return listener;
+        return addListener(mOnReadyListeners, listener);
     }
 
     public void removeOnReadyListener(OnReadyListener listener) {
-        if (mOnReadyListeners.contains(listener)) {
-            mOnReadyListeners.remove(listener);
-        }
+        removeListener(mOnReadyListeners, listener);
     }
 
     public OnLeaveListener addOnLeaveListener(OnLeaveListener listener) {
-        mOnLeaveListeners.add(listener);
-        return listener;
+        return addListener(mOnLeaveListeners, listener);
     }
 
     public void removeOnLeaveListener(OnLeaveListener listener) {
-        if (mOnLeaveListeners.contains(listener)) {
-            mOnLeaveListeners.remove(listener);
-        }
+        removeListener(mOnLeaveListeners, listener);
     }
 
     public OnConnectListener addOnConnectListener(OnConnectListener listener) {
-        mOnConnectListeners.add(listener);
-        return listener;
+        return addListener(mOnConnectListeners, listener);
     }
 
     public void removeOnConnectListener(OnConnectListener listener) {
-        if (mOnConnectListeners.contains(listener)) {
-            mOnConnectListeners.remove(listener);
-        }
+        removeListener(mOnConnectListeners, listener);
     }
 
     public OnDisconnectListener addOnDisconnectListener(OnDisconnectListener listener) {
-        mOnDisconnectListeners.add(listener);
-        return listener;
+        return addListener(mOnDisconnectListeners, listener);
     }
 
     public void removeOnDisconnectListener(OnDisconnectListener listener) {
-        if (mOnDisconnectListeners.contains(listener)) {
-            mOnDisconnectListeners.remove(listener);
-        }
+        removeListener(mOnDisconnectListeners, listener);
     }
 
     public OnUserErrorListener addOnUserErrorListener(OnUserErrorListener listener) {
-        mOnUserErrorListeners.add(listener);
-        return listener;
+        return addListener(mOnUserErrorListeners, listener);
     }
 
     public void removeOnUserErrorListener(OnUserErrorListener listener) {
-        if (mOnUserErrorListeners.contains(listener)) {
-            mOnUserErrorListeners.remove(listener);
+        removeListener(mOnUserErrorListeners, listener);
+    }
+
+    private <T> T addListener(ArrayList<T> listeners, T listener) {
+        listeners.add(listener);
+        return listener;
+    }
+
+    private <T> void removeListener(ArrayList<T> listeners, T listener) {
+        if (listeners.contains(listener)) {
+            listeners.remove(listener);
         }
     }
 }
