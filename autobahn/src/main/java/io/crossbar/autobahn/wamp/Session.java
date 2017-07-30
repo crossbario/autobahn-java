@@ -177,18 +177,14 @@ public class Session implements ISession, ITransportHandler {
         List<Object> rawMessage = mSerializer.unserialize(payload, isBinary);
 
         // transform raw message to typed message:
-        IMessage message = null;
         try {
             int messageType = (int) rawMessage.get(0);
             Class<? extends IMessage> messageKlass = MESSAGE_TYPE_MAP.get(messageType);
-            message = (IMessage) messageKlass.getMethod("parse", List.class).invoke(null, rawMessage);
-
+            IMessage message = (IMessage) messageKlass.getMethod(
+                    "parse", List.class).invoke(null, rawMessage);
+            onMessage(message);
         } catch (Exception e) {
             LOGGER.info("mapping received message bytes to IMessage failed: " + e.getMessage());
-        }
-
-        if (message != null) {
-            onMessage(message);
         }
     }
 
