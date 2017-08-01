@@ -30,6 +30,16 @@ java:
 		crossbario/autobahn-java:netty \
 			/bin/bash -c "gradle installDist -PbuildPlatform=netty && DEMO_GALLERY_OPTS="-DlogLevel=INFO" demo-gallery/build/install/demo-gallery/bin/demo-gallery ws://crossbar:8080/ws"
 
+
+#
+# Build
+#
+build_autobahn:
+	docker run -it --rm \
+		-v ${shell pwd}:/workspace \
+		crossbario/autobahn-java:netty \
+		gradle -PbuildPlatform=netty distZip
+
 #
 # Toolchain
 #
