@@ -3,7 +3,7 @@ apply plugin: project.PLATFORM == project.PLATFORM_NETTY ? project.PLUGIN_JAVA_A
 if (plugins.hasPlugin(project.PLUGIN_ANDROID_APP)) {
     android {
         compileSdkVersion 26
-        buildToolsVersion '26.0.0'
+        buildToolsVersion '26.0.1'
 
         packagingOptions {
             exclude 'META-INF/LICENSE'

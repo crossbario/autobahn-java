@@ -3,7 +3,7 @@ apply plugin: project.PLATFORM == project.PLATFORM_NETTY ? project.PLUGIN_JAVA_L
 if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
     android {
         compileSdkVersion 26
-        buildToolsVersion '25.0.2'
+        buildToolsVersion '26.0.1'
         useLibrary 'org.apache.http.legacy'
 
         defaultConfig {
