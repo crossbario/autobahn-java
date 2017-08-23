@@ -12,11 +12,14 @@ project.ext {
 buildscript {
     repositories {
         jcenter()
+        maven {
+            url 'https://maven.google.com'
+        }
     }
     // Netty build does not need android dependencies.
     if (project.properties.get('buildPlatform', 'android') == 'android') {
         dependencies {
-            classpath 'com.android.tools.build:gradle:3.0.0-alpha9'
+            classpath 'com.android.tools.build:gradle:3.0.0-beta2'
         }
     }
 }
