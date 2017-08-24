@@ -19,9 +19,9 @@ crossbar:
 python:
 	docker run \
 		-it --rm --link crossbar \
-		-v ${shell pwd}/test_component.py:/test_component.py  \
+		-v ${shell pwd}/demo-gallery/python:/test  \
 		crossbario/autobahn-python \
-		python -u /test_component.py
+		python -u /test/test_component.py
 
 java:
 	docker run -it --rm \
