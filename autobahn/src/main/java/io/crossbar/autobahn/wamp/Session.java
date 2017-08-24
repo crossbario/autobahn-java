@@ -134,6 +134,10 @@ public class Session implements ISession, ITransportHandler {
         mExecutor = executor;
     }
 
+    /**
+     * Returns the ID of the current session, 0 otherwise.
+     * @return The session ID.
+     */
     public long getID() {
         return mSessionID;
     }
@@ -473,6 +477,14 @@ public class Session implements ISession, ITransportHandler {
 //        return reallySubscribe(topic, handler, options);
 //    }
 
+    /**
+     * Subscribes to a WAMP topic
+     * @param topic URI of the topic to subscribe
+     * @param handler callback method for results of publication to the topic.
+     * @param options options for the subscribe
+     * @return A CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.Subscription}.
+     */
     @Override
     public <T> CompletableFuture<Subscription> subscribe(String topic,
                                                          Consumer<T> handler,
@@ -480,6 +492,15 @@ public class Session implements ISession, ITransportHandler {
         return reallySubscribe(topic, handler, options);
     }
 
+    /**
+     * Subscribes to a WAMP topic. This is a convenience method that takes
+     * a callback method with simplified signature.
+     * @param topic URI of the topic to subscribe
+     * @param handler callback method for results of publication to the topic.
+     * @param options options for the subscribe
+     * @return A CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.Subscription}.
+     */
     @Override
     public <T> CompletableFuture<Subscription> subscribe(
             String topic,
@@ -488,6 +509,16 @@ public class Session implements ISession, ITransportHandler {
         return reallySubscribe(topic, handler, options);
     }
 
+    /**
+     * Subscribes to a WAMP topic. This is a convenience method that takes
+     * a callback method with simplified signature that does not return
+     * anything.
+     * @param topic URI of the topic to subscribe
+     * @param handler callback method for results of publication to the topic.
+     * @param options options for the subscribe
+     * @return A CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.Subscription}.
+     */
     @Override
     public <T> CompletableFuture<Subscription> subscribe(String topic,
                                                          BiConsumer<T, EventDetails> handler,
@@ -495,6 +526,15 @@ public class Session implements ISession, ITransportHandler {
         return reallySubscribe(topic, handler, options);
     }
 
+    /**
+     * Subscribes to a WAMP topic. This is a convenience method that takes
+     * a callback method with simplified signature.
+     * @param topic URI of the topic to subscribe
+     * @param handler callback method for results of publication to the topic.
+     * @param options options for the subscribe
+     * @return A CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.Subscription}.
+     */
     @Override
     public <T> CompletableFuture<Subscription> subscribe(
             String topic,
@@ -503,6 +543,15 @@ public class Session implements ISession, ITransportHandler {
         return reallySubscribe(topic, handler, options);
     }
 
+    /**
+     * Subscribes to a WAMP topic. This is a convenience method that takes
+     * a callback method with simplified signature.
+     * @param topic URI of the topic to subscribe
+     * @param handler callback method for results of publication to the topic.
+     * @param options options for the subscribe
+     * @return A CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.Subscription}.
+     */
     @Override
     public <T, U> CompletableFuture<Subscription> subscribe(
             String topic,
@@ -511,6 +560,15 @@ public class Session implements ISession, ITransportHandler {
         return reallySubscribe(topic, handler, options);
     }
 
+    /**
+     * Subscribes to a WAMP topic. This is a convenience method that takes
+     * a callback method with simplified signature.
+     * @param topic URI of the topic to subscribe
+     * @param handler callback method for results of publication to the topic.
+     * @param options options for the subscribe
+     * @return A CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.Subscription}.
+     */
     @Override
     public <T, U> CompletableFuture<Subscription> subscribe(
             String topic,
