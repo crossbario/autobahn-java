@@ -247,9 +247,10 @@ public class Service {
                                     "get_all_persons() ERROR: %s", throwable.getMessage()));
                         } else {
                             LOGGER.info("get_all_persons() [typed]:");
-                            persons.forEach(person ->
-                                    LOGGER.info(String.format("%s %s (%s)",
-                                    person.firstname, person.lastname, person.department)));
+                            for (Person person: persons) {
+                                LOGGER.info(String.format("%s %s (%s)",
+                                        person.firstname, person.lastname, person.department));
+                            }
                         }
                         return null;
                     }, mExecutor
@@ -270,9 +271,10 @@ public class Service {
                                     throwable.getMessage()));
                         } else {
                             LOGGER.info("get_persons_by_department() [typed]:");
-                            persons.forEach(person ->
-                                    LOGGER.info(String.format("%s %s (%s)",
-                                            person.firstname, person.lastname, person.department)));
+                            for (Person person: persons) {
+                                LOGGER.info(String.format("%s %s (%s)",
+                                        person.firstname, person.lastname, person.department));
+                            }
                         }
                         return null;
                     }, mExecutor
@@ -283,22 +285,20 @@ public class Service {
         CompletableFuture<Void> f5 =
             mSession.call("com.example.get_persons_by_department", null, null, new TypeReference<Map<String, List<Person>>>() {}, null)
                 .handleAsync(
-                    (persons_by_department, throwable) -> {
+                    (Map<String, List<Person>> persons_by_department, Throwable throwable) -> {
                         if (throwable != null) {
                             LOGGER.info(String.format(
                                     "get_persons_by_department() ERROR: %s", throwable.getMessage()));
                         } else {
 
                             LOGGER.info("get_persons_by_department() [typed]:");
-
-                            persons_by_department.forEach((department, persons) -> {
-                                LOGGER.info(String.format("\ndepartment '%s:'", department));
-                                // Fancy.
-                                System.out.println();
-
-                                persons.forEach(person -> LOGGER.info(String.format(
-                                        "      %s %s", person.firstname, person.lastname)));
-                            });
+                            for (String department: persons_by_department.keySet()) {
+                                LOGGER.info(String.format("department '%s:'", department));
+                                List<Person> persons = persons_by_department.get(department);
+                                for (Person person: persons) {
+                                    LOGGER.info(String.format("%s %s", person.firstname, person.lastname));
+                                }
+                            }
                         }
                         return null;
                     }, mExecutor
