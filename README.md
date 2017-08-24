@@ -2,7 +2,8 @@
 
 Client library providing [WAMP](http://wamp-proto.org/) on Java 8 ([Netty](https://netty.io/)) and Android, plus (secure) WebSocket for Android.
 
-[![Docker Hub](https://img.shields.io/badge/docker-ready-blue.svg)](https://hub.docker.com/r/crossbario/autobahn-java/)
+[![Docker Hub](https://img.shields.io/badge/docker-ready-blue.svg)](https://hub.docker.com/r/crossbario/autobahn-java/) |
+[![Travis](https://img.shields.io/pypi/v/autobahn.svg)](https://travis-ci.org/crossbario/autobahn-java.svg?branch=master)
 
 ---
 
