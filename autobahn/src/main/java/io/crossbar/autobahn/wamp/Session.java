@@ -595,7 +595,7 @@ public class Session implements ISession, ITransportHandler {
     }
 
     /**
-     * Publish to a previously registered WAMP topic
+     * Publishes to a previously registered WAMP topic
      * @param topic URI of the topic
      * @param args positional arguments for the topic
      * @param kwargs keyword arguments for the topic
@@ -610,7 +610,7 @@ public class Session implements ISession, ITransportHandler {
     }
 
     /**
-     * Publish to a previously registered WAMP topic that takes a single
+     * Publishes to a previously registered WAMP topic that takes a single
      * argument.
      * @param topic URI of the topic
      * @param arg positional argument for the topic
@@ -626,7 +626,7 @@ public class Session implements ISession, ITransportHandler {
     }
 
     /**
-     * Publish to a previously registered WAMP topic that takes multiple
+     * Publishes to a previously registered WAMP topic that takes multiple
      * positional arguments.
      * @param topic URI of the topic
      * @param options options for the publication
@@ -640,7 +640,7 @@ public class Session implements ISession, ITransportHandler {
     }
 
     /**
-     * Publish to a previously registered WAMP topic that takes multiple
+     * Publishes to a previously registered WAMP topic that takes multiple
      * positional arguments.
      * @param topic URI of the topic
      * @param args positional arguments for the topic
@@ -653,7 +653,7 @@ public class Session implements ISession, ITransportHandler {
     }
 
     /**
-     * Publish to a previously registered WAMP topic that takes no arguments.
+     * Publishes to a previously registered WAMP topic that takes no arguments.
      * @param topic URI of the topic
      * @param options options for the publication
      * @return a CompletableFuture that resolves to an instance of
@@ -665,7 +665,7 @@ public class Session implements ISession, ITransportHandler {
     }
 
     /**
-     * Publish to a previously registered WAMP topic that takes no arguments.
+     * Publishes to a previously registered WAMP topic that takes no arguments.
      * @param topic URI of the topic
      * @return a CompletableFuture that resolves to an instance of
      * {@link io.crossbar.autobahn.wamp.types.Publication}
@@ -689,17 +689,41 @@ public class Session implements ISession, ITransportHandler {
         return future;
     }
 
+    /**
+     * Registers a WAMP procedure.
+     * @param procedure name of the procedure
+     * @param endpoint the callee for the remote procedure
+     * @param options options for the procedure registration
+     * @return a CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.Registration}
+     */
     @Override
     public CompletableFuture<Registration> register(String procedure, Supplier endpoint, RegisterOptions options) {
         return reallyRegister(procedure, endpoint, options);
     }
 
+    /**
+     * Registers a WAMP procedure.
+     * @param procedure name of the procedure
+     * @param endpoint the callee for the remote procedure
+     * @param options options for the procedure registration
+     * @return a CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.Registration}
+     */
     @Override
     public CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint,
                                                     RegisterOptions options) {
         return reallyRegister(procedure, endpoint, options);
     }
 
+    /**
+     * Registers a WAMP procedure.
+     * @param procedure name of the procedure
+     * @param endpoint the callee for the remote procedure
+     * @param options options for the procedure registration
+     * @return a CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.Registration}
+     */
     @Override
     public <T> CompletableFuture<Registration> register(String procedure,
                                                         Function<T, CompletableFuture<InvocationResult>> endpoint,
@@ -707,6 +731,14 @@ public class Session implements ISession, ITransportHandler {
         return reallyRegister(procedure, endpoint, options);
     }
 
+    /**
+     * Registers a WAMP procedure.
+     * @param procedure name of the procedure
+     * @param endpoint the callee for the remote procedure
+     * @param options options for the procedure registration
+     * @return a CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.Registration}
+     */
     @Override
     public <T> CompletableFuture<Registration> register(String procedure,
                                                         BiFunction<T, InvocationDetails,
@@ -715,6 +747,14 @@ public class Session implements ISession, ITransportHandler {
         return reallyRegister(procedure, endpoint, options);
     }
 
+    /**
+     * Registers a WAMP procedure.
+     * @param procedure name of the procedure
+     * @param endpoint the callee for the remote procedure
+     * @param options options for the procedure registration
+     * @return a CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.Registration}
+     */
     @Override
     public <T, U> CompletableFuture<Registration> register(String procedure,
                                                            TriFunction<T, U, InvocationDetails,
