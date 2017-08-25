@@ -137,7 +137,7 @@ public class Session implements ISession, ITransportHandler {
 
     /**
      * Returns the ID of the current session, 0 otherwise.
-     * @return The session ID.
+     * @return The session ID
      */
     public long getID() {
         return mSessionID;
@@ -496,7 +496,7 @@ public class Session implements ISession, ITransportHandler {
 
     /**
      * Subscribes to a WAMP topic. This is a convenience method that takes
-     * a callback method with simplified signature.
+     * a callback method with simplified signature
      * @param topic URI of the topic to subscribe
      * @param handler callback method for results of publication to the topic.
      * @param options options for the subscribe
@@ -514,7 +514,7 @@ public class Session implements ISession, ITransportHandler {
     /**
      * Subscribes to a WAMP topic. This is a convenience method that takes
      * a callback method with simplified signature that does not return
-     * anything.
+     * anything
      * @param topic URI of the topic to subscribe
      * @param handler callback method for results of publication to the topic.
      * @param options options for the subscribe
@@ -530,7 +530,7 @@ public class Session implements ISession, ITransportHandler {
 
     /**
      * Subscribes to a WAMP topic. This is a convenience method that takes
-     * a callback method with simplified signature.
+     * a callback method with simplified signature
      * @param topic URI of the topic to subscribe
      * @param handler callback method for results of publication to the topic.
      * @param options options for the subscribe
@@ -547,7 +547,7 @@ public class Session implements ISession, ITransportHandler {
 
     /**
      * Subscribes to a WAMP topic. This is a convenience method that takes
-     * a callback method with simplified signature.
+     * a callback method with simplified signature
      * @param topic URI of the topic to subscribe
      * @param handler callback method for results of publication to the topic.
      * @param options options for the subscribe
@@ -564,7 +564,7 @@ public class Session implements ISession, ITransportHandler {
 
     /**
      * Subscribes to a WAMP topic. This is a convenience method that takes
-     * a callback method with simplified signature.
+     * a callback method with simplified signature
      * @param topic URI of the topic to subscribe
      * @param handler callback method for results of publication to the topic.
      * @param options options for the subscribe
@@ -594,34 +594,82 @@ public class Session implements ISession, ITransportHandler {
         return future;
     }
 
+    /**
+     * Publish to a previously registered WAMP topic
+     * @param topic URI of the topic
+     * @param args positional arguments for the topic
+     * @param kwargs keyword arguments for the topic
+     * @param options options for the publication
+     * @return a CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.Publication}
+     */
     @Override
     public CompletableFuture<Publication> publish(String topic, List<Object> args, Map<String, Object> kwargs,
                                                   PublishOptions options) {
         return reallyPublish(topic, args, kwargs, options);
     }
 
+    /**
+     * Publish to a previously registered WAMP topic that takes a single
+     * argument.
+     * @param topic URI of the topic
+     * @param arg positional argument for the topic
+     * @param options options for the publication
+     * @return a CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.Publication}
+     */
     @Override
-    public CompletableFuture<Publication> publish(String topic, Object object, PublishOptions options) {
+    public CompletableFuture<Publication> publish(String topic, Object arg, PublishOptions options) {
         List<Object> args = new ArrayList<>();
-        args.add(object);
+        args.add(arg);
         return reallyPublish(topic, args, null, options);
     }
 
+    /**
+     * Publish to a previously registered WAMP topic that takes multiple
+     * positional arguments.
+     * @param topic URI of the topic
+     * @param options options for the publication
+     * @param args positional arguments for the topic
+     * @return a CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.Publication}
+     */
     @Override
-    public CompletableFuture<Publication> publish(String topic, PublishOptions options, Object... objects) {
-        return reallyPublish(topic, Arrays.asList(objects), null, options);
+    public CompletableFuture<Publication> publish(String topic, PublishOptions options, Object... args) {
+        return reallyPublish(topic, Arrays.asList(args), null, options);
     }
 
+    /**
+     * Publish to a previously registered WAMP topic that takes multiple
+     * positional arguments.
+     * @param topic URI of the topic
+     * @param args positional arguments for the topic
+     * @return a CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.Publication}
+     */
     @Override
-    public CompletableFuture<Publication> publish(String topic, Object... objects) {
-        return reallyPublish(topic, Arrays.asList(objects), null, null);
+    public CompletableFuture<Publication> publish(String topic, Object... args) {
+        return reallyPublish(topic, Arrays.asList(args), null, null);
     }
 
+    /**
+     * Publish to a previously registered WAMP topic that takes no arguments.
+     * @param topic URI of the topic
+     * @param options options for the publication
+     * @return a CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.Publication}
+     */
     @Override
     public CompletableFuture<Publication> publish(String topic, PublishOptions options) {
         return reallyPublish(topic, null, null, options);
     }
 
+    /**
+     * Publish to a previously registered WAMP topic that takes no arguments.
+     * @param topic URI of the topic
+     * @return a CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.Publication}
+     */
     @Override
     public CompletableFuture<Publication> publish(String topic) {
         return reallyPublish(topic, null, null, null);
