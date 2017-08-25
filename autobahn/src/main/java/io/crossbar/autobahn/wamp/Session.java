@@ -93,6 +93,7 @@ public class Session implements ISession, ITransportHandler {
     private ITransport mTransport;
     private ISerializer mSerializer;
     private ExecutorService mExecutor;
+    private CompletableFuture<SessionDetails> mJoinFuture;
 
     private final ArrayList<OnJoinListener> mOnJoinListeners;
     private final ArrayList<OnReadyListener> mOnReadyListeners;
@@ -201,6 +202,7 @@ public class Session implements ISession, ITransportHandler {
                 Welcome msg = (Welcome) message;
                 mSessionID = msg.session;
                 SessionDetails details = new SessionDetails(msg.realm, msg.session);
+                mJoinFuture.complete(details);
                 List<CompletableFuture<?>> futures = new ArrayList<>();
                 mOnJoinListeners.forEach(
                         listener -> futures.add(
@@ -760,8 +762,9 @@ public class Session implements ISession, ITransportHandler {
         roles.put("caller", new HashMap<>());
         roles.put("callee", new HashMap<>());
         send(new Hello(realm, roles));
+        mJoinFuture = new CompletableFuture<>();
         mState = STATE_HELLO_SENT;
-        return null;
+        return mJoinFuture;
     }
 
     /**

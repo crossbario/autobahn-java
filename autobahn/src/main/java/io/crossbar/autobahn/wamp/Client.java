@@ -16,6 +16,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
+import java.util.logging.Logger;
 
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
@@ -23,6 +24,7 @@ import io.crossbar.autobahn.wamp.types.ExitInfo;
 
 public class Client {
 
+    private static final Logger LOGGER = Logger.getLogger(Client.class.getName());
     private final List<ITransport> mTransports;
 
     private Session mSession;
@@ -55,7 +57,10 @@ public class Client {
 
     public CompletableFuture<ExitInfo> connect() {
         CompletableFuture<ExitInfo> exitFuture = new CompletableFuture<>();
-        mSession.addOnConnectListener((session) -> mSession.join(mRealm, null));
+        mSession.addOnConnectListener((session) ->
+                mSession.join(mRealm, null).thenAccept(details ->
+                        LOGGER.info(String.format("JOINED session=%s realm=%s", details.sessionID,
+                                details.realm))));
         mSession.addOnDisconnectListener((session, wasClean) -> exitFuture.complete(new ExitInfo(wasClean)));
         CompletableFuture.runAsync(() -> {
             try {
