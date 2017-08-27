@@ -81,8 +81,12 @@ public class Publish implements IMessage {
         marshaled.add(MESSAGE_TYPE);
         marshaled.add(request);
         Map<String, Object> options = new HashMap<>();
-        options.put("acknowledge", acknowledge);
-        options.put("exclude_me", excludeMe);
+        if (acknowledge) {
+        	options.put("acknowledge", acknowledge);
+        }
+        if (!excludeMe) {
+        	options.put("exclude_me", excludeMe);
+        }
         marshaled.add(options);
         marshaled.add(topic);
         if (kwargs != null) {
