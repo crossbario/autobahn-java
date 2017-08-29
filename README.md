@@ -26,6 +26,8 @@ The library is MIT licensed, maintained by the Crossbar.io Project, tested using
 
 ## Getting Started
 
+The Netty examples in demo-gallery contain detailed examples on how to use the autobahn library, it also contains convenience methods to use. Below is a very basic `getting started` example showing all 4 WAMP actions.
+
 ### WAMP on Netty
 
 ```java
