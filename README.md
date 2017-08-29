@@ -96,6 +96,32 @@ public void demonstrateCall(Session session, SessionDetails details) {
 }
 ```
 
+Connecting the dots
+
+```java
+public void main() {
+    // Create a session object
+    Session session = new Session();
+    // Add all onJoin listeners
+    session.addOnJoinListener(this::demonstrateSubscribe);
+    session.addOnJoinListener(this::demonstratePublish);
+
+    // Now create a transport list to try and add transports to it.
+    // In our case, we currnetly only have Netty based WAMP-over-WebSocket.
+    List<ITransport> transports = new ArrayList<>();
+    transports.add(new NettyTransport(websocketURL));
+
+    // Now provide a list of authentication methods.
+    // We only support anonymous auth currently.
+    List<IAuthenticator> authenticators = new ArrayList<>();
+    authenticators.add(new AnonymousAuth());
+
+    // finally, provide everything to a Client instance and connect
+    Client client = new Client(transports);
+    CompletableFuture<ExitInfo> exitInfoCompletableFuture = client.connect();
+}
+```
+
 ### WebSocket on Android
 
 TBD
