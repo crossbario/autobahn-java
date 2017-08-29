@@ -28,12 +28,49 @@ The library is MIT licensed, maintained by the Crossbar.io Project, tested using
 
 ### WAMP on Netty
 
----
+```java
+    public void onJoinHandler(Session session, SessionDetails details) {
+        // Subscribe to topic to receive its events.
+        CompletableFuture<Subscription> subFuture = session.subscribe(
+                "com.myapp.hello", this::onEvent, null);
+
+        // Publish to a topic.
+        List<Object> pubItems = new ArrayList<>();
+        pubItems.add("Hello World!");
+        CompletableFuture<Publication> pubFuture = session.publish(
+                "com.myapp.hello", pubItems, null, null);
+
+        // Register a procedure.
+        CompletableFuture<Registration> regFuture = session.register(
+                "com.myapp.add2", this::add2, null);
+
+        // Call a remote procedure.
+        List<Object> callArgs = new ArrayList<>();
+        callArgs.add(10);
+        callArgs.add(20);
+        CompletableFuture<CallResult> callFuture = session.call(
+                "com.myapp.add2", callArgs, null, null);
+        callFuture.thenAccept(callResult ->
+                System.out.println(String.format("Call result: %s", callResult.results.get(0))));
+    }
+
+    private void onEvent(List<Object> args, Map<String, Object> kwargs, EventDetails details) {
+        System.out.println(String.format("Got event: %s", args.get(0)));
+    }
+
+    private CompletableFuture<InvocationResult> add2(List<Object> args, Map<String, Object> kwargs,
+                                                     InvocationDetails details) {
+        int res = (int) args.get(0) + (int) args.get(1);
+        List<Object> arr = new ArrayList<>();
+        arr.add(res);
+        return CompletableFuture.completedFuture(new InvocationResult(arr));
+    }
+```
 
 
 ### WebSocket on Android
 
-Write me.
+TBD
 
 ---
 
