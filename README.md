@@ -118,6 +118,7 @@ public void main() {
 
     // finally, provide everything to a Client instance and connect
     Client client = new Client(transports);
+    client.add(session, realm, authenticators);
     CompletableFuture<ExitInfo> exitInfoCompletableFuture = client.connect();
 }
 ```
