@@ -26,9 +26,18 @@ The library is MIT licensed, maintained by the Crossbar.io Project, tested using
 
 ## Getting Started
 
-The Netty examples in demo-gallery contain detailed examples on how to use the autobahn library, it also contains convenience methods to use. Below is a very basic `getting started` example showing all 4 WAMP actions.
+The demo clients are easy to run, you only need `make` and `docker` installed to get things rolling. </br>
+
+    $ make crossbar # Starts crossbar in a docker container
+    $ make python # Starts a python based WAMP components that provides calls for the Java demo client
+
+and finally
+
+    `$ make java` # Starts the java (Netty) based demo client that performs WAMP actions
 
 ### Show me some code
+
+The code in demo-gallery contains some examples on how to use the autobahn library, it also contains convenience methods to use. Below is a basic set of code examples showing all 4 WAMP actions.
 
 Subscribe to a topic
 
