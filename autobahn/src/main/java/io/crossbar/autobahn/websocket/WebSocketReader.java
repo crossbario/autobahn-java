@@ -86,7 +86,8 @@ class WebSocketReader extends Thread {
      * @param master The message handler of master (foreground thread).
      * @param socket The socket channel created on foreground thread.
      */
-    public WebSocketReader(Handler master, Socket socket, WebSocketOptions options, String threadName) throws IOException {
+    public WebSocketReader(Handler master, Socket socket, WebSocketOptions options, String threadName)
+            throws IOException {
 
         super(threadName);
 
@@ -126,7 +127,6 @@ class WebSocketReader extends Thread {
         msg.obj = message;
         mMaster.sendMessage(msg);
     }
-
 
     /**
      * Process incoming WebSockets data (after handshake).
