@@ -83,7 +83,18 @@ public class EchoClientActivity extends AppCompatActivity {
 
     private void start() {
 
-        final String wsuri = "ws://" + mHostname.getText() + ":" + mPort.getText();
+        String hostname = mHostname.getText().toString();
+        if (!hostname.startsWith("ws://") && !hostname.startsWith("wss://")) {
+            hostname = "ws://" + hostname;
+        }
+        String port = mPort.getText().toString();
+
+        String wsuri;
+        if (!port.isEmpty()) {
+            wsuri = hostname + ":" + port;
+        } else {
+            wsuri = hostname;
+        }
 
         mStatusline.setText("Status: Connecting to " + wsuri + " ..");
 
@@ -124,12 +135,12 @@ public class EchoClientActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_websocket_echo_client);
 
-        mHostname = (EditText) findViewById(R.id.hostname);
-        mPort = (EditText) findViewById(R.id.port);
-        mStatusline = (TextView) findViewById(R.id.statusline);
-        mStart = (Button) findViewById(R.id.start);
-        mMessage = (EditText) findViewById(R.id.msg);
-        mSendMessage = (Button) findViewById(R.id.sendMsg);
+        mHostname = findViewById(R.id.hostname);
+        mPort = findViewById(R.id.port);
+        mStatusline = findViewById(R.id.statusline);
+        mStart = findViewById(R.id.start);
+        mMessage = findViewById(R.id.msg);
+        mSendMessage = findViewById(R.id.sendMsg);
 
         mSettings = getSharedPreferences(PREFS_NAME, 0);
         loadPrefs();
