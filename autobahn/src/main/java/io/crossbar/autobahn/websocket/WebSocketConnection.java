@@ -151,11 +151,9 @@ public class WebSocketConnection implements WebSocket {
         mWriter.forward(new WebSocketMessage.BinaryMessage(payload));
     }
 
-
     public boolean isConnected() {
         return mSocket != null && mSocket.isConnected() && !mSocket.isClosed();
     }
-
 
     private void closeReaderThread(boolean waitForQuit) {
         if (mReader != null) {
@@ -170,6 +168,20 @@ public class WebSocketConnection implements WebSocket {
         } else {
             if (DEBUG) Log.d(TAG, "mReader already NULL");
         }
+    }
+
+    private void closeUnderlyingSocket() throws IOException, InterruptedException {
+        Thread cleaner = new Thread(() -> {
+            if (isConnected()) {
+                try {
+                    mSocket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        cleaner.start();
+        cleaner.join();
     }
 
     private void closeWriterThread() {
@@ -197,11 +209,10 @@ public class WebSocketConnection implements WebSocket {
 
         if (isConnected()) {
             try {
-                mSocket.close();
-            } catch (IOException e) {
+                closeUnderlyingSocket();
+            } catch (IOException | InterruptedException e) {
                 if (DEBUG) e.printStackTrace();
             }
-            //mTransportChannel = null;
         } else {
             if (DEBUG) Log.d(TAG, "mTransportChannel already NULL");
         }
@@ -337,12 +348,9 @@ public class WebSocketConnection implements WebSocket {
         boolean need = mActive && mPrevConnected && (interval > 0);
         if (need) {
             if (DEBUG) Log.d(TAG, "Reconnection scheduled");
-            mMasterHandler.postDelayed(new Runnable() {
-
-                public void run() {
-                    if (DEBUG) Log.d(TAG, "Reconnecting...");
-                    reconnect();
-                }
+            mMasterHandler.postDelayed(() -> {
+                if (DEBUG) Log.d(TAG, "Reconnecting...");
+                reconnect();
             }, interval);
         }
         return need;
@@ -391,8 +399,8 @@ public class WebSocketConnection implements WebSocket {
         closeWriterThread();
         if (isConnected()) {
             try {
-                mSocket.close();
-            } catch (IOException e) {
+                closeUnderlyingSocket();
+            } catch (IOException | InterruptedException e) {
                 if (DEBUG) e.printStackTrace();
             }
         }
