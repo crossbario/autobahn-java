@@ -70,8 +70,12 @@ public class Subscribe implements IMessage {
         marshaled.add(MESSAGE_TYPE);
         marshaled.add(request);
         Map<String, Object> extra = new HashMap<>();
-        extra.put("match", match);
-        extra.put("get_retained", getRetained);
+        if (match != null && !Objects.equals(match, MATCH_EXACT)) {
+        	 extra.put("match", match);
+        }
+        if (getRetained) {
+        	extra.put("get_retained", getRetained);
+        }
         marshaled.add(extra);
         marshaled.add(topic);
         return marshaled;
