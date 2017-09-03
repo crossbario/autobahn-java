@@ -57,8 +57,21 @@ public class Subscribe implements IMessage {
 
         long request = MessageUtil.parseRequestID(wmsg.get(1));
         Map<String, Object> options = (Map<String, Object>) wmsg.get(2);
-        String match = (String) options.get("match");
-        boolean getRetained = (boolean) options.get("get_retained");
+        
+        String match = null;
+        if (options.containsKey("match")) {
+            match = (String) options.get("match");
+            if (!Objects.equals(match, MATCH_EXACT) && !Objects.equals(match, MATCH_PREFIX) &&
+                    !Objects.equals(match, MATCH_WILDCARD)) {
+                throw new ProtocolError("match must be one of exact, prefix or wildcard.");
+            }
+        }
+        
+        boolean getRetained = false;
+        if (options.containsKey("get_retained")) {
+        	getRetained = (boolean) options.get("get_retained");
+        }
+
         String topic = (String) wmsg.get(3);
         SubscribeOptions opt = new SubscribeOptions(match, true, getRetained);
         return new Subscribe(request, opt, topic);
