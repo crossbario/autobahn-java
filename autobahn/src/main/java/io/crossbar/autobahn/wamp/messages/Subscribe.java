@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.types.SubscribeOptions;
 import io.crossbar.autobahn.wamp.utils.MessageUtil;
@@ -30,9 +31,9 @@ public class Subscribe implements IMessage {
     private final String match;
     private final boolean getRetained;
 
-    private final String MATCH_EXACT = "exact";
-    private final String MATCH_PREFIX = "prefix";
-    private final String MATCH_WILDCARD = "wildcard";
+    private static final String MATCH_EXACT = "exact";
+    private static final String MATCH_PREFIX = "prefix";
+    private static final String MATCH_WILDCARD = "wildcard";
 
     public Subscribe(long request, SubscribeOptions options, String topic) {
         this.request = request;
