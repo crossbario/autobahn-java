@@ -68,10 +68,7 @@ public class Subscribe implements IMessage {
             }
         }
         
-        boolean getRetained = false;
-        if (options.containsKey("get_retained")) {
-        	getRetained = (boolean) options.get("get_retained");
-        }
+        boolean getRetained = options.getOrDefault("get_retained", false);
 
         String topic = (String) wmsg.get(3);
         SubscribeOptions opt = new SubscribeOptions(match, true, getRetained);
