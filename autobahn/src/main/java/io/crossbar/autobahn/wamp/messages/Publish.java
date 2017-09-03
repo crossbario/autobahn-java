@@ -64,7 +64,7 @@ public class Publish implements IMessage {
         }
 
         boolean acknowledge = (boolean)options.getOrDefault("acknowledge", false);
-        boolean excludeMe = (boolean)options.getOrDefault("exclude_me", false);
+        boolean excludeMe = (boolean)options.getOrDefault("exclude_me", true);
 
         return new Publish(request, topic, args, kwargs, acknowledge, excludeMe);
     }
