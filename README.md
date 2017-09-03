@@ -26,14 +26,115 @@ The library is MIT licensed, maintained by the Crossbar.io Project, tested using
 
 ## Getting Started
 
-### WAMP on Netty
+The demo clients are easy to run, you only need `make` and `docker` installed to get things rolling. </br>
 
----
+    $ make crossbar # Starts crossbar in a docker container
+    $ make python # Starts a python based WAMP components that provides calls for the Java demo client
 
+and finally
+
+    `$ make java` # Starts the java (Netty) based demo client that performs WAMP actions
+
+### Show me some code
+
+The code in demo-gallery contains some examples on how to use the autobahn library, it also contains convenience methods to use. Below is a basic set of code examples showing all 4 WAMP actions.
+
+Subscribe to a topic
+
+```java
+public void demonstrateSubscribe(Session session, SessionDetails details) {
+    // Subscribe to topic to receive its events.
+    CompletableFuture<Subscription> subFuture = session.subscribe(
+            "com.myapp.hello", this::onEvent, null);
+    subFuture.thenAccept(subscription -> {
+        // We have successfully subscribed.
+        System.out.println("Subscribed to topic " + subscription.topic);
+    });
+}
+
+private void onEvent(List<Object> args, Map<String, Object> kwargs, EventDetails details) {
+    System.out.println(String.format("Got event: %s", args.get(0)));
+}
+```
+
+Publish to a topic
+
+```java
+public void demonstratePublish(Session session, SessionDetails details) {
+    // Publish to a topic.
+    List<Object> pubItems = new ArrayList<>();
+    pubItems.add("Hello World!");
+    CompletableFuture<Publication> pubFuture = session.publish(
+            "com.myapp.hello", pubItems, null, null);
+    pubFuture.thenAccept(publication -> System.out.println("Publisheded successfully"));
+}
+```
+
+Register a procedure
+
+```java
+public void demonstrateRegister(Session session, SessionDetails details) {
+    // Register a procedure.
+    CompletableFuture<Registration> regFuture = session.register(
+            "com.myapp.add2", this::add2, null);
+    regFuture.thenAccept(registration ->
+            System.out.println("Successfully registered procedure: " + registration.procedure));
+}
+
+private CompletableFuture<InvocationResult> add2(
+        List<Object> args, Map<String, Object> kwargs, InvocationDetails details) {
+    int res = (int) args.get(0) + (int) args.get(1);
+    List<Object> arr = new ArrayList<>();
+    arr.add(res);
+    return CompletableFuture.completedFuture(new InvocationResult(arr));
+}
+```
+
+Call a procedure
+
+```java
+public void demonstrateCall(Session session, SessionDetails details) {
+    // Call a remote procedure.
+    List<Object> callArgs = new ArrayList<>();
+    callArgs.add(10);
+    callArgs.add(20);
+    CompletableFuture<CallResult> callFuture = session.call(
+            "com.myapp.add2", callArgs, null, null);
+    callFuture.thenAccept(callResult ->
+            System.out.println(String.format("Call result: %s", callResult.results.get(0))));
+}
+```
+
+Connecting the dots
+
+```java
+public void main() {
+    // Create a session object
+    Session session = new Session();
+    // Add all onJoin listeners
+    session.addOnJoinListener(this::demonstrateSubscribe);
+    session.addOnJoinListener(this::demonstratePublish);
+
+    // Now create a transport list to try and add transports to it.
+    // In our case, we currnetly only have Netty based WAMP-over-WebSocket.
+    List<ITransport> transports = new ArrayList<>();
+    transports.add(new NettyTransport(websocketURL));
+
+    // Now provide a list of authentication methods.
+    // We only support anonymous auth currently.
+    List<IAuthenticator> authenticators = new ArrayList<>();
+    authenticators.add(new AnonymousAuth());
+
+    // finally, provide everything to a Client instance and connect
+    Client client = new Client(transports);
+    client.add(session, realm, authenticators);
+    CompletableFuture<ExitInfo> exitInfoCompletableFuture = client.connect();
+}
+```
 
 ### WebSocket on Android
 
-Write me.
+TBD
 
 ---
 

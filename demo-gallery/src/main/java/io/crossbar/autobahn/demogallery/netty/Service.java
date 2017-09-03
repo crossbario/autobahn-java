@@ -48,12 +48,10 @@ public class Service {
     private static final Logger LOGGER = Logger.getLogger(Service.class.getName());
 
     private final ExecutorService mExecutor;
-
     // This is the central object to interact with Crossbar.io
     // a WAMP session runs over a transport, uses authenticators
     // and finally joins a realm.
     private final Session mSession;
-
 
     public Service(ExecutorService executor) {
         // everything should be run on the user supplied executor
@@ -344,7 +342,6 @@ public class Service {
     private void onCounterSimple(String object, EventDetails details) {
         LOGGER.info(String.format("received counter: %s", object));
     }
-
 
     static class Person {
         public String firstname;
