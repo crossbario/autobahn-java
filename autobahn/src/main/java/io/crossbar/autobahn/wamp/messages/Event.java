@@ -12,6 +12,7 @@
 package io.crossbar.autobahn.wamp.messages;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,11 +63,11 @@ public class Event implements IMessage {
         marshaled.add(subscription);
         marshaled.add(publication);
         // Empty details.
-        marshaled.add(new HashMap<>());
+        marshaled.add(Collections.emptyMap());
         if (kwargs != null) {
             if (args == null) {
                 // Empty args.
-                marshaled.add(new ArrayList<String>());
+                marshaled.add(Collections.emptyList());
             } else {
                 marshaled.add(args);
             }

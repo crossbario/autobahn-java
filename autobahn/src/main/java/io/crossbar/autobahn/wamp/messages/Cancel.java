@@ -12,6 +12,7 @@
 package io.crossbar.autobahn.wamp.messages;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +61,7 @@ public class Cancel implements IMessage {
             marshaled.add(options);
         } else {
             // Empty options as third item.
-            marshaled.add(new HashMap<>());
+            marshaled.add(Collections.emptyMap());
         }
         return marshaled;
     }
