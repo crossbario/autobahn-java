@@ -63,15 +63,8 @@ public class Publish implements IMessage {
             kwargs = (Map<String, Object>) wmsg.get(5);
         }
 
-        boolean acknowledge = false;
-        if (options.containsKey("acknowledge")) {
-            acknowledge = (boolean) options.get("acknowledge");
-        }
-
-        boolean excludeMe = false;
-        if (options.containsKey("exclude_me")) {
-            excludeMe = (boolean) options.get("exclude_me");
-        }
+        boolean acknowledge = (boolean)options.getOrDefault("acknowledge", false);
+        boolean excludeMe = (boolean)options.getOrDefault("exclude_me", true);
 
         return new Publish(request, topic, args, kwargs, acknowledge, excludeMe);
     }

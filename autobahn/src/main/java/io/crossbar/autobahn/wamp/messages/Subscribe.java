@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.types.SubscribeOptions;
 import io.crossbar.autobahn.wamp.utils.MessageUtil;
@@ -30,9 +31,9 @@ public class Subscribe implements IMessage {
     private final String match;
     private final boolean getRetained;
 
-    private final String MATCH_EXACT = "exact";
-    private final String MATCH_PREFIX = "prefix";
-    private final String MATCH_WILDCARD = "wildcard";
+    private static final String MATCH_EXACT = "exact";
+    private static final String MATCH_PREFIX = "prefix";
+    private static final String MATCH_WILDCARD = "wildcard";
 
     public Subscribe(long request, SubscribeOptions options, String topic) {
         this.request = request;
@@ -57,8 +58,18 @@ public class Subscribe implements IMessage {
 
         long request = MessageUtil.parseRequestID(wmsg.get(1));
         Map<String, Object> options = (Map<String, Object>) wmsg.get(2);
-        String match = (String) options.get("match");
-        boolean getRetained = (boolean) options.get("get_retained");
+        
+        String match = null;
+        if (options.containsKey("match")) {
+            match = (String) options.get("match");
+            if (!Objects.equals(match, MATCH_EXACT) && !Objects.equals(match, MATCH_PREFIX) &&
+                    !Objects.equals(match, MATCH_WILDCARD)) {
+                throw new ProtocolError("match must be one of exact, prefix or wildcard.");
+            }
+        }
+        
+        boolean getRetained = (boolean)options.getOrDefault("get_retained", false);
+
         String topic = (String) wmsg.get(3);
         SubscribeOptions opt = new SubscribeOptions(match, true, getRetained);
         return new Subscribe(request, opt, topic);
