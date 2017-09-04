@@ -24,7 +24,7 @@ import io.crossbar.autobahn.wamp.utils.MessageUtil;
 public class Publish implements IMessage {
 
     public static final int MESSAGE_TYPE = 16;
-    
+
     public final long request;
     public final String topic;
     public final List<Object> args;
@@ -68,7 +68,7 @@ public class Publish implements IMessage {
         boolean acknowledge = (boolean)options.getOrDefault("acknowledge", false);
         boolean excludeMe = (boolean)options.getOrDefault("exclude_me", true);
         boolean retain = (boolean)options.getOrDefault("retain", false);
-        
+
         return new Publish(request, topic, args, kwargs, acknowledge, excludeMe, retain);
     }
 
@@ -79,13 +79,13 @@ public class Publish implements IMessage {
         marshaled.add(request);
         Map<String, Object> options = new HashMap<>();
         if (acknowledge) {
-        	options.put("acknowledge", acknowledge);
+            options.put("acknowledge", acknowledge);
         }
         if (!excludeMe) {
-        	options.put("exclude_me", excludeMe);
+            options.put("exclude_me", excludeMe);
         }
         if (retain) {
-        	options.put("retain", retain);
+            options.put("retain", retain);
         }
         marshaled.add(options);
         marshaled.add(topic);
