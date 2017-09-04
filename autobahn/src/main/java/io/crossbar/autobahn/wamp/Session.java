@@ -587,9 +587,9 @@ public class Session implements ISession, ITransportHandler {
         long requestID = mIDGenerator.next();
         mPublishRequests.put(requestID, new PublishRequest(requestID, future));
         if (options != null) {
-            send(new Publish(requestID, topic, args, kwargs, options.acknowledge, options.excludeMe));
+            send(new Publish(requestID, topic, args, kwargs, options.acknowledge, options.excludeMe, options.retain));
         } else {
-            send(new Publish(requestID, topic, args, kwargs, true, true));
+            send(new Publish(requestID, topic, args, kwargs, true, true, false));
         }
         return future;
     }
