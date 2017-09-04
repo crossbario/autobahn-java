@@ -286,7 +286,9 @@ public class Session implements ISession, ITransportHandler {
 
                 subscriptions.forEach(subscription -> {
                             EventDetails details = new EventDetails(
-                                    subscription, subscription.topic, -1, null, null, this);
+                                    subscription, msg.publication, 
+                                    msg.topic != null ? msg.topic : subscription.topic, 
+                                    msg.retained, -1, null, null, this);
 
                             CompletableFuture future = null;
                             if (subscription.handler instanceof Consumer) {
