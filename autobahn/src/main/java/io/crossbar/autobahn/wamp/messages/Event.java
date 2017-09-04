@@ -45,11 +45,11 @@ public class Event implements IMessage {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "EVENT", 3, 6);
         long subscription = (long) wmsg.get(1);
         long publication = (long) wmsg.get(2);
-        
+
         Map<String, Object> details = (Map<String, Object>) wmsg.get(3);
         String topic = (String)details.get("topic");
         boolean retained = (boolean)details.getOrDefault("retained", false);
-        
+
         List<Object> args = null;
         if (wmsg.size() > 4) {
             if (wmsg.get(4) instanceof byte[]) {
@@ -73,10 +73,10 @@ public class Event implements IMessage {
         marshaled.add(publication);
         Map<String, Object> details = new HashMap<>();
         if (topic != null) {
-			details.put("topic", topic);
-		}
+            details.put("topic", topic);
+        }
         if (retained) {
-        	details.put("retained", retained);
+            details.put("retained", retained);
         }
         marshaled.add(details);
         if (kwargs != null) {
