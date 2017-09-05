@@ -24,16 +24,17 @@ import io.crossbar.autobahn.wamp.utils.MessageUtil;
 public class Publish implements IMessage {
 
     public static final int MESSAGE_TYPE = 16;
-    
+
     public final long request;
     public final String topic;
     public final List<Object> args;
     public final Map<String, Object> kwargs;
     public final boolean acknowledge;
     public final boolean excludeMe;
+    public final boolean retain;
 
     public Publish(long request, String topic, List<Object> args, Map<String, Object> kwargs,
-                   boolean acknowledge, boolean excludeMe) {
+                   boolean acknowledge, boolean excludeMe, boolean retain) {
 
         this.request = request;
         this.topic = topic;
@@ -41,6 +42,7 @@ public class Publish implements IMessage {
         this.kwargs = kwargs;
         this.acknowledge = acknowledge;
         this.excludeMe = excludeMe;
+        this.retain = retain;
     }
 
     public static Publish parse(List<Object> wmsg) {
@@ -65,8 +67,9 @@ public class Publish implements IMessage {
 
         boolean acknowledge = (boolean)options.getOrDefault("acknowledge", false);
         boolean excludeMe = (boolean)options.getOrDefault("exclude_me", true);
+        boolean retain = (boolean)options.getOrDefault("retain", false);
 
-        return new Publish(request, topic, args, kwargs, acknowledge, excludeMe);
+        return new Publish(request, topic, args, kwargs, acknowledge, excludeMe, retain);
     }
 
     @Override
@@ -76,10 +79,13 @@ public class Publish implements IMessage {
         marshaled.add(request);
         Map<String, Object> options = new HashMap<>();
         if (acknowledge) {
-        	options.put("acknowledge", acknowledge);
+            options.put("acknowledge", acknowledge);
         }
         if (!excludeMe) {
-        	options.put("exclude_me", excludeMe);
+            options.put("exclude_me", excludeMe);
+        }
+        if (retain) {
+            options.put("retain", retain);
         }
         marshaled.add(options);
         marshaled.add(topic);

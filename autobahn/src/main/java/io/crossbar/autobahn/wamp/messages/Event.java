@@ -27,12 +27,16 @@ public class Event implements IMessage {
 
     public final long subscription;
     public final long publication;
+    public final String topic;
+    public final boolean retained;
     public final List<Object> args;
     public final Map<String, Object> kwargs;
 
-    public Event(long subscription, long publication, List<Object> args, Map<String, Object> kwargs) {
+    public Event(long subscription, long publication, String topic, boolean retained, List<Object> args, Map<String, Object> kwargs) {
         this.subscription = subscription;
         this.publication = publication;
+        this.topic = topic;
+        this.retained = retained;
         this.args = args;
         this.kwargs = kwargs;
     }
@@ -41,7 +45,11 @@ public class Event implements IMessage {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "EVENT", 3, 6);
         long subscription = (long) wmsg.get(1);
         long publication = (long) wmsg.get(2);
+
         Map<String, Object> details = (Map<String, Object>) wmsg.get(3);
+        String topic = (String)details.get("topic");
+        boolean retained = (boolean)details.getOrDefault("retained", false);
+
         List<Object> args = null;
         if (wmsg.size() > 4) {
             if (wmsg.get(4) instanceof byte[]) {
@@ -53,7 +61,8 @@ public class Event implements IMessage {
         if (wmsg.size() > 5) {
             kwargs = (Map<String, Object>) wmsg.get(5);
         }
-        return new Event(subscription, publication, args, kwargs);
+
+        return new Event(subscription, publication, topic, retained, args, kwargs);
     }
 
     @Override
@@ -62,8 +71,14 @@ public class Event implements IMessage {
         marshaled.add(MESSAGE_TYPE);
         marshaled.add(subscription);
         marshaled.add(publication);
-        // Empty details.
-        marshaled.add(Collections.emptyMap());
+        Map<String, Object> details = new HashMap<>();
+        if (topic != null) {
+            details.put("topic", topic);
+        }
+        if (retained) {
+            details.put("retained", retained);
+        }
+        marshaled.add(details);
         if (kwargs != null) {
             if (args == null) {
                 // Empty args.
