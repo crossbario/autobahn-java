@@ -28,6 +28,7 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
         main {
             java {
                 include 'io/crossbar/autobahn/wamp/**'
+                exclude 'io/crossbar/autobahn/wamp/transports/AutobahnTransport.java'
             }
         }
     }
