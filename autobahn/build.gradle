@@ -18,6 +18,14 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
             }
         }
 
+        sourceSets {
+            main {
+                java {
+                    exclude 'io/crossbar/autobahn/wamp/transports/Netty*'
+                }
+            }
+        }
+
         compileOptions {
             sourceCompatibility JavaVersion.VERSION_1_8
             targetCompatibility JavaVersion.VERSION_1_8
@@ -56,7 +64,5 @@ dependencies {
         runtime 'com.fasterxml.jackson.core:jackson-databind:2.8.8'
         runtime 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.8.8'
         runtime 'org.msgpack:jackson-dataformat-msgpack:0.8.13'
-        runtime 'io.netty:netty-codec-http:4.1.2.Final'
-        runtime 'io.netty:netty-handler:4.1.2.Final'
     }
 }

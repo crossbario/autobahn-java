@@ -98,6 +98,8 @@ public interface WebSocket {
 
     void connect(String wsUri, ConnectionHandler wsHandler, WebSocketOptions options) throws WebSocketException;
 
+    void connect(String wsUri, String[] wsSubprotocols, ConnectionHandler wsHandler) throws WebSocketException;
+
     void disconnect();
 
     boolean isConnected();

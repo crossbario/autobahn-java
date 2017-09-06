@@ -234,6 +234,10 @@ public class WebSocketConnection implements WebSocket {
         connect(wsUri, null, wsHandler, options, null);
     }
 
+    @Override
+    public void connect(String wsUri, String[] wsSubprotocols, ConnectionHandler wsHandler) throws WebSocketException {
+        connect(wsUri, wsSubprotocols, wsHandler, new WebSocketOptions(), null);
+    }
 
     public void connect(String wsUri, String[] wsSubprotocols, WebSocket.ConnectionHandler wsHandler, WebSocketOptions options, List<BasicNameValuePair> headers) throws WebSocketException {
 
@@ -283,7 +287,6 @@ public class WebSocketConnection implements WebSocket {
             }
 
         } catch (URISyntaxException e) {
-
             throw new WebSocketException("invalid WebSockets URI");
         }
 
@@ -421,7 +424,6 @@ public class WebSocketConnection implements WebSocket {
                 // anything received after that.
                 if (onCloseCalled) {
                     if (DEBUG) Log.d(TAG, "onClose called already, ignore message.");
-
                     return;
                 }
 
