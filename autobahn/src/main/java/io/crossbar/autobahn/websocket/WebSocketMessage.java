@@ -65,9 +65,11 @@ public class WebSocketMessage {
     /// Initial WebSockets handshake (server response).
     public static class ServerHandshake extends Message {
         public boolean mSuccess;
+        public Map<String, String> headers;
 
-        public ServerHandshake(boolean success) {
+        public ServerHandshake(Map<String, String> headers, boolean success) {
             mSuccess = success;
+            this.headers = headers;
         }
     }
 

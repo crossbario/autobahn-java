@@ -34,13 +34,13 @@ public class WebSocketConnection implements WebSocket {
     private static final boolean DEBUG = true;
     private static final String TAG = WebSocketConnection.class.getName();
 
-    protected Handler mMasterHandler;
+    private Handler mMasterHandler;
 
-    protected WebSocketReader mReader;
-    protected WebSocketWriter mWriter;
-    protected HandlerThread mWriterThread;
+    private WebSocketReader mReader;
+    private WebSocketWriter mWriter;
+    private HandlerThread mWriterThread;
 
-    protected Socket mSocket;
+    private Socket mSocket;
     private URI mWsUri;
     private String mWsScheme;
     private String mWsHost;
@@ -49,10 +49,11 @@ public class WebSocketConnection implements WebSocket {
     private String mWsQuery;
     private String[] mWsSubprotocols;
     private Map<String, String> mWsHeaders;
+    private Map<String, String> mHandshakeHeaders;
 
     private WebSocket.ConnectionHandler mWsHandler;
 
-    protected WebSocketOptions mOptions;
+    private WebSocketOptions mOptions;
 
     private boolean mActive;
     private boolean mPrevConnected;
@@ -320,6 +321,10 @@ public class WebSocketConnection implements WebSocket {
         mPrevConnected = false;
     }
 
+    public Map<String, String> getHandshakeResponseHeaders() {
+        return mHandshakeHeaders;
+    }
+
     /**
      * Reconnect to the server with the latest options
      *
@@ -338,7 +343,7 @@ public class WebSocketConnection implements WebSocket {
      *
      * @return true if reconnection was scheduled
      */
-    protected boolean scheduleReconnect() {
+    private boolean scheduleReconnect() {
         /**
          * Reconnect only if:
          *  - connection active (connected but not disconnected)
@@ -413,7 +418,7 @@ public class WebSocketConnection implements WebSocket {
     /**
      * Create master message handler.
      */
-    protected void createHandler() {
+    private void createHandler() {
 
         mMasterHandler = new Handler(Looper.getMainLooper()) {
 
@@ -500,6 +505,8 @@ public class WebSocketConnection implements WebSocket {
 
                     if (DEBUG) Log.d(TAG, "opening handshake received");
 
+                    mHandshakeHeaders = serverHandshake.headers;
+
                     if (serverHandshake.mSuccess) {
                         if (mWsHandler != null) {
                             mWsHandler.onOpen();
@@ -541,14 +548,14 @@ public class WebSocketConnection implements WebSocket {
     }
 
 
-    protected void processAppMessage(Object message) {
+    private void processAppMessage(Object message) {
     }
 
 
     /**
      * Create WebSockets background writer.
      */
-    protected void createWriter() throws IOException {
+    private void createWriter() throws IOException {
 
         mWriterThread = new HandlerThread("WebSocketWriter");
         mWriterThread.start();
@@ -561,7 +568,7 @@ public class WebSocketConnection implements WebSocket {
     /**
      * Create WebSockets background reader.
      */
-    protected void createReader() throws IOException {
+    private void createReader() throws IOException {
 
         mReader = new WebSocketReader(mMasterHandler, mSocket, mOptions, "WebSocketReader");
         mReader.start();

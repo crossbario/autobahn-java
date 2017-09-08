@@ -1,27 +1,83 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+//   AutobahnJava - http://crossbar.io/autobahn
+//
+//   Copyright (c) Crossbar.io Technologies GmbH and contributors
+//
+//   Licensed under the MIT License.
+//   http://www.opensource.org/licenses/mit-license.php
+//
+///////////////////////////////////////////////////////////////////////////////
+
 package io.crossbar.autobahn.wamp.transports;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
+import java.util.logging.Logger;
 
+import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.serializers.CBORSerializer;
 import io.crossbar.autobahn.wamp.serializers.JSONSerializer;
 import io.crossbar.autobahn.wamp.serializers.MessagePackSerializer;
+import io.crossbar.autobahn.wamp.types.WebSocketOptions;
 import io.crossbar.autobahn.websocket.WebSocket;
 import io.crossbar.autobahn.websocket.WebSocketConnection;
 
 public class AutobahnTransport implements ITransport {
 
-    private final String mUri;
-    private final WebSocket mConnection = new WebSocketConnection();
+    private static final Logger LOGGER = Logger.getLogger(AutobahnTransport.class.getName());
     private static final String[] SERIALIZERS_DEFAULT = new String[] {
             CBORSerializer.NAME, MessagePackSerializer.NAME, JSONSerializer.NAME};
 
+    private final WebSocketConnection mConnection;
+    private final String mUri;
+
+    private ExecutorService mExecutor;
+    private WebSocketOptions mOptions;
     private List<String> mSerializers;
 
     public AutobahnTransport(String uri) {
         mUri = uri;
+        mConnection = new WebSocketConnection();
+    }
+
+    public AutobahnTransport(String uri, List<String> serializers) {
+        this(uri);
+        mSerializers = serializers;
+    }
+
+    public AutobahnTransport(String uri, WebSocketOptions options) {
+        this(uri);
+        mOptions = options;
+    }
+
+    public AutobahnTransport(String uri, ExecutorService executor) {
+        this(uri);
+        mExecutor = executor;
+    }
+
+    public AutobahnTransport(String uri, List<String> serializers, ExecutorService executor) {
+        this(uri);
+        mExecutor = executor;
+        mSerializers = serializers;
+    }
+
+    public AutobahnTransport(String uri, ExecutorService executor, WebSocketOptions options) {
+        this(uri);
+        mExecutor = executor;
+        mOptions = options;
+    }
+
+    private ExecutorService getExecutor() {
+        return mExecutor == null ? ForkJoinPool.commonPool() : mExecutor;
+    }
+
+    private WebSocketOptions getOptions() {
+        return mOptions == null ? new WebSocketOptions() : mOptions;
     }
 
     private String[] getSerializers() {
@@ -50,7 +106,10 @@ public class AutobahnTransport implements ITransport {
             @Override
             public void onOpen() {
                 try {
-                    transportHandler.onConnect(AutobahnTransport.this, new CBORSerializer());
+                    String negotiatedSerializer = mConnection.getHandshakeResponseHeaders().get("Sec-WebSocket-Protocol");
+                    LOGGER.info(String.format("Negotiated serializer=%s", negotiatedSerializer));
+                    ISerializer serializer = initializeSerializer(negotiatedSerializer);
+                    transportHandler.onConnect(AutobahnTransport.this, serializer);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -99,5 +158,18 @@ public class AutobahnTransport implements ITransport {
     @Override
     public void abort() throws Exception {
         mConnection.disconnect();
+    }
+
+    private ISerializer initializeSerializer(String negotiatedSerializer) throws Exception {
+        switch (negotiatedSerializer) {
+            case CBORSerializer.NAME:
+                return new CBORSerializer();
+            case JSONSerializer.NAME:
+                return new JSONSerializer();
+            case MessagePackSerializer.NAME:
+                return new MessagePackSerializer();
+            default:
+                throw new IllegalArgumentException("Unsupported serializer.");
+        }
     }
 }

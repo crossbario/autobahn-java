@@ -89,7 +89,7 @@ public interface WebSocket {
         /**
          * Fired when a binary message has been received.
          *
-         * @param payload Binar message payload or null (empty payload).
+         * @param payload Binary message payload or null (empty payload).
          */
         void onBinaryMessage(byte[] payload);
     }
