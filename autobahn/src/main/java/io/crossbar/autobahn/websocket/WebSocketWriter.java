@@ -23,8 +23,6 @@ import android.os.Message;
 import android.util.Base64;
 import android.util.Log;
 
-import org.apache.http.NameValuePair;
-
 
 /**
  * WebSocket writer, the sending leg of a WebSockets connection.
@@ -213,8 +211,8 @@ public class WebSocketWriter extends Handler {
 
         // Header injection
         if (message.mHeaderList != null) {
-            for (NameValuePair pair : message.mHeaderList) {
-                write(pair.getName() + ":" + pair.getValue());
+            for (String key : message.mHeaderList.keySet()) {
+                write(key + ":" + message.mHeaderList.get(key));
                 write(CRLF);
             }
         }

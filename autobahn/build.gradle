@@ -4,7 +4,6 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
     android {
         compileSdkVersion 26
         buildToolsVersion '26.0.1'
-        useLibrary 'org.apache.http.legacy'
 
         defaultConfig {
             minSdkVersion 24
