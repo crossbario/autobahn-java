@@ -13,8 +13,6 @@ package io.crossbar.autobahn.wamp.transports;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
 import java.util.logging.Logger;
 
 import io.crossbar.autobahn.wamp.interfaces.ISerializer;
@@ -23,7 +21,6 @@ import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.serializers.CBORSerializer;
 import io.crossbar.autobahn.wamp.serializers.JSONSerializer;
 import io.crossbar.autobahn.wamp.serializers.MessagePackSerializer;
-import io.crossbar.autobahn.wamp.types.WebSocketOptions;
 import io.crossbar.autobahn.websocket.WebSocket;
 import io.crossbar.autobahn.websocket.WebSocketConnection;
 
@@ -36,8 +33,6 @@ public class AutobahnTransport implements ITransport {
     private final WebSocketConnection mConnection;
     private final String mUri;
 
-    private ExecutorService mExecutor;
-    private WebSocketOptions mOptions;
     private List<String> mSerializers;
 
     public AutobahnTransport(String uri) {
@@ -48,36 +43,6 @@ public class AutobahnTransport implements ITransport {
     public AutobahnTransport(String uri, List<String> serializers) {
         this(uri);
         mSerializers = serializers;
-    }
-
-    public AutobahnTransport(String uri, WebSocketOptions options) {
-        this(uri);
-        mOptions = options;
-    }
-
-    public AutobahnTransport(String uri, ExecutorService executor) {
-        this(uri);
-        mExecutor = executor;
-    }
-
-    public AutobahnTransport(String uri, List<String> serializers, ExecutorService executor) {
-        this(uri);
-        mExecutor = executor;
-        mSerializers = serializers;
-    }
-
-    public AutobahnTransport(String uri, ExecutorService executor, WebSocketOptions options) {
-        this(uri);
-        mExecutor = executor;
-        mOptions = options;
-    }
-
-    private ExecutorService getExecutor() {
-        return mExecutor == null ? ForkJoinPool.commonPool() : mExecutor;
-    }
-
-    private WebSocketOptions getOptions() {
-        return mOptions == null ? new WebSocketOptions() : mOptions;
     }
 
     private String[] getSerializers() {
