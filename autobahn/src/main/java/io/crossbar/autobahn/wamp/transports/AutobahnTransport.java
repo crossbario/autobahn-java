@@ -11,7 +11,6 @@
 
 package io.crossbar.autobahn.wamp.transports;
 
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -21,8 +20,8 @@ import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.serializers.CBORSerializer;
 import io.crossbar.autobahn.wamp.serializers.JSONSerializer;
 import io.crossbar.autobahn.wamp.serializers.MessagePackSerializer;
-import io.crossbar.autobahn.websocket.WebSocket;
 import io.crossbar.autobahn.websocket.WebSocketConnection;
+import io.crossbar.autobahn.websocket.WebSocketConnectionHandler;
 
 public class AutobahnTransport implements ITransport {
 
@@ -54,20 +53,12 @@ public class AutobahnTransport implements ITransport {
 
     @Override
     public void send(byte[] payload, boolean isBinary) {
-        if (isBinary) {
-            mConnection.sendBinaryMessage(payload);
-        } else {
-            try {
-                mConnection.sendTextMessage(new String(payload, "UTF-8"));
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-        }
+        mConnection.sendMessage(payload, isBinary);
     }
 
     @Override
     public void connect(ITransportHandler transportHandler) throws Exception {
-        mConnection.connect(mUri, getSerializers(), new WebSocket.ConnectionHandler() {
+        mConnection.connect(mUri, getSerializers(), new WebSocketConnectionHandler() {
             @Override
             public void onOpen() {
                 try {
@@ -86,7 +77,7 @@ public class AutobahnTransport implements ITransport {
             }
 
             @Override
-            public void onTextMessage(String payload) {
+            public void onMessage(String payload) {
                 try {
                     transportHandler.onMessage(payload.getBytes(), false);
                 } catch (Exception e) {
@@ -95,14 +86,9 @@ public class AutobahnTransport implements ITransport {
             }
 
             @Override
-            public void onRawTextMessage(byte[] payload) {
-
-            }
-
-            @Override
-            public void onBinaryMessage(byte[] payload) {
+            public void onMessage(byte[] payload, boolean isBinary) {
                 try {
-                    transportHandler.onMessage(payload, true);
+                    transportHandler.onMessage(payload, isBinary);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -117,12 +103,12 @@ public class AutobahnTransport implements ITransport {
 
     @Override
     public void close() throws Exception {
-        mConnection.disconnect();
+        mConnection.sendClose();
     }
 
     @Override
     public void abort() throws Exception {
-        mConnection.disconnect();
+        mConnection.sendClose();
     }
 
     private ISerializer initializeSerializer(String negotiatedSerializer) throws Exception {
