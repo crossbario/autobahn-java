@@ -20,6 +20,7 @@ import java.net.SocketException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 
 import android.os.Handler;
 import android.os.Message;
@@ -431,9 +432,9 @@ class WebSocketReader extends Thread {
      *
      * @param success Success handshake flag
      */
-    protected void onHandshake(boolean success) {
+    protected void onHandshake(Map<String, String> handshakeParams, boolean success) {
 
-        notify(new WebSocketMessage.ServerHandshake(success));
+        notify(new WebSocketMessage.ServerHandshake(handshakeParams, success));
     }
 
 
@@ -513,28 +514,24 @@ class WebSocketReader extends Thread {
 
         boolean res = false;
         for (int pos = mPosition - 4; pos >= 0; --pos) {
-            if (mMessageData[pos] == 0x0d &&
-                    mMessageData[pos + 1] == 0x0a &&
-                    mMessageData[pos + 2] == 0x0d &&
-                    mMessageData[pos + 3] == 0x0a) {
-
-                /// \todo process & verify handshake from server
-                /// \todo forward subprotocol, if any
+            if (mMessageData[pos] == 0x0d && mMessageData[pos + 1] == 0x0a &&
+                    mMessageData[pos + 2] == 0x0d && mMessageData[pos + 3] == 0x0a) {
 
                 // Check HTTP status code
                 boolean serverError = false;
-                if (mMessageData[0] == 'H' &&
-                        mMessageData[1] == 'T' &&
-                        mMessageData[2] == 'T' &&
-                        mMessageData[3] == 'P') {
-
-                    Pair<Integer, String> status = parseHttpStatus();
+                String rawHeaders = new String(Arrays.copyOf(mMessageData, pos + 4), "UTF-8");
+                String[] headers = rawHeaders.split("\r\n");
+                if (headers[0].startsWith("HTTP")) {
+                    Pair<Integer, String> status = parseHttpStatus(headers[0]);
                     if (status.first >= 300) {
                         // Invalid status code for success connection
                         notify(new WebSocketMessage.ServerError(status.first, status.second));
                         serverError = true;
                     }
                 }
+
+                /// \FIXME verify handshake from server
+                Map<String, String> handshakeParams = parseHttpHeaders(Arrays.copyOfRange(headers, 1, headers.length));
 
                 mMessageData = Arrays.copyOfRange(mMessageData, pos + 4, mMessageData.length + pos + 4);
                 mPosition -= pos + 4;
@@ -550,21 +547,16 @@ class WebSocketReader extends Thread {
                     mStopped = true;
                 }
 
-                onHandshake(!serverError);
+                onHandshake(handshakeParams, !serverError);
                 break;
             }
         }
         return res;
     }
 
-    @SuppressWarnings("unused")
-    private Map<String, String> parseHttpHeaders(byte[] buffer) throws UnsupportedEncodingException {
-        // TODO: use utf-8 validator?
-        String s = new String(buffer, "UTF-8");
-        Map<String, String> headers = new HashMap<String, String>();
-
-        String[] lines = s.split("\r\n");
-        for (String line : lines) {
+    private Map<String, String> parseHttpHeaders(String[] httpResponse) throws UnsupportedEncodingException {
+        Map<String, String> headers = new HashMap<>();
+        for (String line : httpResponse) {
             if (line.length() > 0) {
                 String[] h = line.split(": ");
                 if (h.length == 2) {
@@ -577,38 +569,20 @@ class WebSocketReader extends Thread {
         return headers;
     }
 
-    private Pair<Integer, String> parseHttpStatus() throws UnsupportedEncodingException {
-        int beg, end;
-        // Find first space
-        for (beg = 4; beg < mPosition; ++beg) {
-            if (mMessageData[beg] == ' ') break;
+    private Pair<Integer, String> parseHttpStatus(String statusLine) throws UnsupportedEncodingException {
+        // The status line could like:
+        // HTTP/1.1 101 Switching Protocols
+        String[] statusLineParts = statusLine.split(" ");
+        int statusCode = Integer.valueOf(statusLineParts[1]);
+        StringBuilder statusMessageBuilder = new StringBuilder();
+        for (int i = 2; i < statusLineParts.length; i++) {
+            statusMessageBuilder.append(statusLineParts[i]);
+            statusMessageBuilder.append(" ");
         }
-        // Find second space
-        for (end = beg + 1; end < mPosition; ++end) {
-            if (mMessageData[end] == ' ') break;
-        }
-        // Parse status code between them
-        ++beg;
-        int statusCode = 0;
-        for (int i = 0; beg + i < end; ++i) {
-            int digit = (mMessageData[beg + i] - 0x30);
-            statusCode *= 10;
-            statusCode += digit;
-        }
-        // Find end of line to extract error message
-        ++end;
-        int eol;
-        for (eol = end; eol < mPosition; ++eol) {
-            if (mMessageData[eol] == 0x0d) break;
-        }
-        int statusMessageLength = eol - end;
-        byte[] statusBuf = new byte[statusMessageLength];
-        System.arraycopy(mMessageData, end, statusBuf, 0, statusMessageLength);
-        String statusMessage = new String(statusBuf, "UTF-8");
+        String statusMessage = statusMessageBuilder.toString().trim();
         if (DEBUG) Log.w(TAG, String.format("Status: %d (%s)", statusCode, statusMessage));
         return new Pair<>(statusCode, statusMessage);
     }
-
 
     /**
      * Consume data buffered in mFrameBuffer.

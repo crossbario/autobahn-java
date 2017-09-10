@@ -89,7 +89,7 @@ public interface WebSocket {
         /**
          * Fired when a binary message has been received.
          *
-         * @param payload Binar message payload or null (empty payload).
+         * @param payload Binary message payload or null (empty payload).
          */
         void onBinaryMessage(byte[] payload);
     }
@@ -97,6 +97,8 @@ public interface WebSocket {
     void connect(String wsUri, ConnectionHandler wsHandler) throws WebSocketException;
 
     void connect(String wsUri, ConnectionHandler wsHandler, WebSocketOptions options) throws WebSocketException;
+
+    void connect(String wsUri, String[] wsSubprotocols, ConnectionHandler wsHandler) throws WebSocketException;
 
     void disconnect();
 
