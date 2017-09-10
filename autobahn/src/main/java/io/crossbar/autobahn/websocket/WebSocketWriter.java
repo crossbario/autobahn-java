@@ -11,17 +11,30 @@
 
 package io.crossbar.autobahn.websocket;
 
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.util.Base64;
+import android.util.Log;
+
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.Random;
 
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
-import android.util.Base64;
-import android.util.Log;
+import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
+import io.crossbar.autobahn.websocket.messages.BinaryMessage;
+import io.crossbar.autobahn.websocket.messages.ClientHandshake;
+import io.crossbar.autobahn.websocket.messages.Close;
+import io.crossbar.autobahn.websocket.messages.ConnectionLost;
+import io.crossbar.autobahn.websocket.messages.Error;
+import io.crossbar.autobahn.websocket.messages.Ping;
+import io.crossbar.autobahn.websocket.messages.Pong;
+import io.crossbar.autobahn.websocket.messages.Quit;
+import io.crossbar.autobahn.websocket.messages.RawTextMessage;
+import io.crossbar.autobahn.websocket.messages.TextMessage;
+import io.crossbar.autobahn.websocket.types.WebSocketOptions;
 
 
 /**
@@ -32,7 +45,7 @@ import android.util.Log;
  * background thread) so that it can be formatted and sent out on the
  * underlying TCP socket.
  */
-public class WebSocketWriter extends Handler {
+class WebSocketWriter extends Handler {
 
     private static final boolean DEBUG = true;
     private static final String TAG = WebSocketWriter.class.getName();
@@ -112,10 +125,9 @@ public class WebSocketWriter extends Handler {
      * (running on background thread) send a WebSocket message on the
      * underlying TCP.
      *
-     * @param message Message to send to WebSockets writer. An instance of the message
-     *                classes inside WebSocketMessage or another type which then needs
-     *                to be handled within processAppMessage() (in a class derived from
-     *                this class).
+     * @param message Message to send to WebSockets writer. An instance of a subclass of
+     *                Message  or another type which then needs to be handled within
+     *                processAppMessage() (in a class derived from this class).
      */
     public void forward(Object message) {
         // We have already quit, we are no longer sending messages.
@@ -169,7 +181,7 @@ public class WebSocketWriter extends Handler {
     /**
      * Send WebSocket client handshake.
      */
-    private void sendClientHandshake(WebSocketMessage.ClientHandshake message) throws IOException {
+    private void sendClientHandshake(ClientHandshake message) throws IOException {
 
         // write HTTP header with handshake
         String path;
@@ -223,7 +235,7 @@ public class WebSocketWriter extends Handler {
     /**
      * Send WebSockets close.
      */
-    private void sendClose(WebSocketMessage.Close message) throws IOException, WebSocketException {
+    private void sendClose(Close message) throws IOException, WebSocketException {
 
         if (message.mCode > 0) {
 
@@ -258,7 +270,7 @@ public class WebSocketWriter extends Handler {
     /**
      * Send WebSockets ping.
      */
-    private void sendPing(WebSocketMessage.Ping message) throws IOException, WebSocketException {
+    private void sendPing(Ping message) throws IOException, WebSocketException {
         if (message.mPayload != null && message.mPayload.length > 125) {
             throw new WebSocketException("ping payload exceeds 125 octets");
         }
@@ -270,7 +282,7 @@ public class WebSocketWriter extends Handler {
      * Send WebSockets pong. Normally, unsolicited Pongs are not used,
      * but Pongs are only send in response to a Ping from the peer.
      */
-    private void sendPong(WebSocketMessage.Pong message) throws IOException, WebSocketException {
+    private void sendPong(Pong message) throws IOException, WebSocketException {
         if (message.mPayload != null && message.mPayload.length > 125) {
             throw new WebSocketException("pong payload exceeds 125 octets");
         }
@@ -281,7 +293,7 @@ public class WebSocketWriter extends Handler {
     /**
      * Send WebSockets binary message.
      */
-    private void sendBinaryMessage(WebSocketMessage.BinaryMessage message) throws IOException, WebSocketException {
+    private void sendBinaryMessage(BinaryMessage message) throws IOException, WebSocketException {
         if (message.mPayload.length > mOptions.getMaxMessagePayloadSize()) {
             throw new WebSocketException("message payload exceeds payload limit");
         }
@@ -292,7 +304,7 @@ public class WebSocketWriter extends Handler {
     /**
      * Send WebSockets text message.
      */
-    private void sendTextMessage(WebSocketMessage.TextMessage message) throws IOException, WebSocketException {
+    private void sendTextMessage(TextMessage message) throws IOException, WebSocketException {
         byte[] payload = message.mPayload.getBytes("UTF-8");
         if (payload.length > mOptions.getMaxMessagePayloadSize()) {
             throw new WebSocketException("message payload exceeds payload limit");
@@ -304,7 +316,7 @@ public class WebSocketWriter extends Handler {
     /**
      * Send WebSockets binary message.
      */
-    private void sendRawTextMessage(WebSocketMessage.RawTextMessage message) throws IOException, WebSocketException {
+    private void sendRawTextMessage(RawTextMessage message) throws IOException, WebSocketException {
         if (message.mPayload.length > mOptions.getMaxMessagePayloadSize()) {
             throw new WebSocketException("message payload exceeds payload limit");
         }
@@ -424,10 +436,10 @@ public class WebSocketWriter extends Handler {
 
             // Check if the message that we sent was a close frame and was a reply
             // to a closing handshake, if so, then notify master to close the socket.
-            if (msg.obj instanceof WebSocketMessage.Close) {
-                WebSocketMessage.Close closeMessage = (WebSocketMessage.Close) msg.obj;
+            if (msg.obj instanceof Close) {
+                Close closeMessage = (Close) msg.obj;
                 if (closeMessage.mIsReply) {
-                    notify(new WebSocketMessage.Close(closeMessage.mCode, closeMessage.mReason, true));
+                    notify(new Close(closeMessage.mCode, closeMessage.mReason, true));
                 }
             }
 
@@ -437,13 +449,13 @@ public class WebSocketWriter extends Handler {
             if (DEBUG) Log.d(TAG, "run() : SocketException (" + e.toString() + ")");
 
             // wrap the exception and notify master
-            notify(new WebSocketMessage.ConnectionLost());
+            notify(new ConnectionLost());
         } catch (Exception e) {
 
             if (DEBUG) e.printStackTrace();
 
             // wrap the exception and notify master
-            notify(new WebSocketMessage.Error(e));
+            notify(new Error(e));
         }
     }
 
@@ -453,39 +465,39 @@ public class WebSocketWriter extends Handler {
      * there should be no reason to override this. If you do, you
      * need to know what you are doing.
      *
-     * @param msg An instance of the message types within WebSocketMessage
-     *            or a message that is handled in processAppMessage().
+     * @param msg An instance of the Message subclass or a message
+     *            that is handled in processAppMessage().
      */
     protected void processMessage(Object msg) throws IOException, WebSocketException {
 
-        if (msg instanceof WebSocketMessage.TextMessage) {
+        if (msg instanceof TextMessage) {
 
-            sendTextMessage((WebSocketMessage.TextMessage) msg);
+            sendTextMessage((TextMessage) msg);
 
-        } else if (msg instanceof WebSocketMessage.RawTextMessage) {
+        } else if (msg instanceof RawTextMessage) {
 
-            sendRawTextMessage((WebSocketMessage.RawTextMessage) msg);
+            sendRawTextMessage((RawTextMessage) msg);
 
-        } else if (msg instanceof WebSocketMessage.BinaryMessage) {
+        } else if (msg instanceof BinaryMessage) {
 
-            sendBinaryMessage((WebSocketMessage.BinaryMessage) msg);
+            sendBinaryMessage((BinaryMessage) msg);
 
-        } else if (msg instanceof WebSocketMessage.Ping) {
+        } else if (msg instanceof Ping) {
 
-            sendPing((WebSocketMessage.Ping) msg);
+            sendPing((Ping) msg);
 
-        } else if (msg instanceof WebSocketMessage.Pong) {
+        } else if (msg instanceof Pong) {
 
-            sendPong((WebSocketMessage.Pong) msg);
+            sendPong((Pong) msg);
 
-        } else if (msg instanceof WebSocketMessage.Close) {
+        } else if (msg instanceof Close) {
 
-            sendClose((WebSocketMessage.Close) msg);
+            sendClose((Close) msg);
 
-        } else if (msg instanceof WebSocketMessage.ClientHandshake) {
-            sendClientHandshake((WebSocketMessage.ClientHandshake) msg);
+        } else if (msg instanceof ClientHandshake) {
+            sendClientHandshake((ClientHandshake) msg);
 
-        } else if (msg instanceof WebSocketMessage.Quit) {
+        } else if (msg instanceof Quit) {
 
             mLooper.quit();
             mActive = false;

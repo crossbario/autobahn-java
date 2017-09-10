@@ -9,7 +9,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-package io.crossbar.autobahn.websocket;
+package io.crossbar.autobahn.websocket.utils;
 
 
 /**

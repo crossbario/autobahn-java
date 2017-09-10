@@ -11,6 +11,11 @@
 
 package io.crossbar.autobahn.websocket;
 
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
+import android.util.Pair;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -20,12 +25,21 @@ import java.net.SocketException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
 
-import android.os.Handler;
-import android.os.Message;
-import android.util.Log;
-import android.util.Pair;
+import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
+import io.crossbar.autobahn.websocket.messages.BinaryMessage;
+import io.crossbar.autobahn.websocket.messages.Close;
+import io.crossbar.autobahn.websocket.messages.ConnectionLost;
+import io.crossbar.autobahn.websocket.messages.Error;
+import io.crossbar.autobahn.websocket.messages.Ping;
+import io.crossbar.autobahn.websocket.messages.Pong;
+import io.crossbar.autobahn.websocket.messages.ProtocolViolation;
+import io.crossbar.autobahn.websocket.messages.RawTextMessage;
+import io.crossbar.autobahn.websocket.messages.ServerError;
+import io.crossbar.autobahn.websocket.messages.ServerHandshake;
+import io.crossbar.autobahn.websocket.messages.TextMessage;
+import io.crossbar.autobahn.websocket.types.WebSocketOptions;
+import io.crossbar.autobahn.websocket.utils.Utf8Validator;
 
 
 /**
@@ -434,7 +448,7 @@ class WebSocketReader extends Thread {
      */
     protected void onHandshake(Map<String, String> handshakeParams, boolean success) {
 
-        notify(new WebSocketMessage.ServerHandshake(handshakeParams, success));
+        notify(new ServerHandshake(handshakeParams, success));
     }
 
 
@@ -443,7 +457,7 @@ class WebSocketReader extends Thread {
      */
     protected void onClose(int code, String reason) {
 
-        notify(new WebSocketMessage.Close(code, reason));
+        notify(new Close(code, reason));
     }
 
 
@@ -454,7 +468,7 @@ class WebSocketReader extends Thread {
      */
     protected void onPing(byte[] payload) {
 
-        notify(new WebSocketMessage.Ping(payload));
+        notify(new Ping(payload));
     }
 
 
@@ -465,7 +479,7 @@ class WebSocketReader extends Thread {
      */
     protected void onPong(byte[] payload) {
 
-        notify(new WebSocketMessage.Pong(payload));
+        notify(new Pong(payload));
     }
 
 
@@ -479,7 +493,7 @@ class WebSocketReader extends Thread {
      */
     protected void onTextMessage(String payload) {
 
-        notify(new WebSocketMessage.TextMessage(payload));
+        notify(new TextMessage(payload));
     }
 
 
@@ -493,7 +507,7 @@ class WebSocketReader extends Thread {
      */
     protected void onRawTextMessage(byte[] payload) {
 
-        notify(new WebSocketMessage.RawTextMessage(payload));
+        notify(new RawTextMessage(payload));
     }
 
 
@@ -504,7 +518,7 @@ class WebSocketReader extends Thread {
      */
     protected void onBinaryMessage(byte[] payload) {
 
-        notify(new WebSocketMessage.BinaryMessage(payload));
+        notify(new BinaryMessage(payload));
     }
 
     /**
@@ -525,7 +539,7 @@ class WebSocketReader extends Thread {
                     Pair<Integer, String> status = parseHttpStatus(headers[0]);
                     if (status.first >= 300) {
                         // Invalid status code for success connection
-                        notify(new WebSocketMessage.ServerError(status.first, status.second));
+                        notify(new ServerError(status.first, status.second));
                         serverError = true;
                     }
                 }
@@ -637,7 +651,7 @@ class WebSocketReader extends Thread {
 
                     if (DEBUG) Log.d(TAG, "run() : ConnectionLost");
 
-                    notify(new WebSocketMessage.ConnectionLost());
+                    notify(new ConnectionLost());
 
                     mStopped = true;
                 }
@@ -648,7 +662,7 @@ class WebSocketReader extends Thread {
             if (DEBUG) Log.d(TAG, "run() : WebSocketException (" + e.toString() + ")");
 
             // wrap the exception and notify master
-            notify(new WebSocketMessage.ProtocolViolation(e));
+            notify(new ProtocolViolation(e));
 
         } catch (SocketException e) {
 
@@ -658,7 +672,7 @@ class WebSocketReader extends Thread {
                 if (DEBUG) Log.d(TAG, "run() : SocketException (" + e.toString() + ")");
 
                 // wrap the exception and notify master
-                notify(new WebSocketMessage.ConnectionLost());
+                notify(new ConnectionLost());
             }
 
         } catch (Exception e) {
@@ -666,7 +680,7 @@ class WebSocketReader extends Thread {
             if (DEBUG) Log.d(TAG, "run() : Exception (" + e.toString() + ")");
 
             // wrap the exception and notify master
-            notify(new WebSocketMessage.Error(e));
+            notify(new Error(e));
 
         } finally {
 

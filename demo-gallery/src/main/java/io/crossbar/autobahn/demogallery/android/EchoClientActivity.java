@@ -11,23 +11,21 @@
 
 package io.crossbar.autobahn.demogallery.android;
 
-import android.util.Log;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.content.SharedPreferences;
-
+import android.util.Log;
 import android.view.Gravity;
-
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import io.crossbar.autobahn.demogallery.R;
-import io.crossbar.autobahn.websocket.WebSocket;
 import io.crossbar.autobahn.websocket.WebSocketConnection;
-import io.crossbar.autobahn.websocket.WebSocketException;
 import io.crossbar.autobahn.websocket.WebSocketConnectionHandler;
+import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
+import io.crossbar.autobahn.websocket.interfaces.IWebSocket;
 
 
 public class EchoClientActivity extends AppCompatActivity {
@@ -76,10 +74,10 @@ public class EchoClientActivity extends AppCompatActivity {
         mHostname.setEnabled(false);
         mPort.setEnabled(false);
         mStart.setText("Disconnect");
-        mStart.setOnClickListener(v -> mConnection.disconnect());
+        mStart.setOnClickListener(v -> mConnection.sendClose());
     }
 
-    private final WebSocket mConnection = new WebSocketConnection();
+    private final IWebSocket mConnection = new WebSocketConnection();
 
     private void start() {
 
@@ -111,7 +109,7 @@ public class EchoClientActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onTextMessage(String payload) {
+                public void onMessage(String payload) {
                     alert("Got echo: " + payload);
                 }
 
@@ -149,14 +147,14 @@ public class EchoClientActivity extends AppCompatActivity {
         mSendMessage.setEnabled(false);
         mMessage.setEnabled(false);
 
-        mSendMessage.setOnClickListener(v -> mConnection.sendTextMessage(mMessage.getText().toString()));
+        mSendMessage.setOnClickListener(v -> mConnection.sendMessage(mMessage.getText().toString()));
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (mConnection.isConnected()) {
-            mConnection.disconnect();
+            mConnection.sendClose();
         }
     }
 }
