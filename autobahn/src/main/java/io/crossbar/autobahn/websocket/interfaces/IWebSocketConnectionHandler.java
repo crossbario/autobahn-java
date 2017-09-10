@@ -1,5 +1,7 @@
 package io.crossbar.autobahn.websocket.interfaces;
 
+import io.crossbar.autobahn.websocket.types.ConnectionResponse;
+
 /**
  * Session handler for WebSocket sessions.
  */
@@ -39,6 +41,8 @@ public interface IWebSocketConnectionHandler {
      * Server connection lost, scheduled reconnect
      */
     int CLOSE_RECONNECT = 7;
+
+    void onConnect(ConnectionResponse response);
 
     /**
      * Fired when the WebSockets connection has been established.

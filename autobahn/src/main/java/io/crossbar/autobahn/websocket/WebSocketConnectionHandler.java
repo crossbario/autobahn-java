@@ -13,12 +13,18 @@ package io.crossbar.autobahn.websocket;
 
 
 import io.crossbar.autobahn.websocket.interfaces.IWebSocketConnectionHandler;
+import io.crossbar.autobahn.websocket.types.ConnectionResponse;
 
 /**
  * WebSockets event handler. Users will usually provide an instance of a class
  * derived from this to handle WebSockets received messages and open/close events
  */
 public class WebSocketConnectionHandler implements IWebSocketConnectionHandler {
+
+    @Override
+    public void onConnect(ConnectionResponse response) {
+
+    }
 
     /**
      * Fired when the WebSockets connection has been established.

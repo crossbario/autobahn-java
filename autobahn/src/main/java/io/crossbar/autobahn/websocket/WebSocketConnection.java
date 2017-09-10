@@ -44,6 +44,7 @@ import io.crossbar.autobahn.websocket.messages.RawTextMessage;
 import io.crossbar.autobahn.websocket.messages.ServerError;
 import io.crossbar.autobahn.websocket.messages.ServerHandshake;
 import io.crossbar.autobahn.websocket.messages.TextMessage;
+import io.crossbar.autobahn.websocket.types.ConnectionResponse;
 import io.crossbar.autobahn.websocket.types.WebSocketOptions;
 
 
@@ -67,7 +68,6 @@ public class WebSocketConnection implements IWebSocket {
     private String mWsQuery;
     private String[] mWsSubprotocols;
     private Map<String, String> mWsHeaders;
-    private Map<String, String> mHandshakeHeaders;
 
     private IWebSocketConnectionHandler mWsHandler;
 
@@ -355,10 +355,6 @@ public class WebSocketConnection implements IWebSocket {
         mPrevConnected = false;
     }
 
-    public Map<String, String> getHandshakeResponseHeaders() {
-        return mHandshakeHeaders;
-    }
-
     /**
      * Reconnect to the server with the latest options
      *
@@ -539,10 +535,11 @@ public class WebSocketConnection implements IWebSocket {
 
                     if (DEBUG) Log.d(TAG, "opening handshake received");
 
-                    mHandshakeHeaders = serverHandshake.headers;
-
                     if (serverHandshake.mSuccess) {
                         if (mWsHandler != null) {
+                            mWsHandler.onConnect(new ConnectionResponse(
+                                    serverHandshake.headers.getOrDefault(
+                                            "Sec-WebSocket-Protocol", null)));
                             mWsHandler.onOpen();
                             if (DEBUG) Log.d(TAG, "onOpen() called, ready to rock.");
                         } else {

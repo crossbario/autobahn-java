@@ -22,6 +22,7 @@ import io.crossbar.autobahn.wamp.serializers.JSONSerializer;
 import io.crossbar.autobahn.wamp.serializers.MessagePackSerializer;
 import io.crossbar.autobahn.websocket.WebSocketConnection;
 import io.crossbar.autobahn.websocket.WebSocketConnectionHandler;
+import io.crossbar.autobahn.websocket.types.ConnectionResponse;
 
 public class AutobahnTransport implements ITransport {
 
@@ -33,6 +34,7 @@ public class AutobahnTransport implements ITransport {
     private final String mUri;
 
     private List<String> mSerializers;
+    private ISerializer mSerializer;
 
     public AutobahnTransport(String uri) {
         mUri = uri;
@@ -59,13 +61,21 @@ public class AutobahnTransport implements ITransport {
     @Override
     public void connect(ITransportHandler transportHandler) throws Exception {
         mConnection.connect(mUri, getSerializers(), new WebSocketConnectionHandler() {
+
+            @Override
+            public void onConnect(ConnectionResponse response) {
+                LOGGER.info(String.format("Negotiated serializer=%s", response.protocol));
+                try {
+                    mSerializer = initializeSerializer(response.protocol);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
             @Override
             public void onOpen() {
                 try {
-                    String negotiatedSerializer = mConnection.getHandshakeResponseHeaders().get("Sec-WebSocket-Protocol");
-                    LOGGER.info(String.format("Negotiated serializer=%s", negotiatedSerializer));
-                    ISerializer serializer = initializeSerializer(negotiatedSerializer);
-                    transportHandler.onConnect(AutobahnTransport.this, serializer);
+                    transportHandler.onConnect(AutobahnTransport.this, mSerializer);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
