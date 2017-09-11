@@ -22,8 +22,8 @@ import android.widget.TextView;
 import io.crossbar.autobahn.demogallery.R;
 import io.crossbar.autobahn.websocket.WebSocketConnection;
 import io.crossbar.autobahn.websocket.WebSocketConnectionHandler;
-import io.crossbar.autobahn.websocket.WebSocketException;
-import io.crossbar.autobahn.websocket.WebSocketOptions;
+import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
+import io.crossbar.autobahn.websocket.types.WebSocketOptions;
 
 
 public class TestSuiteClientActivity extends AppCompatActivity implements View.OnClickListener {
@@ -87,13 +87,13 @@ public class TestSuiteClientActivity extends AppCompatActivity implements View.O
                 new WebSocketConnectionHandler() {
 
                     @Override
-                    public void onRawTextMessage(byte[] payload) {
-                        webSocket.sendRawTextMessage(payload);
+                    public void onMessage(String payload) {
+                        webSocket.sendMessage(payload);
                     }
 
                     @Override
-                    public void onBinaryMessage(byte[] payload) {
-                        webSocket.sendBinaryMessage(payload);
+                    public void onMessage(byte[] payload, boolean isBinary) {
+                        webSocket.sendMessage(payload, isBinary);
                     }
 
                     @Override
@@ -137,7 +137,7 @@ public class TestSuiteClientActivity extends AppCompatActivity implements View.O
                     }
 
                     @Override
-                    public void onTextMessage(String payload) {
+                    public void onMessage(String payload) {
                         lastCase = Integer.parseInt(payload);
                     }
 
