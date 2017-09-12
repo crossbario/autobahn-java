@@ -86,7 +86,6 @@ class WebSocketReader extends Thread {
     private static class FrameHeader {
         public int mOpcode;
         public boolean mFin;
-        @SuppressWarnings("unused")
         public int mReserved;
         public int mHeaderLen;
         public int mPayloadLen;

@@ -24,9 +24,9 @@ import io.crossbar.autobahn.websocket.WebSocketConnection;
 import io.crossbar.autobahn.websocket.WebSocketConnectionHandler;
 import io.crossbar.autobahn.websocket.types.ConnectionResponse;
 
-public class AutobahnTransport implements ITransport {
+public class AndroidWebSocket implements ITransport {
 
-    private static final Logger LOGGER = Logger.getLogger(AutobahnTransport.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(AndroidWebSocket.class.getName());
     private static final String[] SERIALIZERS_DEFAULT = new String[] {
             CBORSerializer.NAME, MessagePackSerializer.NAME, JSONSerializer.NAME};
 
@@ -36,12 +36,12 @@ public class AutobahnTransport implements ITransport {
     private List<String> mSerializers;
     private ISerializer mSerializer;
 
-    public AutobahnTransport(String uri) {
+    public AndroidWebSocket(String uri) {
         mUri = uri;
         mConnection = new WebSocketConnection();
     }
 
-    public AutobahnTransport(String uri, List<String> serializers) {
+    public AndroidWebSocket(String uri, List<String> serializers) {
         this(uri);
         mSerializers = serializers;
     }
@@ -75,7 +75,7 @@ public class AutobahnTransport implements ITransport {
             @Override
             public void onOpen() {
                 try {
-                    transportHandler.onConnect(AutobahnTransport.this, mSerializer);
+                    transportHandler.onConnect(AndroidWebSocket.this, mSerializer);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

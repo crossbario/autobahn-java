@@ -30,6 +30,7 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_APP)) {
             main {
                 java {
                     include 'io/crossbar/autobahn/demogallery/android/**'
+                    include 'io/crossbar/autobahn/demogallery/ExampleClient.java'
                 }
             }
         }
@@ -50,6 +51,7 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_APP)) {
         main {
             java {
                 include 'io/crossbar/autobahn/demogallery/netty/**'
+                include 'io/crossbar/autobahn/demogallery/ExampleClient.java'
             }
         }
     }

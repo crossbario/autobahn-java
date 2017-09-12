@@ -14,7 +14,6 @@ package io.crossbar.autobahn.wamp.transports;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -80,25 +79,10 @@ public class NettyTransport implements ITransport {
         mOptions = options;
     }
 
-    public NettyTransport(String uri, ExecutorService executor) {
-        this(uri);
-        mExecutor = executor;
-    }
-
-    public NettyTransport(String uri, List<String> serializers, ExecutorService executor) {
-        this(uri);
-        mExecutor = executor;
+    public NettyTransport(String uri, List<String> serializers, WebSocketOptions options) {
+        mUri = uri;
         mSerializers = serializers;
-    }
-
-    public NettyTransport(String uri, ExecutorService executor, WebSocketOptions options) {
-        this(uri);
-        mExecutor = executor;
         mOptions = options;
-    }
-
-    private ExecutorService getExecutor() {
-        return mExecutor == null ? ForkJoinPool.commonPool() : mExecutor;
     }
 
     private WebSocketOptions getOptions() {
