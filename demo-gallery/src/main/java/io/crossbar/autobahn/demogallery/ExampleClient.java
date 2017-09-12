@@ -60,12 +60,12 @@ public class ExampleClient {
     // Convenience method to dynamically return a transport based on the underlying platform.
     // No rocket science here.
     // Could easily replace all the underlying code with just
-    // return new AutobahnTransport(webSocketURL);
+    // return new AndroidWebSocket(webSocketURL);
     // If the underlying platform is known upfront.
     private ITransport selectTransport(String webSocketURL) throws Exception {
         Class<?> transportClass;
         if (Objects.equals(System.getProperty("java.vendor"), "The Android Project")) {
-            transportClass = Class.forName("io.crossbar.autobahn.wamp.transports.AutobahnTransport");
+            transportClass = Class.forName("io.crossbar.autobahn.wamp.transports.AndroidWebSocket");
         } else {
             transportClass = Class.forName("io.crossbar.autobahn.wamp.transports.NettyTransport");
         }
