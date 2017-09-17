@@ -21,6 +21,8 @@ import java.util.Objects;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
+import static io.crossbar.autobahn.wamp.utils.Shortcuts.getOrDefault;
+
 public class Cancel implements IMessage {
 
     public static final int MESSAGE_TYPE = 49;
@@ -35,7 +37,7 @@ public class Cancel implements IMessage {
     public Cancel(long request, String mode) {
         this.request = request;
         if (mode != null) {
-            if (!Objects.equals(mode, SKIP) && !Objects.equals(mode, ABORT) && !Objects.equals(mode, KILL)) {
+            if (!mode.equals(SKIP) && !mode.equals(ABORT) && !mode.equals(KILL)) {
                 throw new IllegalArgumentException("mode must either be skip, abort or kill");
             }
         }
@@ -46,7 +48,7 @@ public class Cancel implements IMessage {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "CANCEL", 3);
         long request = MessageUtil.parseRequestID(wmsg.get(1));
         Map<String, Object> options = (Map<String, Object>) wmsg.get(2);
-        String mode = (String) options.getOrDefault("mode", null);
+        String mode = getOrDefault(options, "mode", null);
         return new Cancel(request, mode);
     }
 

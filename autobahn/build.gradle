@@ -6,7 +6,7 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
         buildToolsVersion '26.0.1'
 
         defaultConfig {
-            minSdkVersion 24
+            minSdkVersion 15
             targetSdkVersion 26
         }
 

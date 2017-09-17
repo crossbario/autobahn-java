@@ -21,6 +21,8 @@ import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
+import static io.crossbar.autobahn.wamp.utils.Shortcuts.getOrDefault;
+
 public class Event implements IMessage {
 
     public static final int MESSAGE_TYPE = 36;
@@ -48,7 +50,7 @@ public class Event implements IMessage {
 
         Map<String, Object> details = (Map<String, Object>) wmsg.get(3);
         String topic = (String)details.get("topic");
-        boolean retained = (boolean)details.getOrDefault("retained", false);
+        boolean retained = getOrDefault(details, "retained", false);
 
         List<Object> args = null;
         if (wmsg.size() > 4) {

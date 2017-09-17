@@ -21,6 +21,8 @@ import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
+import static io.crossbar.autobahn.wamp.utils.Shortcuts.getOrDefault;
+
 public class Publish implements IMessage {
 
     public static final int MESSAGE_TYPE = 16;
@@ -65,9 +67,9 @@ public class Publish implements IMessage {
             kwargs = (Map<String, Object>) wmsg.get(5);
         }
 
-        boolean acknowledge = (boolean)options.getOrDefault("acknowledge", false);
-        boolean excludeMe = (boolean)options.getOrDefault("exclude_me", true);
-        boolean retain = (boolean)options.getOrDefault("retain", false);
+        boolean acknowledge = getOrDefault(options, "acknowledge", false);
+        boolean excludeMe = getOrDefault(options, "exclude_me", true);
+        boolean retain = getOrDefault(options, "retain", false);
 
         return new Publish(request, topic, args, kwargs, acknowledge, excludeMe, retain);
     }

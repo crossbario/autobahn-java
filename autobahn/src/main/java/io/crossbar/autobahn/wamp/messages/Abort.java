@@ -19,6 +19,8 @@ import java.util.Map;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
+import static io.crossbar.autobahn.wamp.utils.Shortcuts.getOrDefault;
+
 public class Abort implements IMessage {
 
     public static final int MESSAGE_TYPE = 3;
@@ -35,10 +37,7 @@ public class Abort implements IMessage {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "ABORT", 3);
 
         Map<String, Object> details = (Map<String, Object>) wmsg.get(1);
-        String message = null;
-        if (details.containsKey("message")) {
-            message = (String) details.get("message");
-        }
+        String message = getOrDefault(details, "message", null);
         String reason = (String) wmsg.get(2);
 
         return new Abort(reason, message);

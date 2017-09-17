@@ -76,6 +76,7 @@ import io.crossbar.autobahn.wamp.types.Subscription;
 import io.crossbar.autobahn.wamp.utils.IDGenerator;
 
 import static io.crossbar.autobahn.wamp.messages.MessageMap.MESSAGE_TYPE_MAP;
+import static io.crossbar.autobahn.wamp.utils.Shortcuts.getOrDefault;
 
 
 public class Session implements ISession, ITransportHandler {
@@ -246,7 +247,7 @@ public class Session implements ISession, ITransportHandler {
             // Now that we have an active session handle all incoming messages here.
             if (message instanceof Result) {
                 Result msg = (Result) message;
-                CallRequest request = mCallRequests.getOrDefault(msg.request, null);
+                CallRequest request = getOrDefault(mCallRequests, msg.request, null);
                 if (request != null) {
                     mCallRequests.remove(msg.request);
 
@@ -266,7 +267,7 @@ public class Session implements ISession, ITransportHandler {
                 }
             } else if (message instanceof Subscribed) {
                 Subscribed msg = (Subscribed) message;
-                SubscribeRequest request = mSubscribeRequests.getOrDefault(msg.request, null);
+                SubscribeRequest request = getOrDefault(mSubscribeRequests, msg.request, null);
                 if (request != null) {
                     mSubscribeRequests.remove(msg.request);
                     if (!mSubscriptions.containsKey(msg.subscription)) {
@@ -281,7 +282,7 @@ public class Session implements ISession, ITransportHandler {
                 }
             } else if (message instanceof Event) {
                 Event msg = (Event) message;
-                List<Subscription> subscriptions = mSubscriptions.getOrDefault(msg.subscription, null);
+                List<Subscription> subscriptions = getOrDefault(mSubscriptions, msg.subscription, null);
                 if (subscriptions == null) {
                     throw new ProtocolError(String.format(
                             "EVENT received for non-subscribed subscription ID %s", msg.subscription));
@@ -333,7 +334,7 @@ public class Session implements ISession, ITransportHandler {
                 combineFutures(futures);
             } else if (message instanceof Published) {
                 Published msg = (Published) message;
-                PublishRequest request = mPublishRequests.getOrDefault(msg.request, null);
+                PublishRequest request = getOrDefault(mPublishRequests, msg.request, null);
                 if (request != null) {
                     mPublishRequests.remove(msg.request);
                     Publication publication = new Publication(msg.publication);
@@ -344,7 +345,7 @@ public class Session implements ISession, ITransportHandler {
                 }
             } else if (message instanceof Registered) {
                 Registered msg = (Registered) message;
-                RegisterRequest request = mRegisterRequest.getOrDefault(msg.request, null);
+                RegisterRequest request = getOrDefault(mRegisterRequest, msg.request, null);
                 if (request != null) {
                     mRegisterRequest.remove(msg.request);
                     Registration registration = new Registration(
@@ -357,7 +358,7 @@ public class Session implements ISession, ITransportHandler {
                 }
             } else if (message instanceof Invocation) {
                 Invocation msg = (Invocation) message;
-                Registration registration = mRegistrations.getOrDefault(msg.registration, null);
+                Registration registration = getOrDefault(mRegistrations, msg.registration, null);
 
                 if (registration != null) {
 
