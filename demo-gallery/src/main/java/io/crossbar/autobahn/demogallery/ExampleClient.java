@@ -64,7 +64,7 @@ public class ExampleClient {
     // If the underlying platform is known upfront.
     private ITransport selectTransport(String webSocketURL) throws Exception {
         Class<?> transportClass;
-        if (Objects.equals(System.getProperty("java.vendor"), "The Android Project")) {
+        if (System.getProperty("java.vendor").equals("The Android Project")) {
             transportClass = Class.forName("io.crossbar.autobahn.wamp.transports.AndroidWebSocket");
         } else {
             transportClass = Class.forName("io.crossbar.autobahn.wamp.transports.NettyTransport");

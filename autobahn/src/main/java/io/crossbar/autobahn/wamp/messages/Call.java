@@ -21,6 +21,8 @@ import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
+import static io.crossbar.autobahn.wamp.utils.Shortcuts.getOrDefault;
+
 public class Call implements IMessage {
 
     public static final int MESSAGE_TYPE = 48;
@@ -65,7 +67,7 @@ public class Call implements IMessage {
             kwargs = (Map<String, Object>) wmsg.get(5);
         }
 
-        int timeout = (int) options.getOrDefault("timeout", TIMEOUT_DEFAULT);
+        int timeout = getOrDefault(options, "timeout", TIMEOUT_DEFAULT);
 
         return new Call(request, procedure, args, kwargs, timeout);
     }

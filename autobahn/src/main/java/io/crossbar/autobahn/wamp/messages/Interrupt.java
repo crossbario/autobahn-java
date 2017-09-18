@@ -22,6 +22,8 @@ import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
+import static io.crossbar.autobahn.wamp.utils.Shortcuts.getOrDefault;
+
 public class Interrupt implements IMessage {
 
     public static final int MESSAGE_TYPE = 69;
@@ -42,9 +44,9 @@ public class Interrupt implements IMessage {
 
         long request = MessageUtil.parseRequestID(wmsg.get(1));
         Map<String, Object> options = (Map<String, Object>) wmsg.get(2);
-        String mode = (String) options.getOrDefault("mode", null);
+        String mode = getOrDefault(options, "mode", null);
         if (mode != null) {
-            if (!Objects.equals(mode, ABORT) && !Objects.equals(mode, KILL)) {
+            if (!mode.equals(ABORT) && !mode.equals(KILL)) {
                 throw new ProtocolError(String.format("invalid value %s for 'mode' option in INTERRUPT", mode));
             }
         }

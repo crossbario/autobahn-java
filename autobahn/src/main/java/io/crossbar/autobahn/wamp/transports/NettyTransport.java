@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 
 import javax.net.ssl.SSLException;
 
+import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.serializers.CBORSerializer;
@@ -113,7 +114,9 @@ public class NettyTransport implements ITransport {
     private String getSerializers() {
         if (mSerializers != null) {
             StringBuilder result = new StringBuilder();
-            mSerializers.forEach(s -> result.append(s).append(","));
+            for (String serializer: mSerializers) {
+                result.append(serializer).append(",");
+            }
             return result.toString();
         }
         return SERIALIZERS_DEFAULT;

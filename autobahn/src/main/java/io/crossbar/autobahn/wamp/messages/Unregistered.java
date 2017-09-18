@@ -19,6 +19,8 @@ import java.util.Map;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
+import static io.crossbar.autobahn.wamp.utils.Shortcuts.getOrDefault;
+
 public class Unregistered implements IMessage {
 
     public static final int MESSAGE_TYPE = 67;
@@ -41,8 +43,8 @@ public class Unregistered implements IMessage {
         String reason = null;
         if (wmsg.size() > 2) {
             Map<String, Object> details = (Map<String, Object>) wmsg.get(2);
-            registration = (long) details.getOrDefault("registration", registration);
-            reason = (String) details.getOrDefault("reason", reason);
+            registration = getOrDefault(details, "registration", registration);
+            reason = getOrDefault(details, "reason", reason);
         }
 
         return new Unregistered(MessageUtil.parseRequestID(wmsg.get(1)), registration, reason);

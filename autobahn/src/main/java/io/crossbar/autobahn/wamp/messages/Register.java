@@ -45,8 +45,8 @@ public class Register implements IMessage {
         this.request = request;
         this.procedure = procedure;
         if (match != null) {
-            if (!Objects.equals(match, MATCH_EXACT) && !Objects.equals(match, MATCH_PREFIX) &&
-                    !Objects.equals(match, MATCH_WILDCARD)) {
+            if (!match.equals(MATCH_EXACT) && !match.equals(MATCH_PREFIX) &&
+                    !match.equals(MATCH_WILDCARD)) {
                 throw new IllegalArgumentException("match must be one of exact, prefix or wildcard.");
             }
             this.match = match;
@@ -54,9 +54,9 @@ public class Register implements IMessage {
             this.match = null;
         }
         if (invoke != null) {
-            if (!Objects.equals(invoke, INVOKE_SINGLE) && !Objects.equals(invoke, INVOKE_FIRST) &&
-                    !Objects.equals(invoke, INVOKE_LAST) && !Objects.equals(invoke, INVOKE_ROUNDROBIN) &&
-                    !Objects.equals(invoke, INVOKE_RANDOM) && !Objects.equals(invoke, INVOKE_ALL)) {
+            if (!invoke.equals(INVOKE_SINGLE) && !invoke.equals(INVOKE_FIRST) &&
+                    !invoke.equals(INVOKE_LAST) && !invoke.equals(INVOKE_ROUNDROBIN) &&
+                    !invoke.equals(INVOKE_RANDOM) && !invoke.equals(INVOKE_ALL)) {
                 throw new IllegalArgumentException(
                         "invoke must be one of single, first, last, roundrobin, random or all.");
             }
@@ -74,18 +74,18 @@ public class Register implements IMessage {
         String match = null;
         if (options.containsKey("match")) {
             match = (String) options.get("match");
-            if (!Objects.equals(match, MATCH_EXACT) && !Objects.equals(match, MATCH_PREFIX) &&
-                    !Objects.equals(match, MATCH_WILDCARD)) {
+            if (!match.equals(MATCH_EXACT) && !match.equals(MATCH_PREFIX) &&
+                    !match.equals(MATCH_WILDCARD)) {
                 throw new ProtocolError("match must be one of exact, prefix or wildcard.");
             }
         }
         String invoke = null;
         if (options.containsKey("invoke")) {
             invoke = (String) options.get("invoke");
-            if (!Objects.equals(invoke, INVOKE_SINGLE) && !Objects.equals(invoke, INVOKE_FIRST) &&
-                    !Objects.equals(invoke, INVOKE_LAST) && !Objects.equals(invoke, INVOKE_ROUNDROBIN) &&
-                    !Objects.equals(invoke, INVOKE_RANDOM) && !Objects.equals(invoke, INVOKE_ALL)) {
-                throw new ProtocolError(
+            if (!invoke.equals(INVOKE_SINGLE) && !invoke.equals(INVOKE_FIRST) &&
+                    !invoke.equals(INVOKE_LAST) && !invoke.equals(INVOKE_ROUNDROBIN) &&
+                    !invoke.equals(INVOKE_RANDOM) && !invoke.equals(INVOKE_ALL)) {
+                throw new IllegalArgumentException(
                         "invoke must be one of single, first, last, roundrobin, random or all.");
             }
         }
@@ -99,10 +99,10 @@ public class Register implements IMessage {
         marshaled.add(MESSAGE_TYPE);
         marshaled.add(request);
         Map<String, Object> options = new HashMap<>();
-        if (match != null && !Objects.equals(match, MATCH_EXACT)) {
+        if (match != null && !match.equals(MATCH_EXACT)) {
             options.put("match", match);
         }
-        if (invoke != null && !Objects.equals(invoke, INVOKE_SINGLE)) {
+        if (invoke != null && !invoke.equals(INVOKE_SINGLE)) {
             options.put("invoke", invoke);
         }
         marshaled.add(options);

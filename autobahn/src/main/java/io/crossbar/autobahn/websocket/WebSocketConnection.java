@@ -444,6 +444,13 @@ public class WebSocketConnection implements IWebSocket {
         onCloseCalled = false;
     }
 
+    private <T> T getOrDefault(Map<?, ?> obj, Object key, T default_value) {
+        if (obj.containsKey(key)) {
+            return (T) obj.get(key);
+        }
+        return default_value;
+    }
+
 
     /**
      * Create master message handler.
@@ -537,9 +544,9 @@ public class WebSocketConnection implements IWebSocket {
 
                     if (serverHandshake.mSuccess) {
                         if (mWsHandler != null) {
-                            mWsHandler.onConnect(new ConnectionResponse(
-                                    serverHandshake.headers.getOrDefault(
-                                            "Sec-WebSocket-Protocol", null)));
+                            String protocol = getOrDefault(serverHandshake.headers,
+                                    "Sec-WebSocket-Protocol", null);
+                            mWsHandler.onConnect(new ConnectionResponse(protocol));
                             mWsHandler.onOpen();
                             if (DEBUG) Log.d(TAG, "onOpen() called, ready to rock.");
                         } else {

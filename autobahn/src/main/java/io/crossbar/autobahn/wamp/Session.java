@@ -76,6 +76,7 @@ import io.crossbar.autobahn.wamp.types.Subscription;
 import io.crossbar.autobahn.wamp.utils.IDGenerator;
 
 import static io.crossbar.autobahn.wamp.messages.MessageMap.MESSAGE_TYPE_MAP;
+import static io.crossbar.autobahn.wamp.utils.Shortcuts.getOrDefault;
 
 
 public class Session implements ISession, ITransportHandler {
@@ -163,7 +164,9 @@ public class Session implements ISession, ITransportHandler {
         mSerializer = serializer;
 
         // FIXME: should be async.
-        mOnConnectListeners.forEach(onConnectListener -> onConnectListener.onConnect(this));
+        for (OnConnectListener listener: mOnConnectListeners) {
+            listener.onConnect(this);
+        }
     }
 
     private void send(IMessage message) {
@@ -204,22 +207,25 @@ public class Session implements ISession, ITransportHandler {
                 SessionDetails details = new SessionDetails(msg.realm, msg.session);
                 mJoinFuture.complete(details);
                 List<CompletableFuture<?>> futures = new ArrayList<>();
-                mOnJoinListeners.forEach(
-                        listener -> futures.add(
-                                CompletableFuture.runAsync(() -> listener.onJoin(this, details),
-                                        getExecutor())));
+                for (OnJoinListener listener: mOnJoinListeners) {
+                    futures.add(CompletableFuture.runAsync(
+                            () -> listener.onJoin(this, details), getExecutor()));
+                }
                 CompletableFuture d = combineFutures(futures);
                 d.thenRunAsync(() -> {
                     mState = STATE_READY;
-                    mOnReadyListeners.forEach(listener -> listener.onReady(this));
+                    for (OnReadyListener listener: mOnReadyListeners) {
+                        listener.onReady(this);
+                    }
                 }, getExecutor());
             } else if (message instanceof Abort) {
                 Abort abortMessage = (Abort) message;
                 CloseDetails details = new CloseDetails(abortMessage.reason, abortMessage.message);
                 List<CompletableFuture<?>> futures = new ArrayList<>();
-                mOnLeaveListeners.forEach(
-                        l -> futures.add(
-                                CompletableFuture.runAsync(() -> l.onLeave(this, details), getExecutor())));
+                for (OnLeaveListener listener: mOnLeaveListeners) {
+                    futures.add(CompletableFuture.runAsync(
+                            () -> listener.onLeave(this, details), getExecutor()));
+                }
                 CompletableFuture d = combineFutures(futures);
                 d.thenRun(() -> {
                     LOGGER.info("Notified Session.onLeave listeners, now closing transport");
@@ -241,7 +247,7 @@ public class Session implements ISession, ITransportHandler {
             // Now that we have an active session handle all incoming messages here.
             if (message instanceof Result) {
                 Result msg = (Result) message;
-                CallRequest request = mCallRequests.getOrDefault(msg.request, null);
+                CallRequest request = getOrDefault(mCallRequests, msg.request, null);
                 if (request != null) {
                     mCallRequests.remove(msg.request);
 
@@ -261,7 +267,7 @@ public class Session implements ISession, ITransportHandler {
                 }
             } else if (message instanceof Subscribed) {
                 Subscribed msg = (Subscribed) message;
-                SubscribeRequest request = mSubscribeRequests.getOrDefault(msg.request, null);
+                SubscribeRequest request = getOrDefault(mSubscribeRequests, msg.request, null);
                 if (request != null) {
                     mSubscribeRequests.remove(msg.request);
                     if (!mSubscriptions.containsKey(msg.subscription)) {
@@ -276,7 +282,7 @@ public class Session implements ISession, ITransportHandler {
                 }
             } else if (message instanceof Event) {
                 Event msg = (Event) message;
-                List<Subscription> subscriptions = mSubscriptions.getOrDefault(msg.subscription, null);
+                List<Subscription> subscriptions = getOrDefault(mSubscriptions, msg.subscription, null);
                 if (subscriptions == null) {
                     throw new ProtocolError(String.format(
                             "EVENT received for non-subscribed subscription ID %s", msg.subscription));
@@ -284,52 +290,51 @@ public class Session implements ISession, ITransportHandler {
 
                 List<CompletableFuture<?>> futures = new ArrayList<>();
 
-                subscriptions.forEach(subscription -> {
-                            EventDetails details = new EventDetails(
-                                    subscription, msg.publication, 
-                                    msg.topic != null ? msg.topic : subscription.topic, 
-                                    msg.retained, -1, null, null, this);
+                for (Subscription subscription: subscriptions) {
+                    EventDetails details = new EventDetails(
+                            subscription, msg.publication,
+                            msg.topic != null ? msg.topic : subscription.topic,
+                            msg.retained, -1, null, null, this);
 
-                            CompletableFuture future = null;
-                            if (subscription.handler instanceof Consumer) {
-                                Consumer handler = (Consumer) subscription.handler;
-                                future = CompletableFuture.runAsync(
-                                        () -> handler.accept(msg.args.get(0)), getExecutor());
-                            } else if (subscription.handler instanceof Function) {
-                                Function handler = (Function) subscription.handler;
-                                future = CompletableFuture.runAsync(
-                                        () -> handler.apply(msg.args.get(0)), getExecutor());
-                            } else if (subscription.handler instanceof BiConsumer) {
-                                BiConsumer handler = (BiConsumer) subscription.handler;
-                                future = CompletableFuture.runAsync(
-                                        () -> handler.accept(msg.args.get(0), details), getExecutor());
-                            } else if (subscription.handler instanceof BiFunction) {
-                                BiFunction handler = (BiFunction) subscription.handler;
-                                future = CompletableFuture.runAsync(
-                                        () -> handler.apply(msg.args.get(0), details), getExecutor());
-                            } else if (subscription.handler instanceof TriConsumer) {
-                                TriConsumer handler = (TriConsumer) subscription.handler;
-                                future = CompletableFuture.runAsync(
-                                        () -> handler.accept(msg.args, msg.kwargs, details), getExecutor());
-                            } else if (subscription.handler instanceof TriFunction) {
-                                TriFunction handler = (TriFunction) subscription.handler;
-                                future = CompletableFuture.runAsync(
-                                        () -> handler.apply(msg.args, msg.kwargs, details), getExecutor());
-                            } else {
-                                // FIXME: never going to reach here, though would be better to throw here.
+                    CompletableFuture future = null;
+                    if (subscription.handler instanceof Consumer) {
+                        Consumer handler = (Consumer) subscription.handler;
+                        future = CompletableFuture.runAsync(
+                                () -> handler.accept(msg.args.get(0)), getExecutor());
+                    } else if (subscription.handler instanceof Function) {
+                        Function handler = (Function) subscription.handler;
+                        future = CompletableFuture.runAsync(
+                                () -> handler.apply(msg.args.get(0)), getExecutor());
+                    } else if (subscription.handler instanceof BiConsumer) {
+                        BiConsumer handler = (BiConsumer) subscription.handler;
+                        future = CompletableFuture.runAsync(
+                                () -> handler.accept(msg.args.get(0), details), getExecutor());
+                    } else if (subscription.handler instanceof BiFunction) {
+                        BiFunction handler = (BiFunction) subscription.handler;
+                        future = CompletableFuture.runAsync(
+                                () -> handler.apply(msg.args.get(0), details), getExecutor());
+                    } else if (subscription.handler instanceof TriConsumer) {
+                        TriConsumer handler = (TriConsumer) subscription.handler;
+                        future = CompletableFuture.runAsync(
+                                () -> handler.accept(msg.args, msg.kwargs, details), getExecutor());
+                    } else if (subscription.handler instanceof TriFunction) {
+                        TriFunction handler = (TriFunction) subscription.handler;
+                        future = CompletableFuture.runAsync(
+                                () -> handler.apply(msg.args, msg.kwargs, details), getExecutor());
+                    } else {
+                        // FIXME: never going to reach here, though would be better to throw here.
 //                                IEventHandler handler = (IEventHandler) subscription.handler;
 //                                future = CompletableFuture.runAsync(
 //                                        () -> handler.accept(msg.args, msg.kwargs, details), getExecutor());
-                            }
-                            futures.add(future);
-                        }
-                );
+                    }
+                    futures.add(future);
+                }
 
                 // Not really doing anything with the combined futures.
                 combineFutures(futures);
             } else if (message instanceof Published) {
                 Published msg = (Published) message;
-                PublishRequest request = mPublishRequests.getOrDefault(msg.request, null);
+                PublishRequest request = getOrDefault(mPublishRequests, msg.request, null);
                 if (request != null) {
                     mPublishRequests.remove(msg.request);
                     Publication publication = new Publication(msg.publication);
@@ -340,7 +345,7 @@ public class Session implements ISession, ITransportHandler {
                 }
             } else if (message instanceof Registered) {
                 Registered msg = (Registered) message;
-                RegisterRequest request = mRegisterRequest.getOrDefault(msg.request, null);
+                RegisterRequest request = getOrDefault(mRegisterRequest, msg.request, null);
                 if (request != null) {
                     mRegisterRequest.remove(msg.request);
                     Registration registration = new Registration(
@@ -353,7 +358,7 @@ public class Session implements ISession, ITransportHandler {
                 }
             } else if (message instanceof Invocation) {
                 Invocation msg = (Invocation) message;
-                Registration registration = mRegistrations.getOrDefault(msg.registration, null);
+                Registration registration = getOrDefault(mRegistrations, msg.registration, null);
 
                 if (registration != null) {
 
@@ -394,9 +399,10 @@ public class Session implements ISession, ITransportHandler {
                 Goodbye goodbyeMessage = (Goodbye) message;
                 CloseDetails details = new CloseDetails(goodbyeMessage.reason, goodbyeMessage.message);
                 List<CompletableFuture<?>> futures = new ArrayList<>();
-                mOnLeaveListeners.forEach(
-                        l -> futures.add(
-                                CompletableFuture.runAsync(() -> l.onLeave(this, details), getExecutor())));
+                for (OnLeaveListener listener: mOnLeaveListeners) {
+                    futures.add(CompletableFuture.runAsync(
+                            () -> listener.onLeave(this, details), getExecutor()));
+                }
                 CompletableFuture d = combineFutures(futures);
                 d.thenRun(() -> {
                     LOGGER.info("Notified Session.onLeave listeners, now closing transport");
@@ -443,9 +449,10 @@ public class Session implements ISession, ITransportHandler {
         LOGGER.info("onDisconnect(), wasClean=" + wasClean);
 
         List<CompletableFuture<?>> futures = new ArrayList<>();
-        mOnDisconnectListeners.forEach(
-                l -> futures.add(
-                        CompletableFuture.runAsync(() -> l.onDisconnect(this, wasClean), getExecutor())));
+        for (OnDisconnectListener listener: mOnDisconnectListeners) {
+            futures.add(CompletableFuture.runAsync(
+                    () -> listener.onDisconnect(this, wasClean), getExecutor()));
+        }
         CompletableFuture d = combineFutures(futures);
         d.thenRun(() -> {
             LOGGER.info("Notified all Session.onDisconnect listeners.");
