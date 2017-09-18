@@ -31,6 +31,7 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_APP)) {
                 java {
                     include 'io/crossbar/autobahn/demogallery/android/**'
                     include 'io/crossbar/autobahn/demogallery/ExampleClient.java'
+                    exclude 'io/crossbar/autobahn/demogallery/netty/**'
                 }
             }
         }
@@ -41,6 +42,7 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_APP)) {
         implementation project(path: ':autobahn')
         implementation 'com.android.support:appcompat-v7:26.0.2'
         implementation 'com.fasterxml.jackson.core:jackson-core:2.8.8'
+        // compile 'net.sourceforge.streamsupport:streamsupport-cfuture:1.5.6'
     }
 } else {
     mainClassName = 'io.crossbar.autobahn.demogallery.netty.Main'
@@ -52,6 +54,7 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_APP)) {
             java {
                 include 'io/crossbar/autobahn/demogallery/netty/**'
                 include 'io/crossbar/autobahn/demogallery/ExampleClient.java'
+                exclude 'io/crossbar/autobahn/demogallery/android/**'
             }
         }
     }

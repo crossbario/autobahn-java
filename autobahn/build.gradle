@@ -6,7 +6,7 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
         buildToolsVersion '26.0.1'
 
         defaultConfig {
-            minSdkVersion 15
+            minSdkVersion 24
             targetSdkVersion 26
         }
 
@@ -64,4 +64,5 @@ dependencies {
         runtime 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.8.8'
         runtime 'org.msgpack:jackson-dataformat-msgpack:0.8.13'
     }
+    // compile 'net.sourceforge.streamsupport:streamsupport-cfuture:1.5.6'
 }
