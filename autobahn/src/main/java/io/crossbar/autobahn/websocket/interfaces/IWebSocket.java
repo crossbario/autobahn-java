@@ -41,4 +41,12 @@ public interface IWebSocket {
     void sendMessage(String payload);
 
     void sendMessage(byte[] payload, boolean isBinary);
+
+    void sendPing();
+
+    void sendPing(byte[] payload);
+
+    void sendPong();
+
+    void sendPong(byte[] payload);
 }

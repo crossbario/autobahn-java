@@ -21,6 +21,8 @@ import io.crossbar.autobahn.websocket.types.ConnectionResponse;
  */
 public class WebSocketConnectionHandler implements IWebSocketConnectionHandler {
 
+    private WebSocketConnection mConnection;
+
     @Override
     public void onConnect(ConnectionResponse response) {
 
@@ -53,5 +55,34 @@ public class WebSocketConnectionHandler implements IWebSocketConnectionHandler {
     @Override
     public void onMessage(byte[] payload, boolean isBinary) {
 
+    }
+
+    @Override
+    public void onPing() {
+        mConnection.sendPong();
+    }
+
+    @Override
+    public void onPing(byte[] payload) {
+        mConnection.sendPong(payload);
+    }
+
+    @Override
+    public void onPong() {
+
+    }
+
+    @Override
+    public void onPong(byte[] payload) {
+
+    }
+
+    @Override
+    public void setConnection(WebSocketConnection connection) {
+        if (mConnection == null) {
+            mConnection = connection;
+        } else {
+            throw new IllegalStateException("Connection must be set only once.");
+        }
     }
 }

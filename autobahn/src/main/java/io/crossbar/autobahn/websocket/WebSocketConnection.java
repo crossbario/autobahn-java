@@ -168,6 +168,26 @@ public class WebSocketConnection implements IWebSocket {
     }
 
     @Override
+    public void sendPing() {
+        mWriter.forward(new Ping());
+    }
+
+    @Override
+    public void sendPing(byte[] payload) {
+        mWriter.forward(new Ping(payload));
+    }
+
+    @Override
+    public void sendPong() {
+        mWriter.forward(new Pong());
+    }
+
+    @Override
+    public void sendPong(byte[] payload) {
+        mWriter.forward(new Pong(payload));
+    }
+
+    @Override
     public boolean isConnected() {
         return mSocket != null && mSocket.isConnected() && !mSocket.isClosed();
     }
@@ -502,15 +522,19 @@ public class WebSocketConnection implements IWebSocket {
                     Ping ping = (Ping) msg.obj;
                     if (DEBUG) Log.d(TAG, "WebSockets Ping received");
 
-                    // reply with Pong
-                    Pong pong = new Pong();
-                    pong.mPayload = ping.mPayload;
-                    mWriter.forward(pong);
+                    if (ping.mPayload == null) {
+                        mWsHandler.onPing();
+                    } else {
+                        mWsHandler.onPing(ping.mPayload);
+                    }
 
                 } else if (msg.obj instanceof Pong) {
-
-                    @SuppressWarnings("unused")
                     Pong pong = (Pong) msg.obj;
+                    if (pong.mPayload == null) {
+                        mWsHandler.onPong();
+                    } else {
+                        mWsHandler.onPong(pong.mPayload);
+                    }
 
                     if (DEBUG) Log.d(TAG, "WebSockets Pong received");
 
@@ -546,6 +570,7 @@ public class WebSocketConnection implements IWebSocket {
                         if (mWsHandler != null) {
                             String protocol = getOrDefault(serverHandshake.headers,
                                     "Sec-WebSocket-Protocol", null);
+                            mWsHandler.setConnection(WebSocketConnection.this);
                             mWsHandler.onConnect(new ConnectionResponse(protocol));
                             mWsHandler.onOpen();
                             if (DEBUG) Log.d(TAG, "onOpen() called, ready to rock.");
