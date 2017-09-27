@@ -70,6 +70,7 @@ class WebSocketReader extends Thread {
 
     private boolean mStopped = false;
     private int mState;
+    private long mLastReadTime;
 
     private boolean mInsideMessage = false;
     private int mMessageOpcode;
@@ -119,6 +120,9 @@ class WebSocketReader extends Thread {
         if (DEBUG) Log.d(TAG, "created");
     }
 
+    double getTimeSinceLastRead() {
+        return (System.currentTimeMillis() - mLastReadTime) / 1000.0;
+    }
 
     /**
      * Graceful shutdown of background reader thread (called from master).
@@ -637,6 +641,7 @@ class WebSocketReader extends Thread {
                 mPosition += len;
                 if (len > 0) {
 
+                    mLastReadTime = System.currentTimeMillis();
                     // process buffered data
                     while (consumeData()) {
 
@@ -650,7 +655,7 @@ class WebSocketReader extends Thread {
 
                     if (DEBUG) Log.d(TAG, "run() : ConnectionLost");
 
-                    notify(new ConnectionLost());
+                    notify(new ConnectionLost(null));
 
                     mStopped = true;
                 }
@@ -671,7 +676,7 @@ class WebSocketReader extends Thread {
                 if (DEBUG) Log.d(TAG, "run() : SocketException (" + e.toString() + ")");
 
                 // wrap the exception and notify master
-                notify(new ConnectionLost());
+                notify(new ConnectionLost(null));
             }
 
         } catch (Exception e) {

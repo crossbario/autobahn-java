@@ -449,7 +449,7 @@ class WebSocketWriter extends Handler {
             if (DEBUG) Log.d(TAG, "run() : SocketException (" + e.toString() + ")");
 
             // wrap the exception and notify master
-            notify(new ConnectionLost());
+            notify(new ConnectionLost(null));
         } catch (Exception e) {
 
             if (DEBUG) e.printStackTrace();

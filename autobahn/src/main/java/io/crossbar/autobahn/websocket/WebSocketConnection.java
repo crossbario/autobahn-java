@@ -24,6 +24,9 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLSocketFactory;
@@ -77,6 +80,33 @@ public class WebSocketConnection implements IWebSocket {
     private boolean mPrevConnected;
     private boolean onCloseCalled;
 
+    private ScheduledExecutorService mExecutor;
+
+    private Runnable mAutoPinger = new Runnable() {
+        @Override
+        public void run() {
+            if (mReader != null && mReader.getTimeSinceLastRead() >= 10.0) {
+                sendPing();
+                mExecutor.schedule(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mReader.getTimeSinceLastRead() < 10.0) {
+                            return;
+                        }
+                        forward(new ConnectionLost("AutoPing timed out."));
+                        mExecutor.shutdown();
+                    }
+                }, 2, TimeUnit.SECONDS);
+            }
+        }
+    };
+
+    private void forward(Object message) {
+        Message msg = mMasterHandler.obtainMessage();
+        msg.obj = message;
+        mMasterHandler.sendMessage(msg);
+    }
+
     /**
      * Asynchronous socket connector.
      */
@@ -97,7 +127,8 @@ public class WebSocketConnection implements IWebSocket {
 
                 // the following will block until connection was established or
                 // an error occurred!
-                mSocket.connect(new InetSocketAddress(mWsHost, mWsPort), mOptions.getSocketConnectTimeout());
+                mSocket.connect(new InetSocketAddress(mWsHost, mWsPort),
+                        mOptions.getSocketConnectTimeout());
 
                 // before doing any data transfer on the socket, set socket
                 // options
@@ -105,8 +136,7 @@ public class WebSocketConnection implements IWebSocket {
                 mSocket.setTcpNoDelay(mOptions.getTcpNoDelay());
 
             } catch (IOException e) {
-                onClose(IWebSocketConnectionHandler.CLOSE_CANNOT_CONNECT,
-                        e.getMessage());
+                onClose(IWebSocketConnectionHandler.CLOSE_CANNOT_CONNECT, e.getMessage());
                 return;
             }
 
@@ -121,19 +151,16 @@ public class WebSocketConnection implements IWebSocket {
                     createWriter();
 
                     // start WebSockets handshake
-                    ClientHandshake hs = new ClientHandshake(
-                            mWsHost + ":" + mWsPort);
+                    ClientHandshake hs = new ClientHandshake(mWsHost + ":" + mWsPort);
                     hs.mPath = mWsPath;
                     hs.mQuery = mWsQuery;
                     hs.mSubprotocols = mWsSubprotocols;
                     hs.mHeaderList = mWsHeaders;
                     mWriter.forward(hs);
-
                     mPrevConnected = true;
 
                 } catch (Exception e) {
-                    onClose(IWebSocketConnectionHandler.CLOSE_INTERNAL_ERROR,
-                            e.getMessage());
+                    onClose(IWebSocketConnectionHandler.CLOSE_INTERNAL_ERROR, e.getMessage());
                 }
             } else {
                 onClose(IWebSocketConnectionHandler.CLOSE_CANNOT_CONNECT,
@@ -145,6 +172,7 @@ public class WebSocketConnection implements IWebSocket {
     public WebSocketConnection() {
         if (DEBUG) Log.d(TAG, "created");
 
+        mExecutor = Executors.newSingleThreadScheduledExecutor();
         // create WebSocket master handler
         createHandler();
 
@@ -169,6 +197,7 @@ public class WebSocketConnection implements IWebSocket {
 
     @Override
     public void sendPing() {
+        Log.i(TAG, "Sending ping");
         mWriter.forward(new Ping());
     }
 
@@ -568,6 +597,7 @@ public class WebSocketConnection implements IWebSocket {
 
                     if (serverHandshake.mSuccess) {
                         if (mWsHandler != null) {
+                            mExecutor.scheduleAtFixedRate(mAutoPinger, 10, 10, TimeUnit.SECONDS);
                             String protocol = getOrDefault(serverHandshake.headers,
                                     "Sec-WebSocket-Protocol", null);
                             mWsHandler.setConnection(WebSocketConnection.this);
@@ -581,9 +611,8 @@ public class WebSocketConnection implements IWebSocket {
 
                 } else if (msg.obj instanceof ConnectionLost) {
 
-                    @SuppressWarnings("unused")
                     ConnectionLost connnectionLost = (ConnectionLost) msg.obj;
-                    failConnection(IWebSocketConnectionHandler.CLOSE_CONNECTION_LOST, "WebSockets connection lost");
+                    failConnection(IWebSocketConnectionHandler.CLOSE_CONNECTION_LOST, connnectionLost.reason);
 
                 } else if (msg.obj instanceof ProtocolViolation) {
 
