@@ -35,6 +35,7 @@ import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
 import io.crossbar.autobahn.websocket.interfaces.IWebSocket;
 import io.crossbar.autobahn.websocket.interfaces.IWebSocketConnectionHandler;
 import io.crossbar.autobahn.websocket.messages.BinaryMessage;
+import io.crossbar.autobahn.websocket.messages.CannotConnect;
 import io.crossbar.autobahn.websocket.messages.ClientHandshake;
 import io.crossbar.autobahn.websocket.messages.Close;
 import io.crossbar.autobahn.websocket.messages.ConnectionLost;
@@ -136,7 +137,7 @@ public class WebSocketConnection implements IWebSocket {
                 mSocket.setTcpNoDelay(mOptions.getTcpNoDelay());
 
             } catch (IOException e) {
-                onClose(IWebSocketConnectionHandler.CLOSE_CANNOT_CONNECT, e.getMessage());
+                forward(new CannotConnect(e.getMessage()));
                 return;
             }
 
@@ -160,11 +161,10 @@ public class WebSocketConnection implements IWebSocket {
                     mPrevConnected = true;
 
                 } catch (Exception e) {
-                    onClose(IWebSocketConnectionHandler.CLOSE_INTERNAL_ERROR, e.getMessage());
+                    forward(new Error(e));
                 }
             } else {
-                onClose(IWebSocketConnectionHandler.CLOSE_CANNOT_CONNECT,
-                        "Could not connect to WebSocket server");
+                forward(new CannotConnect("Could not connect to WebSocket server"));
             }
         }
     }
@@ -608,6 +608,10 @@ public class WebSocketConnection implements IWebSocket {
                             if (DEBUG) Log.d(TAG, "could not call onOpen() .. handler already NULL");
                         }
                     }
+                } else if (msg.obj instanceof CannotConnect) {
+
+                    CannotConnect cannotConnect = (CannotConnect) msg.obj;
+                    failConnection(IWebSocketConnectionHandler.CLOSE_CANNOT_CONNECT, cannotConnect.reason);
 
                 } else if (msg.obj instanceof ConnectionLost) {
 
