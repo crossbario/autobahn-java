@@ -6,7 +6,7 @@ project.ext {
     PLUGIN_ANDROID_APP = 'com.android.application'
     PLUGIN_ANDROID_LIB = 'com.android.library'
     PLUGIN_JAVA_APP = 'application'
-    PLUGIN_JAVA_LIB = 'java-library-distribution'
+    PLUGIN_JAVA_LIB = 'java-library'
 }
 
 buildscript {
