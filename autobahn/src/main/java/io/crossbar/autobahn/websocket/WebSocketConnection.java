@@ -90,14 +90,11 @@ public class WebSocketConnection implements IWebSocket {
         public void run() {
             if (mReader != null && mReader.getTimeSinceLastRead() >= mIdleTimeout - 1) {
                 sendPing();
-                mExecutor.schedule(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (mReader.getTimeSinceLastRead() < mIdleTimeout) {
-                            return;
-                        }
-                        forward(new ConnectionLost("AutoPing timed out."));
+                mExecutor.schedule(() -> {
+                    if (mReader.getTimeSinceLastRead() < mIdleTimeout) {
+                        return;
                     }
+                    forward(new ConnectionLost("AutoPing timed out."));
                 }, 2, TimeUnit.SECONDS);
             }
         }
