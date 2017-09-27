@@ -88,7 +88,7 @@ public class WebSocketConnection implements IWebSocket {
     private final Runnable mAutoPinger = new Runnable() {
         @Override
         public void run() {
-            if (mReader.getTimeSinceLastRead() >= mIdleTimeout - 1) {
+            if (mReader != null && mReader.getTimeSinceLastRead() >= mIdleTimeout - 1) {
                 sendPing();
                 mExecutor.schedule(new Runnable() {
                     @Override
@@ -223,13 +223,17 @@ public class WebSocketConnection implements IWebSocket {
     }
 
     private void closeReaderThread(boolean waitForQuit) {
-        mReader.quit();
-        if (waitForQuit) {
-            try {
-                mReader.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        if (mReader != null) {
+            mReader.quit();
+            if (waitForQuit) {
+                try {
+                    mReader.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
+        } else {
+            if (DEBUG) Log.d(TAG, "mReader already NULL");
         }
     }
 
@@ -248,13 +252,18 @@ public class WebSocketConnection implements IWebSocket {
     }
 
     private void closeWriterThread() {
-        mWriter.forward(new Quit());
-        try {
-            mWriterThread.join();
-        } catch (InterruptedException e) {
-            if (DEBUG) e.printStackTrace();
+        if (mWriter != null) {
+            mWriter.forward(new Quit());
+            try {
+                mWriterThread.join();
+            } catch (InterruptedException e) {
+                if (DEBUG) e.printStackTrace();
+            }
+        } else {
+            if (DEBUG) Log.d(TAG, "mWriter already NULL");
         }
     }
+
 
     private void failConnection(int code, String reason) {
         if (DEBUG) Log.d(TAG, "fail connection [code = " + code + ", reason = " + reason);
@@ -270,7 +279,7 @@ public class WebSocketConnection implements IWebSocket {
                 if (DEBUG) e.printStackTrace();
             }
         } else {
-            if (DEBUG) Log.d(TAG, "Socket already disconnected.");
+            if (DEBUG) Log.d(TAG, "Socket already closed");
         }
 
         closeReaderThread(true);
@@ -385,7 +394,7 @@ public class WebSocketConnection implements IWebSocket {
         // as we need to have active connection to be able to process the response
         // of this close request.
         if (mWriter != null) {
-
+            mWriter.forward(new Close(code, reason));
         } else {
             if (DEBUG) Log.d(TAG, "could not send Close .. writer already NULL");
         }
