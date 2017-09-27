@@ -97,7 +97,6 @@ public class WebSocketConnection implements IWebSocket {
                             return;
                         }
                         forward(new ConnectionLost("AutoPing timed out."));
-                        mExecutor.shutdown();
                     }
                 }, 2, TimeUnit.SECONDS);
             }
