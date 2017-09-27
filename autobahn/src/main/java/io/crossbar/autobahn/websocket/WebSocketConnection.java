@@ -82,16 +82,18 @@ public class WebSocketConnection implements IWebSocket {
     private boolean onCloseCalled;
 
     private ScheduledExecutorService mExecutor;
+    // FIXME: make this configurable.
+    private final long mIdleTimeout = 10;
 
-    private Runnable mAutoPinger = new Runnable() {
+    private final Runnable mAutoPinger = new Runnable() {
         @Override
         public void run() {
-            if (mReader != null && mReader.getTimeSinceLastRead() >= 10.0) {
+            if (mReader.getTimeSinceLastRead() >= mIdleTimeout - 1) {
                 sendPing();
                 mExecutor.schedule(new Runnable() {
                     @Override
                     public void run() {
-                        if (mReader.getTimeSinceLastRead() < 10.0) {
+                        if (mReader.getTimeSinceLastRead() < mIdleTimeout) {
                             return;
                         }
                         forward(new ConnectionLost("AutoPing timed out."));
@@ -197,7 +199,6 @@ public class WebSocketConnection implements IWebSocket {
 
     @Override
     public void sendPing() {
-        Log.i(TAG, "Sending ping");
         mWriter.forward(new Ping());
     }
 
@@ -222,17 +223,13 @@ public class WebSocketConnection implements IWebSocket {
     }
 
     private void closeReaderThread(boolean waitForQuit) {
-        if (mReader != null) {
-            mReader.quit();
-            if (waitForQuit) {
-                try {
-                    mReader.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+        mReader.quit();
+        if (waitForQuit) {
+            try {
+                mReader.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        } else {
-            if (DEBUG) Log.d(TAG, "mReader already NULL");
         }
     }
 
@@ -251,20 +248,13 @@ public class WebSocketConnection implements IWebSocket {
     }
 
     private void closeWriterThread() {
-        if (mWriter != null) {
-            //mWriterThread.getLooper().quit();
-            mWriter.forward(new Quit());
-            try {
-                mWriterThread.join();
-            } catch (InterruptedException e) {
-                if (DEBUG) e.printStackTrace();
-            }
-            //mWriterThread = null;
-        } else {
-            if (DEBUG) Log.d(TAG, "mWriter already NULL");
+        mWriter.forward(new Quit());
+        try {
+            mWriterThread.join();
+        } catch (InterruptedException e) {
+            if (DEBUG) e.printStackTrace();
         }
     }
-
 
     private void failConnection(int code, String reason) {
         if (DEBUG) Log.d(TAG, "fail connection [code = " + code + ", reason = " + reason);
@@ -280,7 +270,7 @@ public class WebSocketConnection implements IWebSocket {
                 if (DEBUG) e.printStackTrace();
             }
         } else {
-            if (DEBUG) Log.d(TAG, "mTransportChannel already NULL");
+            if (DEBUG) Log.d(TAG, "Socket already disconnected.");
         }
 
         closeReaderThread(true);
@@ -395,7 +385,7 @@ public class WebSocketConnection implements IWebSocket {
         // as we need to have active connection to be able to process the response
         // of this close request.
         if (mWriter != null) {
-            mWriter.forward(new Close(code, reason));
+
         } else {
             if (DEBUG) Log.d(TAG, "could not send Close .. writer already NULL");
         }
@@ -597,7 +587,7 @@ public class WebSocketConnection implements IWebSocket {
 
                     if (serverHandshake.mSuccess) {
                         if (mWsHandler != null) {
-                            mExecutor.scheduleAtFixedRate(mAutoPinger, 10, 10, TimeUnit.SECONDS);
+                            mExecutor.scheduleAtFixedRate(mAutoPinger, mIdleTimeout, mIdleTimeout, TimeUnit.SECONDS);
                             String protocol = getOrDefault(serverHandshake.headers,
                                     "Sec-WebSocket-Protocol", null);
                             mWsHandler.setConnection(WebSocketConnection.this);
