@@ -16,6 +16,10 @@ buildscript {
             url 'https://maven.google.com'
         }
     }
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
+    }
     // Netty build does not need android dependencies.
     if (project.properties.get('buildPlatform', 'android') == 'android') {
         dependencies {
