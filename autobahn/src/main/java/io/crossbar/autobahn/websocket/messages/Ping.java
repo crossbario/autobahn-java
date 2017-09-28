@@ -5,7 +5,7 @@ public class Ping extends Message {
 
     public byte[] mPayload;
 
-    Ping() {
+    public Ping() {
         mPayload = null;
     }
 

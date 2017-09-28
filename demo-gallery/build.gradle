@@ -5,13 +5,6 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_APP)) {
         compileSdkVersion 26
         buildToolsVersion '26.0.1'
 
-        packagingOptions {
-            exclude 'META-INF/LICENSE'
-            exclude 'META-INF/ASL2.0'
-            exclude 'META-INF/INDEX.LIST'
-            exclude 'META-INF/io.netty.versions.properties'
-        }
-
         defaultConfig {
             minSdkVersion 24
             targetSdkVersion 26
@@ -35,12 +28,11 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_APP)) {
                 }
             }
         }
-        return true
     }
 
     dependencies {
         implementation project(path: ':autobahn')
-        implementation 'com.android.support:appcompat-v7:26.0.2'
+        implementation 'com.android.support:appcompat-v7:26.1.0'
         implementation 'com.fasterxml.jackson.core:jackson-core:2.8.8'
         // implementation 'net.sourceforge.streamsupport:streamsupport-cfuture:1.5.6'
     }

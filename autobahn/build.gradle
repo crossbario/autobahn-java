@@ -34,14 +34,9 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
     sourceSets {
         main {
             java {
-                include 'io/crossbar/autobahn/wamp/**'
                 exclude 'io/crossbar/autobahn/wamp/transports/AndroidWebSocket.java'
+                exclude 'io/crossbar/autobahn/websocket'
             }
-        }
-    }
-    distributions {
-        main {
-            baseName = 'autobahn'
         }
     }
     jar {
@@ -56,13 +51,10 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.8.8'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.8.8'
     implementation 'org.msgpack:jackson-dataformat-msgpack:0.8.13'
-    implementation 'io.netty:netty-codec-http:4.1.2.Final'
-    implementation 'io.netty:netty-handler:4.1.2.Final'
-    if (plugins.hasPlugin(project.PLUGIN_JAVA_LIB)) {
-        runtime 'com.fasterxml.jackson.core:jackson-core:2.8.8'
-        runtime 'com.fasterxml.jackson.core:jackson-databind:2.8.8'
-        runtime 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.8.8'
-        runtime 'org.msgpack:jackson-dataformat-msgpack:0.8.13'
-    }
     // implementation 'net.sourceforge.streamsupport:streamsupport-cfuture:1.5.6'
+    if (plugins.hasPlugin(project.PLUGIN_JAVA_LIB)) {
+        implementation 'io.netty:netty-codec-http:4.1.2.Final'
+        implementation 'io.netty:netty-handler:4.1.2.Final'
+        api 'com.fasterxml.jackson.core:jackson-core:2.8.8'
+    }
 }
