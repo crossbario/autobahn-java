@@ -1,5 +1,29 @@
 apply plugin: project.PLATFORM == project.PLATFORM_NETTY ? project.PLUGIN_JAVA_LIB: project.PLUGIN_ANDROID_LIB
 
+ext {
+    bintrayRepo = 'maven'
+    bintrayName = 'autobahn'
+
+    publishedGroupId = 'io.crossbar'
+    libraryName = 'autobahn'
+    artifact = 'autobahn'
+
+    libraryDescription = 'WebSocket and WAMP in Java'
+
+    siteUrl = 'https://github.com/crossbario/autobahn-java'
+    gitUrl = 'https://github.com/crossbario/autobahn-java.git'
+
+    libraryVersion = '17.9.2'
+
+    developerId = 'crossbario'
+    developerName = 'crossbario'
+    developerEmail = 'support@crossbario.com'
+
+    licenseName = 'MIT License'
+    licenseUrl = 'http://opensource.org/licenses/MIT'
+    allLicenses = ["MIT"]
+}
+
 if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
     android {
         compileSdkVersion 26
@@ -58,3 +82,6 @@ dependencies {
         api 'com.fasterxml.jackson.core:jackson-core:2.8.8'
     }
 }
+
+//apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
+//apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'
