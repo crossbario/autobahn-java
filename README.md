@@ -4,7 +4,7 @@ Client library providing [WAMP](http://wamp-proto.org/) on Java 8 ([Netty](https
 
 [![Docker Hub](https://img.shields.io/badge/docker-ready-blue.svg)](https://hub.docker.com/r/crossbario/autobahn-java/) |
 [![Travis](https://travis-ci.org/crossbario/autobahn-java.svg?branch=master)](https://travis-ci.org/crossbario/autobahn-java)
-[![Docs](https://javadoc.io/badge/io.crossbar.autobahn/autobahn-android.svg)](https://javadoc.io/doc/io.crossbar.autobahn/autobahn-android)
+[![Docs](https://javadoc.io/badge/io.crossbar.autobahn/autobahn-android.svg?label=docs)](https://javadoc.io/doc/io.crossbar.autobahn/autobahn-android)
 
 ---
 
