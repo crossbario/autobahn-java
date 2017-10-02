@@ -93,7 +93,6 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
         source = android.sourceSets.main.java.srcDirs
         classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     }
-    println project.files(android.getBootClasspath().join(File.pathSeparator))
     project.archivesBaseName = ARTIFACT_ANDROID
     group = groupID
     version = relVersion
