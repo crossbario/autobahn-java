@@ -1,4 +1,4 @@
-#Release v17.9.1
+# Release v17.9.1
 
   * Add changelog gen script
   * Maven and JCenter config (#293)
