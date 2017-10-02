@@ -63,6 +63,9 @@ publish_android:
 publish_netty:
 	AUTOBAHN_BUILD_VERSION=${AUTOBAHN_JAVA_VERSION} gradle bintrayUpload -PbuildPlatform=netty
 
+generate_changelog:
+	./changelog_gen.sh
+
 check_toolchain:
 	docker run -it --rm crossbario/autobahn-java:netty /bin/bash -c "ls -la /autobahn && du -hs /autobahn"
 
