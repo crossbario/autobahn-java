@@ -29,7 +29,7 @@ dependencies {
 }
 
 bintray {
-    user = System.getenv('BINTRAY_USERNAME')
+    user = System.getenv('BINTRAY_USER')
     key = System.getenv('BINTRAY_KEY')
     if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
         configurations = ['archives']
@@ -45,15 +45,15 @@ bintray {
         version {
             name = relVersion
             released = new Date()
-            mavenCentralSync {
-                sync = true
-                user = System.getenv('SONATYPE_USERNAME')
-                password = System.getenv('SONATYPE_PASSWORD')
-            }
-            gpg {
-                sign = true
-                passphrase = System.getenv('BINTRAY_GPG_KEY')
-            }
+//            mavenCentralSync {
+//                sync = true
+//                user = System.getenv('SONATYPE_USERNAME')
+//                password = System.getenv('SONATYPE_PASSWORD')
+//            }
+//            gpg {
+//                sign = true
+//                passphrase = System.getenv('BINTRAY_GPG_KEY')
+//            }
         }
     }
 }
