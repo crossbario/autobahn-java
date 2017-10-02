@@ -142,13 +142,6 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
         classifier = 'sources'
         from sourceSets.main.allSource
     }
-    task javadocJar(type: Jar, dependsOn: javadoc) {
-        classifier = 'javadoc'
-        from javadoc.destinationDir
-    }
-    artifacts {
-        archives javadocJar
-    }
     sourceSets {
         main {
             java {
@@ -164,6 +157,12 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
 artifacts {
     archives sourcesJar
+    archives javadocJar
 }
