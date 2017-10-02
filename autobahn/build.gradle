@@ -5,9 +5,6 @@ apply plugin: 'com.jfrog.bintray'
 def ARTIFACT_ANDROID = 'autobahn-android'
 def ARTIFACT_JAVA = 'autobahn-java'
 
-def developerId = 'crossbario'
-def developerName = 'crossbario'
-def developerEmail = 'support@crossbario.com'
 def groupID = 'io.crossbar.autobahn'
 def gitUrl = 'https://github.com/crossbario/autobahn-java.git'
 def licenseName = 'MIT'
@@ -38,8 +35,9 @@ bintray {
     }
     publish = true
     pkg {
-        repo = 'maven'
+        repo = 'autobahn'
         name = project.PLATFORM == project.PLATFORM_NETTY ? ARTIFACT_JAVA: ARTIFACT_ANDROID
+        userOrg = 'crossbario'
         licenses = [licenseName]
         vcsUrl = 'https://github.com/crossbario/autobahn-java.git'
         version {
@@ -49,11 +47,12 @@ bintray {
 //                sync = true
 //                user = System.getenv('SONATYPE_USERNAME')
 //                password = System.getenv('SONATYPE_PASSWORD')
+//                close = '1'
 //            }
-            gpg {
-                sign = true
-                passphrase = System.getenv('BINTRAY_GPG_KEY')
-            }
+//            gpg {
+//                sign = true
+//                passphrase = System.getenv('BINTRAY_GPG_KEY')
+//            }
         }
     }
 }
@@ -114,13 +113,6 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
                         license {
                             name licenseName
                             url licenseUrl
-                        }
-                    }
-                    developers {
-                        developer {
-                            id developerId
-                            name developerName
-                            email developerEmail
                         }
                     }
                     scm {
