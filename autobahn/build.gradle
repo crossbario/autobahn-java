@@ -1,5 +1,5 @@
-apply plugin: project.PLATFORM == project.PLATFORM_NETTY ? project.PLUGIN_JAVA_LIB: project.PLUGIN_ANDROID_LIB
-apply plugin: project.PLATFORM == project.PLATFORM_NETTY ? 'maven-publish': 'com.github.dcendents.android-maven'
+apply plugin: project.IS_ANDROID ? project.PLUGIN_ANDROID_LIB: project.PLUGIN_JAVA_LIB
+apply plugin: project.IS_ANDROID ? 'com.github.dcendents.android-maven': 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
 
 def ARTIFACT_ANDROID = 'autobahn-android'
@@ -9,7 +9,8 @@ def groupID = 'io.crossbar.autobahn'
 def gitUrl = 'https://github.com/crossbario/autobahn-java.git'
 def licenseName = 'MIT'
 def licenseUrl = 'https://opensource.org/licenses/MIT'
-def relVersion = System.getenv().containsKey('AUTOBAHN_BUILD_VERSION') ? System.getenv('AUTOBAHN_BUILD_VERSION'): '17.10.1'
+def relVersion = System.getenv().containsKey('AUTOBAHN_BUILD_VERSION') ? System.getenv(
+        'AUTOBAHN_BUILD_VERSION'): '17.10.1'
 def siteUrl = 'https://github.com/crossbario/autobahn-java'
 
 dependencies {
@@ -18,7 +19,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.8.8'
     implementation 'org.msgpack:jackson-dataformat-msgpack:0.8.13'
     // implementation 'net.sourceforge.streamsupport:streamsupport-cfuture:1.5.6'
-    if (plugins.hasPlugin(project.PLUGIN_JAVA_LIB)) {
+    if (!project.IS_ANDROID) {
         implementation 'io.netty:netty-codec-http:4.1.2.Final'
         implementation 'io.netty:netty-handler:4.1.2.Final'
         api 'com.fasterxml.jackson.core:jackson-core:2.8.8'
@@ -28,7 +29,7 @@ dependencies {
 bintray {
     user = System.getenv('BINTRAY_USER')
     key = System.getenv('BINTRAY_KEY')
-    if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
+    if (project.IS_ANDROID) {
         configurations = ['archives']
     } else {
         publications = ['mavenJava']
@@ -36,28 +37,24 @@ bintray {
     publish = true
     pkg {
         repo = 'autobahn'
-        name = project.PLATFORM == project.PLATFORM_NETTY ? ARTIFACT_JAVA: ARTIFACT_ANDROID
+        name = project.IS_ANDROID ? ARTIFACT_ANDROID: ARTIFACT_JAVA
         userOrg = 'crossbario'
         licenses = [licenseName]
-        vcsUrl = 'https://github.com/crossbario/autobahn-java.git'
+        vcsUrl = gitUrl
         version {
             name = relVersion
             released = new Date()
             mavenCentralSync {
-                sync = false
+                sync = true
                 user = System.getenv('SONATYPE_USERNAME')
                 password = System.getenv('SONATYPE_PASSWORD')
                 close = '1'
-            }
-            gpg {
-                sign = false
-                passphrase = System.getenv('BINTRAY_GPG_KEY')
             }
         }
     }
 }
 
-if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
+if (project.IS_ANDROID) {
     android {
         compileSdkVersion 26
         buildToolsVersion '26.0.1'
@@ -106,6 +103,7 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
 
                     // Add your description here
                     name ARTIFACT_ANDROID
+                    description 'WebSocket & WAMP for Android'
                     url siteUrl
 
                     // Set your license
@@ -115,9 +113,14 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
                             url licenseUrl
                         }
                     }
+                    developers {
+                        developer {
+                            id "crossbario"
+                            name "Crossbar.io"
+                            email "support@crossbario.com"
+                        }
+                    }
                     scm {
-                        connection gitUrl
-                        developerConnection siteUrl
                         url siteUrl
                     }
                 }
@@ -125,16 +128,43 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
         }
     }
 } else {
+    // Create the pom configuration:
+    def pomConfig = {
+        // Set your license
+        licenses {
+            license {
+                name licenseName
+                url licenseUrl
+            }
+        }
+        developers {
+            developer {
+                id "crossbario"
+                name "Crossbar.io"
+                email "support@crossbario.com"
+            }
+        }
+        scm {
+            url siteUrl
+        }
+    }
     publishing {
         publications {
             mavenJava(MavenPublication) {
-                groupId groupID
-                artifactId ARTIFACT_JAVA
-                version relVersion
-
                 from components.java
                 artifact sourcesJar
                 artifact javadocJar
+
+                groupId groupID
+                artifactId ARTIFACT_JAVA
+                version relVersion
+                pom.withXml {
+                    def root = asNode()
+                    root.appendNode('description', 'WebSocket & WAMP for Java8+')
+                    root.appendNode('name', 'Autobahn Java')
+                    root.appendNode('url', siteUrl)
+                    root.children().last() + pomConfig
+                }
             }
         }
     }
