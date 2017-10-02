@@ -1,5 +1,6 @@
-Release 17.10.1
+#Release v17.9.1
 
+  * Add changelog gen script
   * Maven and JCenter config (#293)
   * add script to support older versions of android (#291)
   * Add config for maven publishing (#289)
