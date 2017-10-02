@@ -1,74 +1,19 @@
 apply plugin: project.PLATFORM == project.PLATFORM_NETTY ? project.PLUGIN_JAVA_LIB: project.PLUGIN_ANDROID_LIB
+apply plugin: project.PLATFORM == project.PLATFORM_NETTY ? 'maven-publish': 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
 
-ext {
-    bintrayRepo = 'maven'
-    bintrayName = 'autobahn'
+def ARTIFACT_ANDROID = 'autobahn-android'
+def ARTIFACT_JAVA = 'autobahn-java'
 
-    publishedGroupId = 'io.crossbar'
-    libraryName = 'autobahn'
-    artifact = 'autobahn'
-
-    libraryDescription = 'WebSocket and WAMP in Java'
-
-    siteUrl = 'https://github.com/crossbario/autobahn-java'
-    gitUrl = 'https://github.com/crossbario/autobahn-java.git'
-
-    libraryVersion = '17.9.2'
-
-    developerId = 'crossbario'
-    developerName = 'crossbario'
-    developerEmail = 'support@crossbario.com'
-
-    licenseName = 'MIT License'
-    licenseUrl = 'http://opensource.org/licenses/MIT'
-    allLicenses = ["MIT"]
-}
-
-if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
-    android {
-        compileSdkVersion 26
-        buildToolsVersion '26.0.1'
-
-        defaultConfig {
-            minSdkVersion 24
-            targetSdkVersion 26
-        }
-
-        buildTypes {
-            release {
-                minifyEnabled false
-                proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-            }
-        }
-
-        sourceSets {
-            main {
-                java {
-                    exclude 'io/crossbar/autobahn/wamp/transports/Netty*'
-                }
-            }
-        }
-
-        compileOptions {
-            sourceCompatibility JavaVersion.VERSION_1_8
-            targetCompatibility JavaVersion.VERSION_1_8
-        }
-    }
-} else {
-    sourceSets {
-        main {
-            java {
-                exclude 'io/crossbar/autobahn/wamp/transports/AndroidWebSocket.java'
-                exclude 'io/crossbar/autobahn/websocket'
-            }
-        }
-    }
-    jar {
-        version = project.properties.get("buildVersion", "")
-    }
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
+def developerId = 'crossbario'
+def developerName = 'crossbario'
+def developerEmail = 'support@crossbario.com'
+def groupID = 'io.crossbar.autobahn'
+def gitUrl = 'https://github.com/crossbario/autobahn-java.git'
+def licenseName = 'MIT'
+def licenseUrl = 'https://opensource.org/licenses/MIT'
+def relVersion = project.properties.get("buildVersion", "17.10.1")
+def siteUrl = 'https://github.com/crossbario/autobahn-java'
 
 dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-core:2.8.8'
@@ -83,5 +28,151 @@ dependencies {
     }
 }
 
-//apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
-//apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'
+bintray {
+    user = System.getenv('BINTRAY_USERNAME')
+    key = System.getenv('BINTRAY_KEY')
+    if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
+        configurations = ['archives']
+    } else {
+        publications = ['mavenJava']
+    }
+    publish = true
+    pkg {
+        repo = 'maven'
+        name = project.PLATFORM == project.PLATFORM_NETTY ? ARTIFACT_JAVA: ARTIFACT_ANDROID
+        licenses = [licenseName]
+        vcsUrl = 'https://github.com/crossbario/autobahn-java.git'
+        version {
+            name = relVersion
+            released = new Date()
+            mavenCentralSync {
+                sync = true
+                user = System.getenv('SONATYPE_USERNAME')
+                password = System.getenv('SONATYPE_PASSWORD')
+            }
+            gpg {
+                sign = true
+                passphrase = System.getenv('BINTRAY_GPG_KEY')
+            }
+        }
+    }
+}
+
+if (plugins.hasPlugin(project.PLUGIN_ANDROID_LIB)) {
+    android {
+        compileSdkVersion 26
+        buildToolsVersion '26.0.1'
+        defaultConfig {
+            minSdkVersion 24
+            targetSdkVersion 26
+        }
+        buildTypes {
+            release {
+                minifyEnabled false
+                proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            }
+        }
+        sourceSets {
+            main {
+                java {
+                    exclude 'io/crossbar/autobahn/wamp/transports/Netty*'
+                }
+            }
+        }
+        compileOptions {
+            sourceCompatibility JavaVersion.VERSION_1_8
+            targetCompatibility JavaVersion.VERSION_1_8
+        }
+    }
+    task sourcesJar(type: Jar) {
+        classifier = 'sources'
+        from android.sourceSets.main.java.srcDirs
+    }
+
+    task javadoc(type: Javadoc) {
+        source = android.sourceSets.main.java.srcDirs
+        classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    }
+    println project.files(android.getBootClasspath().join(File.pathSeparator))
+    project.archivesBaseName = ARTIFACT_ANDROID
+    group = groupID
+    version = relVersion
+    install {
+        repositories.mavenInstaller {
+            // This generates POM.xml with proper parameters
+            pom {
+                project {
+                    packaging 'aar'
+                    groupId groupID
+                    artifactId ARTIFACT_ANDROID
+
+                    // Add your description here
+                    name ARTIFACT_ANDROID
+                    url siteUrl
+
+                    // Set your license
+                    licenses {
+                        license {
+                            name licenseName
+                            url licenseUrl
+                        }
+                    }
+                    developers {
+                        developer {
+                            id developerId
+                            name developerName
+                            email developerEmail
+                        }
+                    }
+                    scm {
+                        connection gitUrl
+                        developerConnection siteUrl
+                        url siteUrl
+                    }
+                }
+            }
+        }
+    }
+} else {
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                groupId groupID
+                artifactId ARTIFACT_JAVA
+                version relVersion
+
+                from components.java
+                artifact sourcesJar
+                artifact javadocJar
+            }
+        }
+    }
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+    }
+    artifacts {
+        archives javadocJar
+    }
+    sourceSets {
+        main {
+            java {
+                exclude 'io/crossbar/autobahn/wamp/transports/AndroidWebSocket.java'
+                exclude 'io/crossbar/autobahn/websocket'
+            }
+        }
+    }
+    jar {
+        version = relVersion
+    }
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+artifacts {
+    archives sourcesJar
+}
