@@ -1,4 +1,4 @@
-# Release v17.9.1
+# Release v17.10.1
 
   * Update maven config for publishing (#295)
   * Add change log generator (#294)
