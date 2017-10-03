@@ -33,7 +33,7 @@ The demo clients are easy to run, you only need `make` and `docker` installed to
 
 and finally
 
-    `$ make java` # Starts the java (Netty) based demo client that performs WAMP actions
+    $ make java # Starts the java (Netty) based demo client that performs WAMP actions
 
 ### Show me some code
 
