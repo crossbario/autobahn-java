@@ -1,3 +1,8 @@
+# Release v17.10.3
+
+  * Fix android package to not conflict with main app's label (#299)
+
+
 # Release v17.10.1
 
   * Add change log generator (#294)
