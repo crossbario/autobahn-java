@@ -139,6 +139,10 @@ public class WebSocketConnection implements IWebSocket {
                 return;
             }
 
+            if (mExecutor == null || mExecutor.isShutdown()) {
+                mExecutor = Executors.newSingleThreadScheduledExecutor();
+            }
+
             if (isConnected()) {
 
                 try {
@@ -170,7 +174,6 @@ public class WebSocketConnection implements IWebSocket {
     public WebSocketConnection() {
         if (DEBUG) Log.d(TAG, "created");
 
-        mExecutor = Executors.newSingleThreadScheduledExecutor();
         // create WebSocket master handler
         createHandler();
 
@@ -450,6 +453,8 @@ public class WebSocketConnection implements IWebSocket {
             reconnecting = scheduleReconnect();
         }
 
+        // Shutdown the executor so that it stops attempting to send pings.
+        mExecutor.shutdown();
 
         if (mWsHandler != null) {
             try {
