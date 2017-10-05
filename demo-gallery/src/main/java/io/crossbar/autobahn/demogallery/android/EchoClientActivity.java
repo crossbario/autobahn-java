@@ -26,6 +26,7 @@ import io.crossbar.autobahn.websocket.WebSocketConnection;
 import io.crossbar.autobahn.websocket.WebSocketConnectionHandler;
 import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
 import io.crossbar.autobahn.websocket.interfaces.IWebSocket;
+import io.crossbar.autobahn.websocket.types.WebSocketOptions;
 
 
 public class EchoClientActivity extends AppCompatActivity {
@@ -97,6 +98,8 @@ public class EchoClientActivity extends AppCompatActivity {
         mStatusline.setText("Status: Connecting to " + wsuri + " ..");
 
         setButtonDisconnect();
+        WebSocketOptions connectOptions = new WebSocketOptions();
+        connectOptions.setReconnectInterval(5000);
 
         try {
             mConnection.connect(wsuri, new WebSocketConnectionHandler() {
@@ -121,7 +124,7 @@ public class EchoClientActivity extends AppCompatActivity {
                     mSendMessage.setEnabled(false);
                     mMessage.setEnabled(false);
                 }
-            });
+            }, connectOptions);
         } catch (WebSocketException e) {
             Log.d(TAG, e.toString());
         }

@@ -409,6 +409,7 @@ public class WebSocketConnection implements IWebSocket {
      */
     public boolean reconnect() {
         if (!isConnected() && (mWsUri != null)) {
+            onCloseCalled = false;
             new WebSocketConnector().start();
             return true;
         }
@@ -454,7 +455,9 @@ public class WebSocketConnection implements IWebSocket {
         }
 
         // Shutdown the executor so that it stops attempting to send pings.
-        mExecutor.shutdown();
+        if (mExecutor != null) {
+            mExecutor.shutdown();
+        }
 
         if (mWsHandler != null) {
             try {
