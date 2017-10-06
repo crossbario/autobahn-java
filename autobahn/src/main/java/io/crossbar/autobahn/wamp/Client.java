@@ -11,6 +11,7 @@
 
 package io.crossbar.autobahn.wamp;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -33,6 +34,24 @@ public class Client {
 
     private ExecutorService mExecutor;
 
+    public Client(String webSocketURL) {
+        mTransports = new ArrayList<>();
+        try {
+            mTransports.add(selectTransport(webSocketURL));
+        } catch (Exception e) {
+            // We don't really expect to be here. Its most likely
+            // that we changed our WAMP transports names.
+            // The other reason could be the change of our transport'
+            // constructor.
+            e.printStackTrace();
+        }
+    }
+
+    public Client(String webSocketURL, ExecutorService executor) {
+        this(webSocketURL);
+        mExecutor = executor;
+    }
+
     public Client(List<ITransport> transports) {
         mTransports = transports;
     }
@@ -42,8 +61,18 @@ public class Client {
         mExecutor = executor;
     }
 
+    private ITransport selectTransport(String webSocketURL) throws Exception {
+        Class<?> transportClass;
+        if (System.getProperty("java.vendor").equals("The Android Project")) {
+            transportClass = Class.forName("io.crossbar.autobahn.wamp.transports.AndroidWebSocket");
+        } else {
+            transportClass = Class.forName("io.crossbar.autobahn.wamp.transports.NettyTransport");
+        }
+        return (ITransport) transportClass.getConstructor(String.class).newInstance(webSocketURL);
+    }
+
     private ExecutorService getExecutor() {
-        return mExecutor == null ? ForkJoinPool.commonPool() : mExecutor;
+        return mExecutor == null ? ForkJoinPool.commonPool(): mExecutor;
     }
 
     public void add(Session session, String realm, List<IAuthenticator> authenticators) {
@@ -53,6 +82,10 @@ public class Client {
         mSession = session;
         mRealm = realm;
         mAuthenticators = authenticators;
+    }
+
+    public void add(Session session, String realm) {
+        add(session, realm, null);
     }
 
     public CompletableFuture<ExitInfo> connect() {
