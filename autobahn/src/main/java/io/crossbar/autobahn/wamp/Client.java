@@ -39,11 +39,7 @@ public class Client {
         try {
             mTransports.add(selectTransport(webSocketURL));
         } catch (Exception e) {
-            // We don't really expect to be here. Its most likely
-            // that we changed our WAMP transports names.
-            // The other reason could be the change of our transport'
-            // constructor.
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         }
     }
 
