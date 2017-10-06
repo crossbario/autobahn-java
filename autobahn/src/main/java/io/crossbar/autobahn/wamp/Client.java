@@ -14,7 +14,7 @@ package io.crossbar.autobahn.wamp;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.logging.Logger;
 
@@ -31,18 +31,18 @@ public class Client {
     private String mRealm;
     private List<IAuthenticator> mAuthenticators;
 
-    private ExecutorService mExecutor;
+    private Executor mExecutor;
 
     public Client(List<ITransport> transports) {
         mTransports = transports;
     }
 
-    public Client(List<ITransport> transports, ExecutorService executor) {
+    public Client(List<ITransport> transports, Executor executor) {
         this(transports);
         mExecutor = executor;
     }
 
-    private ExecutorService getExecutor() {
+    private Executor getExecutor() {
         return mExecutor == null ? ForkJoinPool.commonPool() : mExecutor;
     }
 

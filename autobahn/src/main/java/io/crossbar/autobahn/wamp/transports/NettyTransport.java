@@ -13,7 +13,7 @@ package io.crossbar.autobahn.wamp.transports;
 
 import java.net.URI;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -62,7 +62,7 @@ public class NettyTransport implements ITransport {
     private NettyWebSocketClientHandler mHandler;
     private final String mUri;
 
-    private ExecutorService mExecutor;
+    private Executor mExecutor;
     private WebSocketOptions mOptions;
     private List<String> mSerializers;
 

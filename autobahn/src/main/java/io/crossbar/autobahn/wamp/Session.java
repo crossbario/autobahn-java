@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -93,7 +93,7 @@ public class Session implements ISession, ITransportHandler {
 
     private ITransport mTransport;
     private ISerializer mSerializer;
-    private ExecutorService mExecutor;
+    private Executor mExecutor;
     private CompletableFuture<SessionDetails> mJoinFuture;
 
     private final ArrayList<OnJoinListener> mOnJoinListeners;
@@ -131,7 +131,7 @@ public class Session implements ISession, ITransportHandler {
         mRegistrations = new HashMap<>();
     }
 
-    public Session(ExecutorService executor) {
+    public Session(Executor executor) {
         this();
         mExecutor = executor;
     }
@@ -144,7 +144,7 @@ public class Session implements ISession, ITransportHandler {
         return mSessionID;
     }
 
-    private ExecutorService getExecutor() {
+    private Executor getExecutor() {
         return mExecutor == null ? ForkJoinPool.commonPool() : mExecutor;
     }
 

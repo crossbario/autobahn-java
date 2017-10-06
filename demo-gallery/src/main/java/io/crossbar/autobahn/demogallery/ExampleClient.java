@@ -3,7 +3,7 @@ package io.crossbar.autobahn.demogallery;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +29,7 @@ public class ExampleClient {
     private static final Logger LOGGER = Logger.getLogger(ExampleClient.class.getName());
 
     public CompletableFuture<ExitInfo> main(String websocketURL, String realm) {
-        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Executor executor = Executors.newSingleThreadExecutor();
         Session session = new Session(executor);
         session.addOnConnectListener(this::onConnectCallback);
         session.addOnJoinListener(this::onJoinCallback);
