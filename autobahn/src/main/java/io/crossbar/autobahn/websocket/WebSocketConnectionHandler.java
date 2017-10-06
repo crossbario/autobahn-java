@@ -79,10 +79,6 @@ public class WebSocketConnectionHandler implements IWebSocketConnectionHandler {
 
     @Override
     public void setConnection(WebSocketConnection connection) {
-        if (mConnection == null) {
-            mConnection = connection;
-        } else {
-            throw new IllegalStateException("Connection must be set only once.");
-        }
+        mConnection = connection;
     }
 }
