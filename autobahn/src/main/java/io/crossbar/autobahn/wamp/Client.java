@@ -62,6 +62,19 @@ public class Client {
         mExecutor = executor;
     }
 
+    public Client(Session session, String webSocketURL, String realm) {
+        this(webSocketURL);
+        mSession = session;
+        mRealm = realm;
+    }
+
+    public Client(Session session, String webSocketURL, String realm, ExecutorService executor) {
+        this(webSocketURL);
+        mSession = session;
+        mRealm = realm;
+        mExecutor = executor;
+    }
+
     public Client(List<ITransport> transports) {
         mTransports = transports;
     }
