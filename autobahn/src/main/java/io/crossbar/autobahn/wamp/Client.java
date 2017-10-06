@@ -47,6 +47,16 @@ public class Client {
         }
     }
 
+    public Client(ITransport transport) {
+        mTransports = new ArrayList<>();
+        mTransports.add(transport);
+    }
+
+    public Client(ITransport transport, ExecutorService executor) {
+        this(transport);
+        mExecutor = executor;
+    }
+
     public Client(String webSocketURL, ExecutorService executor) {
         this(webSocketURL);
         mExecutor = executor;
