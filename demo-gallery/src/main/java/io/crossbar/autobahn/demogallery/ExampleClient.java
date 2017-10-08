@@ -1,3 +1,14 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+//   AutobahnJava - http://crossbar.io/autobahn
+//
+//   Copyright (c) Crossbar.io Technologies GmbH and contributors
+//
+//   Licensed under the MIT License.
+//   http://www.opensource.org/licenses/mit-license.php
+//
+///////////////////////////////////////////////////////////////////////////////
+
 package io.crossbar.autobahn.demogallery;
 
 import java.util.ArrayList;
@@ -23,6 +34,7 @@ import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
 import io.crossbar.autobahn.wamp.types.Subscription;
+import io.crossbar.autobahn.wamp.utils.Platform;
 
 public class ExampleClient {
 
@@ -39,11 +51,7 @@ public class ExampleClient {
         // Now create a transport list to try and add transports to it.
         // In our case, we currently only have Netty based WAMP-over-WebSocket.
         List<ITransport> transports = new ArrayList<>();
-        try {
-            transports.add(selectTransport(websocketURL));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        transports.add(Platform.autoSelectTransport(websocketURL));
 
         // Now provide a list of authentication methods.
         // We only support anonymous auth currently.
@@ -54,21 +62,6 @@ public class ExampleClient {
         Client client = new Client(transports, executor);
         client.add(session, realm, authenticators);
         return client.connect();
-    }
-
-    // Convenience method to dynamically return a transport based on the underlying platform.
-    // No rocket science here.
-    // Could easily replace all the underlying code with just
-    // return new AndroidWebSocket(webSocketURL);
-    // If the underlying platform is known upfront.
-    private ITransport selectTransport(String webSocketURL) throws Exception {
-        Class<?> transportClass;
-        if (System.getProperty("java.vendor").equals("The Android Project")) {
-            transportClass = Class.forName("io.crossbar.autobahn.wamp.transports.AndroidWebSocket");
-        } else {
-            transportClass = Class.forName("io.crossbar.autobahn.wamp.transports.NettyTransport");
-        }
-        return (ITransport) transportClass.getConstructor(String.class).newInstance(webSocketURL);
     }
 
     private void onConnectCallback(Session session) {
