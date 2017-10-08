@@ -16,8 +16,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
-import java.util.logging.Logger;
 
+import io.crossbar.autobahn.utils.ABLogger;
+import io.crossbar.autobahn.utils.IABLogger;
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
@@ -25,7 +26,7 @@ import io.crossbar.autobahn.wamp.utils.Platform;
 
 public class Client {
 
-    private static final Logger LOGGER = Logger.getLogger(Client.class.getName());
+    private static final IABLogger LOGGER = ABLogger.getLogger(Client.class.getName());
     private final List<ITransport> mTransports;
 
     private Session mSession;
@@ -97,7 +98,7 @@ public class Client {
         CompletableFuture<ExitInfo> exitFuture = new CompletableFuture<>();
         mSession.addOnConnectListener((session) ->
                 mSession.join(mRealm, null).thenAccept(details ->
-                        LOGGER.info(String.format("JOINED session=%s realm=%s", details.sessionID,
+                        LOGGER.i(String.format("JOINED session=%s realm=%s", details.sessionID,
                                 details.realm))));
         mSession.addOnDisconnectListener((session, wasClean) -> exitFuture.complete(new ExitInfo(wasClean)));
         CompletableFuture.runAsync(() -> {
