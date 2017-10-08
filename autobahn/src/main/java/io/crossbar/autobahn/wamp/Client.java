@@ -11,6 +11,7 @@
 
 package io.crossbar.autobahn.wamp;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -21,6 +22,7 @@ import java.util.logging.Logger;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
+import io.crossbar.autobahn.wamp.utils.Platform;
 
 public class Client {
 
@@ -33,6 +35,39 @@ public class Client {
 
     private Executor mExecutor;
 
+    public Client(String webSocketURL) {
+        mTransports = new ArrayList<>();
+        mTransports.add(Platform.autoSelectTransport(webSocketURL));
+    }
+
+    public Client(ITransport transport) {
+        mTransports = new ArrayList<>();
+        mTransports.add(transport);
+    }
+
+    public Client(ITransport transport, Executor executor) {
+        this(transport);
+        mExecutor = executor;
+    }
+
+    public Client(String webSocketURL, Executor executor) {
+        this(webSocketURL);
+        mExecutor = executor;
+    }
+
+    public Client(Session session, String webSocketURL, String realm) {
+        this(webSocketURL);
+        mSession = session;
+        mRealm = realm;
+    }
+
+    public Client(Session session, String webSocketURL, String realm, Executor executor) {
+        this(webSocketURL);
+        mSession = session;
+        mRealm = realm;
+        mExecutor = executor;
+    }
+
     public Client(List<ITransport> transports) {
         mTransports = transports;
     }
@@ -43,7 +78,7 @@ public class Client {
     }
 
     private Executor getExecutor() {
-        return mExecutor == null ? ForkJoinPool.commonPool() : mExecutor;
+        return mExecutor == null ? ForkJoinPool.commonPool(): mExecutor;
     }
 
     public void add(Session session, String realm, List<IAuthenticator> authenticators) {
@@ -53,6 +88,10 @@ public class Client {
         mSession = session;
         mRealm = realm;
         mAuthenticators = authenticators;
+    }
+
+    public void add(Session session, String realm) {
+        add(session, realm, null);
     }
 
     public CompletableFuture<ExitInfo> connect() {
