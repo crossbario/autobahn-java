@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
+import io.crossbar.autobahn.wamp.utils.Platform;
 
 public class Client {
 
@@ -36,11 +37,7 @@ public class Client {
 
     public Client(String webSocketURL) {
         mTransports = new ArrayList<>();
-        try {
-            mTransports.add(selectTransport(webSocketURL));
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
+        mTransports.add(Platform.autoSelectTransport(webSocketURL));
     }
 
     public Client(ITransport transport) {
@@ -78,16 +75,6 @@ public class Client {
     public Client(List<ITransport> transports, ExecutorService executor) {
         this(transports);
         mExecutor = executor;
-    }
-
-    private ITransport selectTransport(String webSocketURL) throws Exception {
-        Class<?> transportClass;
-        if (System.getProperty("java.vendor").equals("The Android Project")) {
-            transportClass = Class.forName("io.crossbar.autobahn.wamp.transports.AndroidWebSocket");
-        } else {
-            transportClass = Class.forName("io.crossbar.autobahn.wamp.transports.NettyTransport");
-        }
-        return (ITransport) transportClass.getConstructor(String.class).newInstance(webSocketURL);
     }
 
     private ExecutorService getExecutor() {
