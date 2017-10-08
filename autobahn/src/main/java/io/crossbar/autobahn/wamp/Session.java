@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -74,6 +73,7 @@ import io.crossbar.autobahn.wamp.types.SessionDetails;
 import io.crossbar.autobahn.wamp.types.SubscribeOptions;
 import io.crossbar.autobahn.wamp.types.Subscription;
 import io.crossbar.autobahn.wamp.utils.IDGenerator;
+import io.crossbar.autobahn.wamp.utils.Platform;
 
 import static io.crossbar.autobahn.wamp.messages.MessageMap.MESSAGE_TYPE_MAP;
 import static io.crossbar.autobahn.wamp.utils.Shortcuts.getOrDefault;
@@ -145,7 +145,7 @@ public class Session implements ISession, ITransportHandler {
     }
 
     private Executor getExecutor() {
-        return mExecutor == null ? ForkJoinPool.commonPool() : mExecutor;
+        return mExecutor == null ? Platform.autoSelectExecutor(): mExecutor;
     }
 
     private void throwIfNotConnected() {

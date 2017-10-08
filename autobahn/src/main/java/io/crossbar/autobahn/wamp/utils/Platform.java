@@ -11,6 +11,9 @@
 
 package io.crossbar.autobahn.wamp.utils;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
+
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 
 public class Platform {
@@ -47,6 +50,21 @@ public class Platform {
             return (ITransport) transportClass.getConstructor(String.class).newInstance(webSocketURL);
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Auto selects the Executor based on the underlying platform.
+     * On Android we want autobahn to call the user facing code's
+     * callbacks on the main thread so that apps are able to update the UI.
+     *
+     * @return Executor instance suitable for current platform
+     */
+    public static Executor autoSelectExecutor() {
+        if (Platform.isAndroid()) {
+            return new CurrentThreadExecutor();
+        } else {
+            return ForkJoinPool.commonPool();
         }
     }
 }

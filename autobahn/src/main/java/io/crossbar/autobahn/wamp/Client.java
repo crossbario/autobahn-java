@@ -16,11 +16,10 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ForkJoinPool;
 import java.util.logging.Logger;
 
-import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
+import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
 import io.crossbar.autobahn.wamp.utils.Platform;
 
@@ -78,7 +77,7 @@ public class Client {
     }
 
     private Executor getExecutor() {
-        return mExecutor == null ? ForkJoinPool.commonPool(): mExecutor;
+        return mExecutor == null ? Platform.autoSelectExecutor(): mExecutor;
     }
 
     public void add(Session session, String realm, List<IAuthenticator> authenticators) {
