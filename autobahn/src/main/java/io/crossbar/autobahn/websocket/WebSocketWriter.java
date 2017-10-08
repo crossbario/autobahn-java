@@ -15,7 +15,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Base64;
-import android.util.Log;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -23,6 +22,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.Random;
 
+import io.crossbar.autobahn.utils.ABLogger;
 import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
 import io.crossbar.autobahn.websocket.messages.BinaryMessage;
 import io.crossbar.autobahn.websocket.messages.ClientHandshake;
@@ -47,8 +47,7 @@ import io.crossbar.autobahn.websocket.types.WebSocketOptions;
  */
 class WebSocketWriter extends Handler {
 
-    private static final boolean DEBUG = true;
-    private static final String TAG = WebSocketWriter.class.getName();
+    private static final ABLogger LOGGER = ABLogger.getLogger(WebSocketWriter.class.getName());
     private final static String CRLF = "\r\n";
 
     /// Random number generator for handshake key and frame mask generation.
@@ -93,7 +92,7 @@ class WebSocketWriter extends Handler {
         mBufferedOutputStream = new BufferedOutputStream(socket.getOutputStream(), options.getMaxFramePayloadSize() + 14);
         mActive = true;
 
-        if (DEBUG) Log.d(TAG, "created");
+        LOGGER.d("Created");
     }
 
     private void write(String stringToWrite) {
@@ -132,7 +131,7 @@ class WebSocketWriter extends Handler {
     public void forward(Object message) {
         // We have already quit, we are no longer sending messages.
         if (!mActive) {
-            if (DEBUG) Log.d(TAG, "We have already quit, not processing further messages");
+            LOGGER.d("We have already quit, not processing further messages");
             return;
         }
         Message msg = obtainMessage();
@@ -446,13 +445,13 @@ class WebSocketWriter extends Handler {
 
         } catch (SocketException e) {
 
-            if (DEBUG) Log.d(TAG, "run() : SocketException (" + e.toString() + ")");
+            LOGGER.d("run() : SocketException (" + e.toString() + ")");
 
             // wrap the exception and notify master
             notify(new ConnectionLost(null));
         } catch (Exception e) {
 
-            if (DEBUG) e.printStackTrace();
+            LOGGER.w(e.getMessage(), e);
 
             // wrap the exception and notify master
             notify(new Error(e));
@@ -502,7 +501,7 @@ class WebSocketWriter extends Handler {
             mLooper.quit();
             mActive = false;
 
-            if (DEBUG) Log.d(TAG, "ended");
+            LOGGER.d("Ended");
 
         } else {
 

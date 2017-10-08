@@ -13,7 +13,6 @@ package io.crossbar.autobahn.websocket;
 
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.util.Pair;
 
 import java.io.BufferedInputStream;
@@ -26,6 +25,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.crossbar.autobahn.utils.ABLogger;
 import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
 import io.crossbar.autobahn.websocket.messages.BinaryMessage;
 import io.crossbar.autobahn.websocket.messages.Close;
@@ -51,8 +51,7 @@ import io.crossbar.autobahn.websocket.utils.Utf8Validator;
  */
 class WebSocketReader extends Thread {
 
-    private static final boolean DEBUG = true;
-    private static final String TAG = WebSocketReader.class.getName();
+    private static final ABLogger LOGGER = ABLogger.getLogger(WebSocketReader.class.getName());
 
     private final Handler mMaster;
     private final WebSocketOptions mOptions;
@@ -117,7 +116,7 @@ class WebSocketReader extends Thread {
         mFrameHeader = null;
         mState = STATE_CONNECTING;
 
-        if (DEBUG) Log.d(TAG, "created");
+        LOGGER.d("Created");
     }
 
     double getTimeSinceLastRead() {
@@ -129,7 +128,7 @@ class WebSocketReader extends Thread {
      */
     public void quit() {
         mState = STATE_CLOSED;
-        if (DEBUG) Log.d(TAG, "quit");
+        LOGGER.d("Quit");
     }
 
 
@@ -578,7 +577,7 @@ class WebSocketReader extends Thread {
                 String[] h = line.split(": ");
                 if (h.length == 2) {
                     headers.put(h[0], h[1]);
-                    Log.w(TAG, String.format("'%s'='%s'", h[0], h[1]));
+                    LOGGER.d(String.format("'%s'='%s'", h[0], h[1]));
                 }
             }
         }
@@ -597,7 +596,7 @@ class WebSocketReader extends Thread {
             statusMessageBuilder.append(" ");
         }
         String statusMessage = statusMessageBuilder.toString().trim();
-        if (DEBUG) Log.w(TAG, String.format("Status: %d (%s)", statusCode, statusMessage));
+        LOGGER.d(String.format("Status: %d (%s)", statusCode, statusMessage));
         return new Pair<>(statusCode, statusMessage);
     }
 
@@ -632,7 +631,7 @@ class WebSocketReader extends Thread {
     @Override
     public void run() {
 
-        if (DEBUG) Log.d(TAG, "running");
+        LOGGER.d("Running");
 
         try {
             do {
@@ -653,7 +652,7 @@ class WebSocketReader extends Thread {
 
                 } else if (len < 0) {
 
-                    if (DEBUG) Log.d(TAG, "run() : ConnectionLost");
+                    LOGGER.d("run() : ConnectionLost");
 
                     notify(new ConnectionLost(null));
 
@@ -663,7 +662,7 @@ class WebSocketReader extends Thread {
 
         } catch (WebSocketException e) {
 
-            if (DEBUG) Log.d(TAG, "run() : WebSocketException (" + e.toString() + ")");
+            LOGGER.d("run() : WebSocketException (" + e.toString() + ")");
 
             // wrap the exception and notify master
             notify(new ProtocolViolation(e));
@@ -673,7 +672,7 @@ class WebSocketReader extends Thread {
             // BufferedInputStream throws when the socket is closed,
             // eat the exception if we are already in STATE_CLOSED.
             if (mState != STATE_CLOSED && !mSocket.isClosed()) {
-                if (DEBUG) Log.d(TAG, "run() : SocketException (" + e.toString() + ")");
+                LOGGER.d("run() : SocketException (" + e.toString() + ")");
 
                 // wrap the exception and notify master
                 notify(new ConnectionLost(null));
@@ -681,7 +680,7 @@ class WebSocketReader extends Thread {
 
         } catch (Exception e) {
 
-            if (DEBUG) Log.d(TAG, "run() : Exception (" + e.toString() + ")");
+            LOGGER.d("run() : Exception (" + e.toString() + ")");
 
             // wrap the exception and notify master
             notify(new Error(e));
@@ -691,6 +690,6 @@ class WebSocketReader extends Thread {
             mStopped = true;
         }
 
-        if (DEBUG) Log.d(TAG, "ended");
+        LOGGER.d("Ended");
     }
 }
