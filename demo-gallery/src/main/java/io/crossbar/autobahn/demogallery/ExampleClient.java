@@ -14,7 +14,6 @@ package io.crossbar.autobahn.demogallery;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -22,9 +21,6 @@ import java.util.logging.Logger;
 
 import io.crossbar.autobahn.wamp.Client;
 import io.crossbar.autobahn.wamp.Session;
-import io.crossbar.autobahn.wamp.auth.AnonymousAuth;
-import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
-import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.CloseDetails;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
@@ -34,33 +30,20 @@ import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
 import io.crossbar.autobahn.wamp.types.Subscription;
-import io.crossbar.autobahn.wamp.utils.Platform;
 
 public class ExampleClient {
 
     private static final Logger LOGGER = Logger.getLogger(ExampleClient.class.getName());
 
     public CompletableFuture<ExitInfo> main(String websocketURL, String realm) {
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Session session = new Session(executor);
+        Session session = new Session();
         session.addOnConnectListener(this::onConnectCallback);
         session.addOnJoinListener(this::onJoinCallback);
         session.addOnLeaveListener(this::onLeaveCallback);
         session.addOnDisconnectListener(this::onDisconnectCallback);
 
-        // Now create a transport list to try and add transports to it.
-        // In our case, we currently only have Netty based WAMP-over-WebSocket.
-        List<ITransport> transports = new ArrayList<>();
-        transports.add(Platform.autoSelectTransport(websocketURL));
-
-        // Now provide a list of authentication methods.
-        // We only support anonymous auth currently.
-        List<IAuthenticator> authenticators = new ArrayList<>();
-        authenticators.add(new AnonymousAuth());
-
         // finally, provide everything to a Client instance and connect
-        Client client = new Client(transports, executor);
-        client.add(session, realm, authenticators);
+        Client client = new Client(session, websocketURL, realm);
         return client.connect();
     }
 

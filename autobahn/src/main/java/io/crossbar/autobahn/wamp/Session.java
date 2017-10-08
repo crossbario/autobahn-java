@@ -20,8 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -74,6 +73,7 @@ import io.crossbar.autobahn.wamp.types.SessionDetails;
 import io.crossbar.autobahn.wamp.types.SubscribeOptions;
 import io.crossbar.autobahn.wamp.types.Subscription;
 import io.crossbar.autobahn.wamp.utils.IDGenerator;
+import io.crossbar.autobahn.wamp.utils.Platform;
 
 import static io.crossbar.autobahn.wamp.messages.MessageMap.MESSAGE_TYPE_MAP;
 import static io.crossbar.autobahn.wamp.utils.Shortcuts.getOrDefault;
@@ -93,7 +93,7 @@ public class Session implements ISession, ITransportHandler {
 
     private ITransport mTransport;
     private ISerializer mSerializer;
-    private ExecutorService mExecutor;
+    private Executor mExecutor;
     private CompletableFuture<SessionDetails> mJoinFuture;
 
     private final ArrayList<OnJoinListener> mOnJoinListeners;
@@ -131,7 +131,7 @@ public class Session implements ISession, ITransportHandler {
         mRegistrations = new HashMap<>();
     }
 
-    public Session(ExecutorService executor) {
+    public Session(Executor executor) {
         this();
         mExecutor = executor;
     }
@@ -144,8 +144,8 @@ public class Session implements ISession, ITransportHandler {
         return mSessionID;
     }
 
-    private ExecutorService getExecutor() {
-        return mExecutor == null ? ForkJoinPool.commonPool() : mExecutor;
+    private Executor getExecutor() {
+        return mExecutor == null ? Platform.autoSelectExecutor(): mExecutor;
     }
 
     private void throwIfNotConnected() {

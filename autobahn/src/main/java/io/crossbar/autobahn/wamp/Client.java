@@ -15,12 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Executor;
 import java.util.logging.Logger;
 
-import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
+import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
 import io.crossbar.autobahn.wamp.utils.Platform;
 
@@ -33,7 +32,7 @@ public class Client {
     private String mRealm;
     private List<IAuthenticator> mAuthenticators;
 
-    private ExecutorService mExecutor;
+    private Executor mExecutor;
 
     public Client(String webSocketURL) {
         mTransports = new ArrayList<>();
@@ -45,12 +44,12 @@ public class Client {
         mTransports.add(transport);
     }
 
-    public Client(ITransport transport, ExecutorService executor) {
+    public Client(ITransport transport, Executor executor) {
         this(transport);
         mExecutor = executor;
     }
 
-    public Client(String webSocketURL, ExecutorService executor) {
+    public Client(String webSocketURL, Executor executor) {
         this(webSocketURL);
         mExecutor = executor;
     }
@@ -61,7 +60,7 @@ public class Client {
         mRealm = realm;
     }
 
-    public Client(Session session, String webSocketURL, String realm, ExecutorService executor) {
+    public Client(Session session, String webSocketURL, String realm, Executor executor) {
         this(webSocketURL);
         mSession = session;
         mRealm = realm;
@@ -72,13 +71,13 @@ public class Client {
         mTransports = transports;
     }
 
-    public Client(List<ITransport> transports, ExecutorService executor) {
+    public Client(List<ITransport> transports, Executor executor) {
         this(transports);
         mExecutor = executor;
     }
 
-    private ExecutorService getExecutor() {
-        return mExecutor == null ? ForkJoinPool.commonPool(): mExecutor;
+    private Executor getExecutor() {
+        return mExecutor == null ? Platform.autoSelectExecutor(): mExecutor;
     }
 
     public void add(Session session, String realm, List<IAuthenticator> authenticators) {
