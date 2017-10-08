@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.crossbar.autobahn.utils.ABLogger;
+import io.crossbar.autobahn.utils.IABLogger;
 import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
 import io.crossbar.autobahn.websocket.messages.BinaryMessage;
 import io.crossbar.autobahn.websocket.messages.Close;
@@ -51,7 +52,7 @@ import io.crossbar.autobahn.websocket.utils.Utf8Validator;
  */
 class WebSocketReader extends Thread {
 
-    private static final ABLogger LOGGER = ABLogger.getLogger(WebSocketReader.class.getName());
+    private static final IABLogger LOGGER = ABLogger.getLogger(WebSocketReader.class.getName());
 
     private final Handler mMaster;
     private final WebSocketOptions mOptions;

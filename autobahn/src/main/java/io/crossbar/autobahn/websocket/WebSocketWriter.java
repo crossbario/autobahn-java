@@ -23,6 +23,7 @@ import java.net.SocketException;
 import java.util.Random;
 
 import io.crossbar.autobahn.utils.ABLogger;
+import io.crossbar.autobahn.utils.IABLogger;
 import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
 import io.crossbar.autobahn.websocket.messages.BinaryMessage;
 import io.crossbar.autobahn.websocket.messages.ClientHandshake;
@@ -47,7 +48,7 @@ import io.crossbar.autobahn.websocket.types.WebSocketOptions;
  */
 class WebSocketWriter extends Handler {
 
-    private static final ABLogger LOGGER = ABLogger.getLogger(WebSocketWriter.class.getName());
+    private static final IABLogger LOGGER = ABLogger.getLogger(WebSocketWriter.class.getName());
     private final static String CRLF = "\r\n";
 
     /// Random number generator for handshake key and frame mask generation.

@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
+import io.crossbar.autobahn.demogallery.ExampleClient;
 import io.crossbar.autobahn.demogallery.R;
 
 
@@ -25,6 +26,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ExampleClient client = new ExampleClient();
+        client.main("ws://192.168.1.4:8080/ws", "realm1").thenAccept(System.out::println);
     }
 
     @Override

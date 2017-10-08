@@ -31,6 +31,7 @@ import javax.net.SocketFactory;
 import javax.net.ssl.SSLSocketFactory;
 
 import io.crossbar.autobahn.utils.ABLogger;
+import io.crossbar.autobahn.utils.IABLogger;
 import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
 import io.crossbar.autobahn.websocket.interfaces.IWebSocket;
 import io.crossbar.autobahn.websocket.interfaces.IWebSocketConnectionHandler;
@@ -54,7 +55,7 @@ import io.crossbar.autobahn.websocket.types.WebSocketOptions;
 
 public class WebSocketConnection implements IWebSocket {
 
-    private static final ABLogger LOGGER = ABLogger.getLogger(WebSocketConnection.class.getName());
+    private static final IABLogger LOGGER = ABLogger.getLogger(WebSocketConnection.class.getName());
 
     private Handler mMasterHandler;
 

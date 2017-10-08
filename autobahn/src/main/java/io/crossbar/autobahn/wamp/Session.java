@@ -26,8 +26,9 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.logging.Logger;
 
+import io.crossbar.autobahn.utils.ABLogger;
+import io.crossbar.autobahn.utils.IABLogger;
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IInvocationHandler;
@@ -81,7 +82,7 @@ import static io.crossbar.autobahn.wamp.utils.Shortcuts.getOrDefault;
 
 public class Session implements ISession, ITransportHandler {
 
-    private static final Logger LOGGER = Logger.getLogger(Session.class.getName());
+    public static final IABLogger LOGGER = ABLogger.getLogger(Session.class.getName());
 
     private final int STATE_DISCONNECTED = 1;
     private final int STATE_HELLO_SENT = 2;
@@ -156,7 +157,7 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public void onConnect(ITransport transport, ISerializer serializer) throws Exception {
-        LOGGER.info("onConnect()");
+        LOGGER.d("onConnect()");
         if (mTransport != null) {
             throw new Exception("already connected");
         }
@@ -175,7 +176,7 @@ public class Session implements ISession, ITransportHandler {
         }
         byte[] payload = mSerializer.serialize(message.marshal());
 
-        LOGGER.info("  >>> TX : " + message);
+        LOGGER.d("  >>> TX : " + message);
         mTransport.send(payload, mSerializer.isBinary());
     }
 
@@ -192,12 +193,12 @@ public class Session implements ISession, ITransportHandler {
                     "parse", List.class).invoke(null, rawMessage);
             onMessage(message);
         } catch (Exception e) {
-            LOGGER.info("mapping received message bytes to IMessage failed: " + e.getMessage());
+            LOGGER.d("mapping received message bytes to IMessage failed: " + e.getMessage());
         }
     }
 
     private void onMessage(IMessage message) throws Exception {
-        LOGGER.info("  <<< RX : " + message);
+        LOGGER.d("  <<< RX : " + message);
 
         if (mSessionID == 0) {
             if (message instanceof Welcome) {
@@ -228,7 +229,7 @@ public class Session implements ISession, ITransportHandler {
                 }
                 CompletableFuture d = combineFutures(futures);
                 d.thenRun(() -> {
-                    LOGGER.info("Notified Session.onLeave listeners, now closing transport");
+                    LOGGER.d("Notified Session.onLeave listeners, now closing transport");
                     mState = STATE_DISCONNECTED;
                     if (mTransport != null && mTransport.isOpen()) {
                         try {
@@ -240,8 +241,8 @@ public class Session implements ISession, ITransportHandler {
                 });
             } else {
                 // FIXME: handle Challenge message here.
-                LOGGER.info("FIXME (no session): unprocessed message:");
-                LOGGER.info(message.toString());
+                LOGGER.w("FIXME (no session): unprocessed message:");
+                LOGGER.w(message.toString());
             }
         } else {
             // Now that we have an active session handle all incoming messages here.
@@ -385,7 +386,7 @@ public class Session implements ISession, ITransportHandler {
 
                     result.whenCompleteAsync((invocationResult, invocationException) -> {
                         if (invocationException != null) {
-                            LOGGER.info("FIXME: send call error: " + invocationException.getMessage());
+                            LOGGER.w("FIXME: send call error: " + invocationException.getMessage());
                         }
                         else {
                             send(new Yield(msg.request, invocationResult.results, invocationResult.kwresults));
@@ -405,7 +406,7 @@ public class Session implements ISession, ITransportHandler {
                 }
                 CompletableFuture d = combineFutures(futures);
                 d.thenRun(() -> {
-                    LOGGER.info("Notified Session.onLeave listeners, now closing transport");
+                    LOGGER.d("Notified Session.onLeave listeners, now closing transport");
                     if (mTransport != null && mTransport.isOpen()) {
                         try {
                             mTransport.close();
@@ -446,7 +447,7 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public void onDisconnect(boolean wasClean) {
-        LOGGER.info("onDisconnect(), wasClean=" + wasClean);
+        LOGGER.d("onDisconnect(), wasClean=" + wasClean);
 
         List<CompletableFuture<?>> futures = new ArrayList<>();
         for (OnDisconnectListener listener: mOnDisconnectListeners) {
@@ -455,7 +456,7 @@ public class Session implements ISession, ITransportHandler {
         }
         CompletableFuture d = combineFutures(futures);
         d.thenRun(() -> {
-            LOGGER.info("Notified all Session.onDisconnect listeners.");
+            LOGGER.d("Notified all Session.onDisconnect listeners.");
             mTransport = null;
             mSerializer = null;
             mState = STATE_DISCONNECTED;
@@ -850,7 +851,7 @@ public class Session implements ISession, ITransportHandler {
      */
     @Override
     public CompletableFuture<SessionDetails> join(String realm, List<String> authMethods) {
-        LOGGER.info("Called join() with realm=" + realm);
+        LOGGER.d("Called join() with realm=" + realm);
         mRealm = realm;
         mGoodbyeSent = false;
         Map<String, Map> roles = new HashMap<>();
@@ -871,7 +872,7 @@ public class Session implements ISession, ITransportHandler {
      */
     @Override
     public void leave(String reason, String message) {
-        LOGGER.info(String.format("reason=%s message=%s", reason, message));
+        LOGGER.d(String.format("reason=%s message=%s", reason, message));
         send(new Goodbye(reason, message));
         mState = STATE_GOODBYE_SENT;
     }

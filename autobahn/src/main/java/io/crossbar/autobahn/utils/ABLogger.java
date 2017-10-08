@@ -1,46 +1,24 @@
 package io.crossbar.autobahn.utils;
 
-import android.util.Log;
-
 public class ABLogger {
 
-    private static final boolean DEBUG = true;
-
-    private final String mTag;
-
-    private ABLogger(String tag) {
-        mTag = tag;
+    private static boolean isAndroid() {
+        return System.getProperty("java.vendor").equals("The Android Project");
     }
 
-    public static ABLogger getLogger(String tag) {
-        return new ABLogger(tag);
-    }
+    public static IABLogger getLogger(String tag) {
+        Class<?> loggerClass;
 
-    public void i(String msg) {
-        Log.i(mTag, msg);
-    }
+        try {
+            if (isAndroid()) {
+                loggerClass = Class.forName("io.crossbar.autobahn.utils.ABALogger");
+            } else {
+                loggerClass = Class.forName("io.crossbar.autobahn.utils.ABJLogger");
+            }
 
-    public void d(String msg) {
-        if (DEBUG) Log.d(mTag, msg);
-    }
-
-    public void v(String msg) {
-        if (DEBUG) Log.v(mTag, msg);
-    }
-
-    public void v(String msg, Throwable throwable) {
-        if (DEBUG) Log.v(mTag, msg, throwable);
-    }
-
-    public void e(String msg) {
-        Log.e(mTag, msg);
-    }
-
-    public void w(String msg) {
-        Log.w(mTag, msg);
-    }
-
-    public void w(String msg, Throwable throwable) {
-        Log.w(mTag, msg, throwable);
+            return (IABLogger) loggerClass.getConstructor(String.class).newInstance(tag);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 }

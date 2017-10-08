@@ -72,6 +72,7 @@ if (project.IS_ANDROID) {
             main {
                 java {
                     exclude 'io/crossbar/autobahn/wamp/transports/Netty*'
+                    exclude 'io/crossbar/autobahn/utils/ABJLogger.java'
                 }
             }
         }
@@ -177,7 +178,7 @@ if (project.IS_ANDROID) {
             java {
                 exclude 'io/crossbar/autobahn/wamp/transports/AndroidWebSocket.java'
                 exclude 'io/crossbar/autobahn/websocket'
-                exclude 'io/crossbar/autobahn/utils/**'
+                exclude 'io/crossbar/autobahn/utils/ABALogger.java'
             }
         }
     }
