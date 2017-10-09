@@ -1,3 +1,13 @@
+# Release v17.10.4
+
+  * Session API convenience and cleanup (#312)
+  * Rename NettyTransport to NettyWebSocket (#310)
+  * Revamp logging (#309)
+  * Android: Execute callbacks on main(UI) thread (#307)
+  * Simplify the Client API (#306)
+  * Fix WebSocket auto-reconnect (#305)
+
+
 # Release v17.10.3
 
   * Fix android package to not conflict with main app's label (#299)
