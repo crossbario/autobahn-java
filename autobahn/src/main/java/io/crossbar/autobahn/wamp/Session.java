@@ -1117,6 +1117,12 @@ public class Session implements ISession, ITransportHandler {
         return reallyCall(procedure, Arrays.asList(args), null, resultType, options);
     }
 
+    /**
+     * Join a realm on the WAMP router
+     * @param realm name of the realm to join
+     * @return a CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.SessionDetails}
+     */
     @Override
     public CompletableFuture<SessionDetails> join(String realm) {
         return join(realm, null);
