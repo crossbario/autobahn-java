@@ -48,8 +48,16 @@ public interface ISession {
 
     <T> CompletableFuture<Subscription> subscribe(
             String topic,
+            Consumer<T> handler);
+
+    <T> CompletableFuture<Subscription> subscribe(
+            String topic,
             Consumer<T> handler,
             SubscribeOptions options);
+
+    <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            Function<T, CompletableFuture<ReceptionResult>> handler);
 
     <T> CompletableFuture<Subscription> subscribe(
             String topic,
@@ -58,8 +66,16 @@ public interface ISession {
 
     <T> CompletableFuture<Subscription> subscribe(
             String topic,
+            BiConsumer<T, EventDetails> handler);
+
+    <T> CompletableFuture<Subscription> subscribe(
+            String topic,
             BiConsumer<T, EventDetails> handler,
             SubscribeOptions options);
+
+    <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            BiFunction<T, EventDetails, CompletableFuture<ReceptionResult>> handler);
 
     <T> CompletableFuture<Subscription> subscribe(
             String topic,
@@ -68,22 +84,34 @@ public interface ISession {
 
     <T, U> CompletableFuture<Subscription> subscribe(
             String topic,
+            TriConsumer<T, U, EventDetails> handler);
+
+    <T, U> CompletableFuture<Subscription> subscribe(
+            String topic,
             TriConsumer<T, U, EventDetails> handler,
             SubscribeOptions options);
+
+    <T, U> CompletableFuture<Subscription> subscribe(
+            String topic,
+            TriFunction<T, U, EventDetails, CompletableFuture<ReceptionResult>> handler);
 
     <T, U> CompletableFuture<Subscription> subscribe(
             String topic,
             TriFunction<T, U, EventDetails, CompletableFuture<ReceptionResult>> handler,
             SubscribeOptions options);
 
-    CompletableFuture<Publication> publish(String topic,
-                                           List<Object> args,
-                                           Map<String, Object> kwargs,
-                                           PublishOptions options);
+    CompletableFuture<Publication> publish(
+            String topic,
+            List<Object> args,
+            Map<String, Object> kwargs,
+            PublishOptions options);
 
     CompletableFuture<Publication> publish(String topic, Object object, PublishOptions options);
 
-    CompletableFuture<Publication> publish(String topic, PublishOptions options, Object... objects);
+    CompletableFuture<Publication> publish(
+            String topic,
+            PublishOptions options,
+            Object... objects);
 
     CompletableFuture<Publication> publish(String topic, Object... objects);
 
@@ -91,26 +119,62 @@ public interface ISession {
 
     CompletableFuture<Publication> publish(String topic);
 
-    CompletableFuture<Registration> register(String procedure,
-                                             Supplier<CompletableFuture<InvocationResult>> endpoint,
-                                             RegisterOptions options);
+    CompletableFuture<Registration> register(
+            String procedure,
+            Supplier<CompletableFuture<InvocationResult>> endpoint);
 
-    CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint,
-                                             RegisterOptions options);
+    CompletableFuture<Registration> register(
+            String procedure,
+            Supplier<CompletableFuture<InvocationResult>> endpoint,
+            RegisterOptions options);
 
-    <T> CompletableFuture<Registration> register(String procedure,
-                                                 Function<T, CompletableFuture<InvocationResult>> endpoint,
-                                                 RegisterOptions options);
+    CompletableFuture<Registration> register(
+            String procedure,
+            IInvocationHandler endpoint);
 
-    <T> CompletableFuture<Registration> register(String procedure,
-                                                 BiFunction<T, InvocationDetails,
-                                                         CompletableFuture<InvocationResult>> endpoint,
-                                                 RegisterOptions options);
+    CompletableFuture<Registration> register(
+            String procedure,
+            IInvocationHandler endpoint,
+            RegisterOptions options);
 
-    <T, U> CompletableFuture<Registration> register(String procedure,
-                                                    TriFunction<T, U, InvocationDetails,
-                                                            CompletableFuture<InvocationResult>> endpoint,
-                                                    RegisterOptions options);
+    <T> CompletableFuture<Registration> register(
+            String procedure,
+            Function<T, CompletableFuture<InvocationResult>> endpoint);
+
+    <T> CompletableFuture<Registration> register(
+            String procedure,
+            Function<T, CompletableFuture<InvocationResult>> endpoint,
+            RegisterOptions options);
+
+    <T> CompletableFuture<Registration> register(
+            String procedure,
+            BiFunction<T, InvocationDetails, CompletableFuture<InvocationResult>> endpoint);
+
+    <T> CompletableFuture<Registration> register(
+            String procedure,
+            BiFunction<T, InvocationDetails, CompletableFuture<InvocationResult>> endpoint,
+            RegisterOptions options);
+
+    <T, U> CompletableFuture<Registration> register(
+            String procedure,
+            TriFunction<T, U, InvocationDetails, CompletableFuture<InvocationResult>> endpoint);
+
+    <T, U> CompletableFuture<Registration> register(
+            String procedure,
+            TriFunction<T, U, InvocationDetails, CompletableFuture<InvocationResult>> endpoint,
+            RegisterOptions options);
+
+    CompletableFuture<CallResult> call(String procedure);
+
+    CompletableFuture<CallResult> call(String procedure, Object... args);
+
+    CompletableFuture<CallResult> call(String procedure, CallOptions options, Object... args);
+
+    CompletableFuture<CallResult> call(String procedure, Map<String, Object> kwargs);
+
+    CompletableFuture<CallResult> call(String procedure,
+                                       Map<String, Object> kwargs,
+                                       CallOptions options);
 
     CompletableFuture<CallResult> call(String procedure,
                                        List<Object> args,
@@ -127,6 +191,8 @@ public interface ISession {
                                   TypeReference<T> resultType,
                                   CallOptions options,
                                   Object... args);
+
+    CompletableFuture<SessionDetails> join(String realm);
 
     CompletableFuture<SessionDetails> join(String realm, List<String> authMethods);
 

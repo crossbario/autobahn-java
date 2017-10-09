@@ -489,6 +489,11 @@ public class Session implements ISession, ITransportHandler {
 //        return reallySubscribe(topic, handler, options);
 //    }
 
+    @Override
+    public <T> CompletableFuture<Subscription> subscribe(String topic, Consumer<T> handler) {
+        return reallySubscribe(topic, handler, null);
+    }
+
     /**
      * Subscribes to a WAMP topic
      * @param topic URI of the topic to subscribe
@@ -502,6 +507,11 @@ public class Session implements ISession, ITransportHandler {
                                                          Consumer<T> handler,
                                                          SubscribeOptions options) {
         return reallySubscribe(topic, handler, options);
+    }
+
+    @Override
+    public <T> CompletableFuture<Subscription> subscribe(String topic, Function<T, CompletableFuture<ReceptionResult>> handler) {
+        return reallySubscribe(topic, handler, null);
     }
 
     /**
@@ -521,6 +531,13 @@ public class Session implements ISession, ITransportHandler {
         return reallySubscribe(topic, handler, options);
     }
 
+    @Override
+    public <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            BiConsumer<T, EventDetails> handler) {
+        return reallySubscribe(topic, handler, null);
+    }
+
     /**
      * Subscribes to a WAMP topic. This is a convenience method that takes
      * a callback method with simplified signature that does not return
@@ -536,6 +553,14 @@ public class Session implements ISession, ITransportHandler {
                                                          BiConsumer<T, EventDetails> handler,
                                                          SubscribeOptions options) {
         return reallySubscribe(topic, handler, options);
+    }
+
+    @Override
+    public <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            BiFunction<T, EventDetails,
+            CompletableFuture<ReceptionResult>> handler) {
+        return reallySubscribe(topic, handler, null);
     }
 
     /**
@@ -555,6 +580,13 @@ public class Session implements ISession, ITransportHandler {
         return reallySubscribe(topic, handler, options);
     }
 
+    @Override
+    public <T, U> CompletableFuture<Subscription> subscribe(
+            String topic,
+            TriConsumer<T, U, EventDetails> handler) {
+        return reallySubscribe(topic, handler, null);
+    }
+
     /**
      * Subscribes to a WAMP topic. This is a convenience method that takes
      * a callback method with simplified signature
@@ -570,6 +602,13 @@ public class Session implements ISession, ITransportHandler {
             TriConsumer<T, U, EventDetails> handler,
             SubscribeOptions options) {
         return reallySubscribe(topic, handler, options);
+    }
+
+    @Override
+    public <T, U> CompletableFuture<Subscription> subscribe(
+            String topic,
+            TriFunction<T, U, EventDetails, CompletableFuture<ReceptionResult>> handler) {
+        return reallySubscribe(topic, handler, null);
     }
 
     /**
@@ -699,6 +738,16 @@ public class Session implements ISession, ITransportHandler {
         return future;
     }
 
+    @Override
+    public CompletableFuture<Registration> register(String procedure, Supplier<CompletableFuture<InvocationResult>> endpoint) {
+        return reallyRegister(procedure, endpoint, null);
+    }
+
+    @Override
+    public CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint) {
+        return reallyRegister(procedure, endpoint, null);
+    }
+
     /**
      * Registers a WAMP procedure.
      * @param procedure name of the procedure
@@ -726,6 +775,11 @@ public class Session implements ISession, ITransportHandler {
         return reallyRegister(procedure, endpoint, options);
     }
 
+    @Override
+    public <T> CompletableFuture<Registration> register(String procedure, Function<T, CompletableFuture<InvocationResult>> endpoint) {
+        return reallyRegister(procedure, endpoint, null);
+    }
+
     /**
      * Registers a WAMP procedure.
      * @param procedure name of the procedure
@@ -739,6 +793,11 @@ public class Session implements ISession, ITransportHandler {
                                                         Function<T, CompletableFuture<InvocationResult>> endpoint,
                                                         RegisterOptions options) {
         return reallyRegister(procedure, endpoint, options);
+    }
+
+    @Override
+    public <T> CompletableFuture<Registration> register(String procedure, BiFunction<T, InvocationDetails, CompletableFuture<InvocationResult>> endpoint) {
+        return reallyRegister(procedure, endpoint, null);
     }
 
     /**
@@ -755,6 +814,11 @@ public class Session implements ISession, ITransportHandler {
                                                                 CompletableFuture<InvocationResult>> endpoint,
                                                         RegisterOptions options) {
         return reallyRegister(procedure, endpoint, options);
+    }
+
+    @Override
+    public <T, U> CompletableFuture<Registration> register(String procedure, TriFunction<T, U, InvocationDetails, CompletableFuture<InvocationResult>> endpoint) {
+        return reallyRegister(procedure, endpoint, null);
     }
 
     /**
@@ -789,6 +853,32 @@ public class Session implements ISession, ITransportHandler {
             send(new Call(requestID, procedure, args, kwargs, options.timeout));
         }
         return future;
+    }
+
+    @Override
+    public CompletableFuture<CallResult> call(String procedure) {
+        return reallyCall(procedure, null, null, null, null);
+    }
+
+    @Override
+    public CompletableFuture<CallResult> call(String procedure, Object... args) {
+        return reallyCall(procedure, Arrays.asList(args), null, null, null);
+    }
+
+    @Override
+    public CompletableFuture<CallResult> call(String procedure, CallOptions options, Object... args) {
+        return reallyCall(procedure, Arrays.asList(args), null, null, options);
+    }
+
+    @Override
+    public CompletableFuture<CallResult> call(String procedure, Map<String, Object> kwargs) {
+        return reallyCall(procedure, null, kwargs, null, null);
+    }
+
+    @Override
+    public CompletableFuture<CallResult> call(String procedure, Map<String, Object> kwargs,
+                                              CallOptions options) {
+        return reallyCall(procedure, null, kwargs, null, options);
     }
 
     /**
@@ -840,6 +930,11 @@ public class Session implements ISession, ITransportHandler {
     public <T> CompletableFuture<T> call(String procedure, TypeReference<T> resultType, CallOptions options,
                                          Object... args) {
         return reallyCall(procedure, Arrays.asList(args), null, resultType, options);
+    }
+
+    @Override
+    public CompletableFuture<SessionDetails> join(String realm) {
+        return join(realm, null);
     }
 
     /**
