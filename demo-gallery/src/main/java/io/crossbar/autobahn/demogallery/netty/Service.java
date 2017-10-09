@@ -28,7 +28,7 @@ import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.auth.AnonymousAuth;
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
-import io.crossbar.autobahn.wamp.transports.NettyTransport;
+import io.crossbar.autobahn.wamp.transports.NettyWebSocket;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.EventDetails;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
@@ -78,7 +78,7 @@ public class Service {
 
         // in this case, the only transport we add is a WAMP-over-WebSocket
         // implementation on top of Netty client WebSocket
-        transports.add(new NettyTransport(url));
+        transports.add(new NettyWebSocket(url));
 
         // now create a authenticator list for the session to announce
         // and which will authenticate our session
