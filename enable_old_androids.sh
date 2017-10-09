@@ -3,8 +3,7 @@
 set -e
 
 # Uncomment streamsupport gradle library
-sed -i "s|// implementation 'net.sourceforge.streamsupport:streamsupport-cfuture:|implementation 'net.sourceforge.streamsupport:streamsupport-cfuture:|g" autobahn/build.gradle
-sed -i "s|// implementation 'net.sourceforge.streamsupport:streamsupport-cfuture:|implementation 'net.sourceforge.streamsupport:streamsupport-cfuture:|g" demo-gallery/build.gradle
+sed -i "s|//api 'net.sourceforge.streamsupport:streamsupport-cfuture:|api 'net.sourceforge.streamsupport:streamsupport-cfuture:|g" autobahn/build.gradle
 
 # Change SDK support to Android 4.0.3
 sed -i 's/minSdkVersion.*/minSdkVersion 15/g' autobahn/build.gradle
