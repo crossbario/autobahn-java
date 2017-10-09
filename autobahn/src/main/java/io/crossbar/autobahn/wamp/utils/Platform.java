@@ -44,7 +44,7 @@ public class Platform {
             if (isAndroid()) {
                 transportClass = Class.forName("io.crossbar.autobahn.wamp.transports.AndroidWebSocket");
             } else {
-                transportClass = Class.forName("io.crossbar.autobahn.wamp.transports.NettyTransport");
+                transportClass = Class.forName("io.crossbar.autobahn.wamp.transports.NettyWebSocket");
             }
 
             return (ITransport) transportClass.getConstructor(String.class).newInstance(webSocketURL);

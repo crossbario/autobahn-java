@@ -19,7 +19,6 @@ import java.util.logging.Logger;
 
 import javax.net.ssl.SSLException;
 
-import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.serializers.CBORSerializer;
@@ -52,9 +51,9 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.handler.timeout.IdleStateHandler;
 
 
-public class NettyTransport implements ITransport {
+public class NettyWebSocket implements ITransport {
 
-    private static final Logger LOGGER = Logger.getLogger(NettyTransport.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(NettyWebSocket.class.getName());
     private static final String SERIALIZERS_DEFAULT = String.format(
             "%s,%s,%s", CBORSerializer.NAME, MessagePackSerializer.NAME, JSONSerializer.NAME);
 
@@ -66,21 +65,21 @@ public class NettyTransport implements ITransport {
     private WebSocketOptions mOptions;
     private List<String> mSerializers;
 
-    public NettyTransport(String uri) {
+    public NettyWebSocket(String uri) {
         mUri = uri;
     }
 
-    public NettyTransport(String uri, List<String> serializers) {
+    public NettyWebSocket(String uri, List<String> serializers) {
         mUri = uri;
         mSerializers = serializers;
     }
 
-    public NettyTransport(String uri, WebSocketOptions options) {
+    public NettyWebSocket(String uri, WebSocketOptions options) {
         this(uri);
         mOptions = options;
     }
 
-    public NettyTransport(String uri, List<String> serializers, WebSocketOptions options) {
+    public NettyWebSocket(String uri, List<String> serializers, WebSocketOptions options) {
         mUri = uri;
         mSerializers = serializers;
         mOptions = options;

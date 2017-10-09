@@ -47,8 +47,8 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
     private ITransportHandler mTransportHandler;
     private boolean mWasCleanClose;
 
-    public NettyWebSocketClientHandler(WebSocketClientHandshaker handshaker, ITransport transport,
-                                       ITransportHandler transportHandler) {
+    NettyWebSocketClientHandler(WebSocketClientHandshaker handshaker, ITransport transport,
+                                ITransportHandler transportHandler) {
         mHandshaker = handshaker;
         mTransport = transport;
         mTransportHandler = transportHandler;
