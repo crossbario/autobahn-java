@@ -33,8 +33,6 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_APP)) {
     dependencies {
         implementation project(path: ':autobahn')
         implementation 'com.android.support:appcompat-v7:26.1.0'
-        implementation 'com.fasterxml.jackson.core:jackson-core:2.8.8'
-        // implementation 'net.sourceforge.streamsupport:streamsupport-cfuture:1.5.6'
     }
 } else {
     mainClassName = 'io.crossbar.autobahn.demogallery.netty.Main'
