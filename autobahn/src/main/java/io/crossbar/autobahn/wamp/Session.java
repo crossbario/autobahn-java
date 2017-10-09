@@ -193,7 +193,8 @@ public class Session implements ISession, ITransportHandler {
                     "parse", List.class).invoke(null, rawMessage);
             onMessage(message);
         } catch (Exception e) {
-            LOGGER.d("mapping received message bytes to IMessage failed: " + e.getMessage());
+            LOGGER.d("mapping received message bytes to IMessage failed: " +
+                    e.getMessage());
         }
     }
 
@@ -256,7 +257,8 @@ public class Session implements ISession, ITransportHandler {
                         // FIXME: check args length > 1 and == 0, and kwargs != null
                         // we cannot currently POJO automap these cases!
 
-                        request.onReply.complete(mSerializer.convertValue(msg.args.get(0), request.resultType));
+                        request.onReply.complete(mSerializer.convertValue(
+                                msg.args.get(0), request.resultType));
 
                     } else {
                         request.onReply.complete(new CallResult(msg.args, msg.kwargs));
@@ -268,13 +270,15 @@ public class Session implements ISession, ITransportHandler {
                 }
             } else if (message instanceof Subscribed) {
                 Subscribed msg = (Subscribed) message;
-                SubscribeRequest request = getOrDefault(mSubscribeRequests, msg.request, null);
+                SubscribeRequest request = getOrDefault(
+                        mSubscribeRequests, msg.request, null);
                 if (request != null) {
                     mSubscribeRequests.remove(msg.request);
                     if (!mSubscriptions.containsKey(msg.subscription)) {
                         mSubscriptions.put(msg.subscription, new ArrayList<>());
                     }
-                    Subscription subscription = new Subscription(msg.subscription, request.topic, request.handler);
+                    Subscription subscription = new Subscription(
+                            msg.subscription, request.topic, request.handler);
                     mSubscriptions.get(msg.subscription).add(subscription);
                     request.onReply.complete(subscription);
                 } else {
@@ -283,10 +287,12 @@ public class Session implements ISession, ITransportHandler {
                 }
             } else if (message instanceof Event) {
                 Event msg = (Event) message;
-                List<Subscription> subscriptions = getOrDefault(mSubscriptions, msg.subscription, null);
+                List<Subscription> subscriptions = getOrDefault(
+                        mSubscriptions, msg.subscription, null);
                 if (subscriptions == null) {
                     throw new ProtocolError(String.format(
-                            "EVENT received for non-subscribed subscription ID %s", msg.subscription));
+                            "EVENT received for non-subscribed subscription ID %s",
+                            msg.subscription));
                 }
 
                 List<CompletableFuture<?>> futures = new ArrayList<>();
@@ -295,7 +301,8 @@ public class Session implements ISession, ITransportHandler {
                     EventDetails details = new EventDetails(
                             subscription, msg.publication,
                             msg.topic != null ? msg.topic : subscription.topic,
-                            msg.retained, -1, null, null, this);
+                            msg.retained, -1, null,
+                            null, this);
 
                     CompletableFuture future = null;
                     if (subscription.handler instanceof Consumer) {
@@ -317,16 +324,19 @@ public class Session implements ISession, ITransportHandler {
                     } else if (subscription.handler instanceof TriConsumer) {
                         TriConsumer handler = (TriConsumer) subscription.handler;
                         future = CompletableFuture.runAsync(
-                                () -> handler.accept(msg.args, msg.kwargs, details), getExecutor());
+                                () -> handler.accept(msg.args, msg.kwargs, details),
+                                getExecutor());
                     } else if (subscription.handler instanceof TriFunction) {
                         TriFunction handler = (TriFunction) subscription.handler;
                         future = CompletableFuture.runAsync(
-                                () -> handler.apply(msg.args, msg.kwargs, details), getExecutor());
+                                () -> handler.apply(msg.args, msg.kwargs, details),
+                                getExecutor());
                     } else {
                         // FIXME: never going to reach here, though would be better to throw here.
 //                                IEventHandler handler = (IEventHandler) subscription.handler;
 //                                future = CompletableFuture.runAsync(
-//                                        () -> handler.accept(msg.args, msg.kwargs, details), getExecutor());
+//                                        () -> handler.accept(msg.args, msg.kwargs, details),
+//                                        getExecutor());
                     }
                     futures.add(future);
                 }
@@ -335,7 +345,8 @@ public class Session implements ISession, ITransportHandler {
                 combineFutures(futures);
             } else if (message instanceof Published) {
                 Published msg = (Published) message;
-                PublishRequest request = getOrDefault(mPublishRequests, msg.request, null);
+                PublishRequest request = getOrDefault(
+                        mPublishRequests, msg.request, null);
                 if (request != null) {
                     mPublishRequests.remove(msg.request);
                     Publication publication = new Publication(msg.publication);
@@ -346,7 +357,8 @@ public class Session implements ISession, ITransportHandler {
                 }
             } else if (message instanceof Registered) {
                 Registered msg = (Registered) message;
-                RegisterRequest request = getOrDefault(mRegisterRequest, msg.request, null);
+                RegisterRequest request = getOrDefault(
+                        mRegisterRequest, msg.request, null);
                 if (request != null) {
                     mRegisterRequest.remove(msg.request);
                     Registration registration = new Registration(
@@ -355,16 +367,19 @@ public class Session implements ISession, ITransportHandler {
                     request.onReply.complete(registration);
                 } else {
                     throw new ProtocolError(String.format(
-                            "REGISTERED received for already existing registration ID %s", msg.request));
+                            "REGISTERED received for already existing registration ID %s",
+                            msg.request));
                 }
             } else if (message instanceof Invocation) {
                 Invocation msg = (Invocation) message;
-                Registration registration = getOrDefault(mRegistrations, msg.registration, null);
+                Registration registration = getOrDefault(
+                        mRegistrations, msg.registration, null);
 
                 if (registration != null) {
 
                     InvocationDetails details = new InvocationDetails(
-                            registration, registration.procedure, -1, null, null, this);
+                            registration, registration.procedure, -1,
+                            null, null, this);
 
                     CompletableFuture<InvocationResult> result;
                     if (registration.endpoint instanceof Supplier) {
@@ -375,10 +390,12 @@ public class Session implements ISession, ITransportHandler {
                         result = (CompletableFuture<InvocationResult>) endpoint.apply(msg.args);
                     } else if (registration.endpoint instanceof BiFunction) {
                         BiFunction endpoint = (BiFunction) registration.endpoint;
-                        result = (CompletableFuture<InvocationResult>) endpoint.apply(msg.args, details);
+                        result = (CompletableFuture<InvocationResult>) endpoint.apply(
+                                msg.args, details);
                     } else if (registration.endpoint instanceof TriFunction) {
                         TriFunction endpoint = (TriFunction) registration.endpoint;
-                        result = (CompletableFuture<InvocationResult>) endpoint.apply(msg.args, msg.kwargs, details);
+                        result = (CompletableFuture<InvocationResult>) endpoint.apply(
+                                msg.args, msg.kwargs, details);
                     } else {
                         IInvocationHandler endpoint = (IInvocationHandler) registration.endpoint;
                         result = endpoint.apply(msg.args, msg.kwargs, details);
@@ -386,19 +403,23 @@ public class Session implements ISession, ITransportHandler {
 
                     result.whenCompleteAsync((invocationResult, invocationException) -> {
                         if (invocationException != null) {
-                            LOGGER.w("FIXME: send call error: " + invocationException.getMessage());
+                            LOGGER.w("FIXME: send call error: " +
+                                    invocationException.getMessage());
                         }
                         else {
-                            send(new Yield(msg.request, invocationResult.results, invocationResult.kwresults));
+                            send(new Yield(msg.request, invocationResult.results,
+                                    invocationResult.kwresults));
                         }
                     }, getExecutor());
                 } else {
                     throw new ProtocolError(String.format(
-                            "INVOCATION received for non-registered registration ID %s", msg.registration));
+                            "INVOCATION received for non-registered registration ID %s",
+                            msg.registration));
                 }
             } else if (message instanceof Goodbye) {
                 Goodbye goodbyeMessage = (Goodbye) message;
-                CloseDetails details = new CloseDetails(goodbyeMessage.reason, goodbyeMessage.message);
+                CloseDetails details = new CloseDetails(
+                        goodbyeMessage.reason, goodbyeMessage.message);
                 List<CompletableFuture<?>> futures = new ArrayList<>();
                 for (OnLeaveListener listener: mOnLeaveListeners) {
                     futures.add(CompletableFuture.runAsync(
@@ -419,16 +440,20 @@ public class Session implements ISession, ITransportHandler {
             } else if (message instanceof Error) {
                 Error msg = (Error) message;
                 CompletableFuture<?> onReply = null;
-                if (msg.requestType == Call.MESSAGE_TYPE && mCallRequests.containsKey(msg.request)) {
+                if (msg.requestType == Call.MESSAGE_TYPE
+                        && mCallRequests.containsKey(msg.request)) {
                     onReply = mCallRequests.get(msg.request).onReply;
                     mCallRequests.remove(msg.request);
-                } else if (msg.requestType == Publish.MESSAGE_TYPE && mPublishRequests.containsKey(msg.request)) {
+                } else if (msg.requestType == Publish.MESSAGE_TYPE
+                        && mPublishRequests.containsKey(msg.request)) {
                     onReply = mPublishRequests.get(msg.request).onReply;
                     mPublishRequests.remove(msg.request);
-                } else if (msg.requestType == Subscribe.MESSAGE_TYPE && mSubscribeRequests.containsKey(msg.request)) {
+                } else if (msg.requestType == Subscribe.MESSAGE_TYPE
+                        && mSubscribeRequests.containsKey(msg.request)) {
                     onReply = mSubscribeRequests.get(msg.request).onReply;
                     mSubscribeRequests.remove(msg.request);
-                } else if (msg.requestType == Register.MESSAGE_TYPE && mRegisterRequest.containsKey(msg.request)) {
+                } else if (msg.requestType == Register.MESSAGE_TYPE
+                        && mRegisterRequest.containsKey(msg.request)) {
                     onReply = mRegisterRequest.get(msg.request).onReply;
                     mRegisterRequest.remove(msg.request);
                 }
@@ -440,7 +465,8 @@ public class Session implements ISession, ITransportHandler {
                             msg.requestType, msg.request));
                 }
             } else {
-                throw new ProtocolError(String.format("Unexpected message %s", message.getClass().getName()));
+                throw new ProtocolError(String.format("Unexpected message %s",
+                        message.getClass().getName()));
             }
         }
     }
@@ -477,7 +503,8 @@ public class Session implements ISession, ITransportHandler {
         throwIfNotConnected();
         CompletableFuture<Subscription> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
-        mSubscribeRequests.put(requestID, new SubscribeRequest(requestID, topic, future, handler));
+        mSubscribeRequests.put(requestID,
+                new SubscribeRequest(requestID, topic, future, handler));
         send(new Subscribe(requestID, options, topic));
         return future;
     }
@@ -680,9 +707,11 @@ public class Session implements ISession, ITransportHandler {
         long requestID = mIDGenerator.next();
         mPublishRequests.put(requestID, new PublishRequest(requestID, future));
         if (options != null) {
-            send(new Publish(requestID, topic, args, kwargs, options.acknowledge, options.excludeMe, options.retain));
+            send(new Publish(requestID, topic, args, kwargs, options.acknowledge,
+                    options.excludeMe, options.retain));
         } else {
-            send(new Publish(requestID, topic, args, kwargs, true, true, false));
+            send(new Publish(requestID, topic, args, kwargs, true,
+                    true, false));
         }
         return future;
     }
@@ -697,8 +726,11 @@ public class Session implements ISession, ITransportHandler {
      * {@link io.crossbar.autobahn.wamp.types.Publication}
      */
     @Override
-    public CompletableFuture<Publication> publish(String topic, List<Object> args, Map<String, Object> kwargs,
-                                                  PublishOptions options) {
+    public CompletableFuture<Publication> publish(
+            String topic,
+            List<Object> args,
+            Map<String, Object> kwargs,
+            PublishOptions options) {
         return reallyPublish(topic, args, kwargs, options);
     }
 
@@ -712,7 +744,10 @@ public class Session implements ISession, ITransportHandler {
      * {@link io.crossbar.autobahn.wamp.types.Publication}
      */
     @Override
-    public CompletableFuture<Publication> publish(String topic, Object arg, PublishOptions options) {
+    public CompletableFuture<Publication> publish(
+            String topic,
+            Object arg,
+            PublishOptions options) {
         List<Object> args = new ArrayList<>();
         args.add(arg);
         return reallyPublish(topic, args, null, options);
@@ -728,7 +763,10 @@ public class Session implements ISession, ITransportHandler {
      * {@link io.crossbar.autobahn.wamp.types.Publication}
      */
     @Override
-    public CompletableFuture<Publication> publish(String topic, PublishOptions options, Object... args) {
+    public CompletableFuture<Publication> publish(
+            String topic,
+            PublishOptions options,
+            Object... args) {
         return reallyPublish(topic, Arrays.asList(args), null, options);
     }
 
@@ -773,7 +811,8 @@ public class Session implements ISession, ITransportHandler {
         throwIfNotConnected();
         CompletableFuture<Registration> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
-        mRegisterRequest.put(requestID, new RegisterRequest(requestID, future, procedure, endpoint));
+        mRegisterRequest.put(requestID,
+                new RegisterRequest(requestID, future, procedure, endpoint));
         if (options != null) {
             send(new Register(requestID, procedure, options.match, options.invoke));
         } else {
@@ -850,7 +889,9 @@ public class Session implements ISession, ITransportHandler {
      * {@link io.crossbar.autobahn.wamp.types.Registration}
      */
     @Override
-    public <T> CompletableFuture<Registration> register(String procedure, Function<T, CompletableFuture<InvocationResult>> endpoint) {
+    public <T> CompletableFuture<Registration> register(
+            String procedure,
+            Function<T, CompletableFuture<InvocationResult>> endpoint) {
         return reallyRegister(procedure, endpoint, null);
     }
 
@@ -863,9 +904,10 @@ public class Session implements ISession, ITransportHandler {
      * {@link io.crossbar.autobahn.wamp.types.Registration}
      */
     @Override
-    public <T> CompletableFuture<Registration> register(String procedure,
-                                                        Function<T, CompletableFuture<InvocationResult>> endpoint,
-                                                        RegisterOptions options) {
+    public <T> CompletableFuture<Registration> register(
+            String procedure,
+            Function<T, CompletableFuture<InvocationResult>> endpoint,
+            RegisterOptions options) {
         return reallyRegister(procedure, endpoint, options);
     }
 
@@ -892,10 +934,10 @@ public class Session implements ISession, ITransportHandler {
      * {@link io.crossbar.autobahn.wamp.types.Registration}
      */
     @Override
-    public <T> CompletableFuture<Registration> register(String procedure,
-                                                        BiFunction<T, InvocationDetails,
-                                                                CompletableFuture<InvocationResult>> endpoint,
-                                                        RegisterOptions options) {
+    public <T> CompletableFuture<Registration> register(
+            String procedure,
+            BiFunction<T, InvocationDetails, CompletableFuture<InvocationResult>> endpoint,
+            RegisterOptions options) {
         return reallyRegister(procedure, endpoint, options);
     }
 
@@ -939,7 +981,8 @@ public class Session implements ISession, ITransportHandler {
 
         long requestID = mIDGenerator.next();
 
-        mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options, resultType));
+        mCallRequests.put(requestID,
+                new CallRequest(requestID, procedure, future, options, resultType));
 
         if (options == null) {
             send(new Call(requestID, procedure, args, kwargs, 0));
@@ -969,7 +1012,8 @@ public class Session implements ISession, ITransportHandler {
      */
     @Override
     public CompletableFuture<CallResult> call(String procedure, Object... args) {
-        return reallyCall(procedure, Arrays.asList(args), null, null, null);
+        return reallyCall(procedure, Arrays.asList(args), null,
+                null, null);
     }
 
     /**
@@ -981,7 +1025,10 @@ public class Session implements ISession, ITransportHandler {
      * {@link io.crossbar.autobahn.wamp.types.CallResult}
      */
     @Override
-    public CompletableFuture<CallResult> call(String procedure, CallOptions options, Object... args) {
+    public CompletableFuture<CallResult> call(
+            String procedure,
+            CallOptions options,
+            Object... args) {
         return reallyCall(procedure, Arrays.asList(args), null, null, options);
     }
 
@@ -1006,8 +1053,10 @@ public class Session implements ISession, ITransportHandler {
      * {@link io.crossbar.autobahn.wamp.types.CallResult}
      */
     @Override
-    public CompletableFuture<CallResult> call(String procedure, Map<String, Object> kwargs,
-                                              CallOptions options) {
+    public CompletableFuture<CallResult> call(
+            String procedure,
+            Map<String, Object> kwargs,
+            CallOptions options) {
         return reallyCall(procedure, null, kwargs, null, options);
     }
 
@@ -1021,8 +1070,10 @@ public class Session implements ISession, ITransportHandler {
      * {@link io.crossbar.autobahn.wamp.types.CallResult}
      */
     @Override
-    public CompletableFuture<CallResult> call(String procedure, List<Object> args, Map<String, Object> kwargs,
-                                              CallOptions options) {
+    public CompletableFuture<CallResult> call(
+            String procedure,
+            List<Object> args, Map<String, Object> kwargs,
+            CallOptions options) {
         return reallyCall(procedure, args, kwargs, null, options);
     }
 
@@ -1039,8 +1090,10 @@ public class Session implements ISession, ITransportHandler {
      * the class provided with resultType
      */
     @Override
-    public <T> CompletableFuture<T> call(String procedure, List<Object> args, Map<String, Object> kwargs,
-                                         TypeReference<T> resultType, CallOptions options) {
+    public <T> CompletableFuture<T> call(
+            String procedure,
+            List<Object> args, Map<String, Object> kwargs,
+            TypeReference<T> resultType, CallOptions options) {
         return reallyCall(procedure, args, kwargs, resultType, options);
     }
 
@@ -1057,8 +1110,10 @@ public class Session implements ISession, ITransportHandler {
      * the class provided with resultType
      */
     @Override
-    public <T> CompletableFuture<T> call(String procedure, TypeReference<T> resultType, CallOptions options,
-                                         Object... args) {
+    public <T> CompletableFuture<T> call(
+            String procedure,
+            TypeReference<T> resultType, CallOptions options,
+            Object... args) {
         return reallyCall(procedure, Arrays.asList(args), null, resultType, options);
     }
 
