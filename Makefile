@@ -58,10 +58,14 @@ publish_toolchain:
 #
 
 publish_android:
+	sed -i 's/DEBUG = true/DEBUG = false/g' autobahn/src/main/java/io/crossbar/autobahn/utils/Globals.java
 	AUTOBAHN_BUILD_VERSION=${AUTOBAHN_JAVA_VERSION} gradle bintrayUpload -PbuildPlatform=android
+	sed -i 's/DEBUG = false/DEBUG = true/g' autobahn/src/main/java/io/crossbar/autobahn/utils/Globals.java
 
 publish_netty:
+	sed -i 's/DEBUG = true/DEBUG = false/g' autobahn/src/main/java/io/crossbar/autobahn/utils/Globals.java
 	AUTOBAHN_BUILD_VERSION=${AUTOBAHN_JAVA_VERSION} gradle bintrayUpload -PbuildPlatform=netty
+	sed -i 's/DEBUG = false/DEBUG = true/g' autobahn/src/main/java/io/crossbar/autobahn/utils/Globals.java
 
 generate_changelog:
 	./changelog_gen.sh
