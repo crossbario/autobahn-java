@@ -14,7 +14,7 @@ package io.crossbar.autobahn.demogallery.netty;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.logging.LogManager;
@@ -63,7 +63,7 @@ public class Main {
     private static void readAndSetLogLevel() throws IOException {
         String logLevel = System.getProperty("logLevel", "INFO");
         String config = String.format(LOG_CONFIG, logLevel, logLevel);
-        InputStream stream = new ByteArrayInputStream(config.getBytes(StandardCharsets.UTF_8));
+        InputStream stream = new ByteArrayInputStream(config.getBytes(Charset.forName("UTF-8")));
         LogManager.getLogManager().readConfiguration(stream);
     }
 }
