@@ -8,6 +8,7 @@ project.ext {
     PLUGIN_JAVA_APP = 'application'
     PLUGIN_JAVA_LIB = 'java-library'
     IS_ANDROID = PLATFORM == PLATFORM_ANDROID
+    BUILD_LEGACY = project.properties.get('buildLegacy', false)
 }
 
 buildscript {
