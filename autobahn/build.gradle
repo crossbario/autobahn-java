@@ -38,11 +38,7 @@ bintray {
     pkg {
         repo = 'autobahn'
         if (project.IS_ANDROID) {
-            if (project.BUILD_LEGACY) {
-                name = ARTIFACT_ANDROID_STREAMSUPPORT
-            } else {
-                name = ARTIFACT_ANDROID
-            }
+            name = project.BUILD_LEGACY ? ARTIFACT_ANDROID_STREAMSUPPORT: ARTIFACT_ANDROID
         } else {
             name = ARTIFACT_JAVA
         }
@@ -98,7 +94,7 @@ if (project.IS_ANDROID) {
         source = android.sourceSets.main.java.srcDirs
         classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     }
-    project.archivesBaseName = ARTIFACT_ANDROID
+    project.archivesBaseName = project.BUILD_LEGACY ? ARTIFACT_ANDROID_STREAMSUPPORT: ARTIFACT_ANDROID
     group = groupID
     version = relVersion
     install {
@@ -108,10 +104,10 @@ if (project.IS_ANDROID) {
                 project {
                     packaging 'aar'
                     groupId groupID
-                    artifactId ARTIFACT_ANDROID
+                    artifactId project.BUILD_LEGACY ? ARTIFACT_ANDROID_STREAMSUPPORT: ARTIFACT_ANDROID
 
                     // Add your description here
-                    name ARTIFACT_ANDROID
+                    name project.BUILD_LEGACY ? ARTIFACT_ANDROID_STREAMSUPPORT: ARTIFACT_ANDROID
                     description 'WebSocket & WAMP for Android'
                     url siteUrl
 
