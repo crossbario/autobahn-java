@@ -45,7 +45,7 @@ Subscribe to a topic
 public void demonstrateSubscribe(Session session, SessionDetails details) {
     // Subscribe to topic to receive its events.
     CompletableFuture<Subscription> subFuture = session.subscribe(
-            "com.myapp.hello", this::onEvent, null);
+            "com.myapp.hello", this::onEvent);
     subFuture.thenAccept(subscription -> {
         // We have successfully subscribed.
         System.out.println("Subscribed to topic " + subscription.topic);
@@ -62,11 +62,9 @@ Publish to a topic
 ```java
 public void demonstratePublish(Session session, SessionDetails details) {
     // Publish to a topic.
-    List<Object> pubItems = new ArrayList<>();
-    pubItems.add("Hello World!");
     CompletableFuture<Publication> pubFuture = session.publish(
-            "com.myapp.hello", pubItems, null, null);
-    pubFuture.thenAccept(publication -> System.out.println("Publisheded successfully"));
+            "com.myapp.hello", "Hello World!");
+    pubFuture.thenAccept(publication -> System.out.println("Published successfully"));
 }
 ```
 
@@ -76,7 +74,7 @@ Register a procedure
 public void demonstrateRegister(Session session, SessionDetails details) {
     // Register a procedure.
     CompletableFuture<Registration> regFuture = session.register(
-            "com.myapp.add2", this::add2, null);
+            "com.myapp.add2", this::add2);
     regFuture.thenAccept(registration ->
             System.out.println("Successfully registered procedure: " + registration.procedure));
 }
@@ -95,11 +93,8 @@ Call a procedure
 ```java
 public void demonstrateCall(Session session, SessionDetails details) {
     // Call a remote procedure.
-    List<Object> callArgs = new ArrayList<>();
-    callArgs.add(10);
-    callArgs.add(20);
     CompletableFuture<CallResult> callFuture = session.call(
-            "com.myapp.add2", callArgs, null, null);
+            "com.myapp.add2", 10, 20);
     callFuture.thenAccept(callResult ->
             System.out.println(String.format("Call result: %s", callResult.results.get(0))));
 }
@@ -115,19 +110,8 @@ public void main() {
     session.addOnJoinListener(this::demonstrateSubscribe);
     session.addOnJoinListener(this::demonstratePublish);
 
-    // Now create a transport list to try and add transports to it.
-    // In our case, we currnetly only have Netty based WAMP-over-WebSocket.
-    List<ITransport> transports = new ArrayList<>();
-    transports.add(new NettyTransport(websocketURL));
-
-    // Now provide a list of authentication methods.
-    // We only support anonymous auth currently.
-    List<IAuthenticator> authenticators = new ArrayList<>();
-    authenticators.add(new AnonymousAuth());
-
-    // finally, provide everything to a Client instance and connect
-    Client client = new Client(transports);
-    client.add(session, realm, authenticators);
+    // finally, provide everything to a Client and connect
+    Client client = new Client(session, url, realm);
     CompletableFuture<ExitInfo> exitInfoCompletableFuture = client.connect();
 }
 ```
