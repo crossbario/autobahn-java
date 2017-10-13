@@ -53,12 +53,12 @@ public class ExampleClient {
 
     private void onJoinCallback(Session session, SessionDetails details) {
         CompletableFuture<Registration> regFuture = session.register(
-                "com.example.add2", this::add2, null);
+                "com.example.add2", this::add2);
         regFuture.thenAccept(
                 registration -> LOGGER.info("Registered procedure: com.example.add2"));
 
         CompletableFuture<Subscription> subFuture = session.subscribe(
-                "com.example.oncounter", this::onCounter, null);
+                "com.example.oncounter", this::onCounter);
         subFuture.thenAccept(subscription ->
                 LOGGER.info(String.format("Subscribed to topic: %s", subscription.topic)));
 

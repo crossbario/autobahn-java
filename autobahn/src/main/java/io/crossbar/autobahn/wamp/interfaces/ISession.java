@@ -41,63 +41,102 @@ import io.crossbar.autobahn.wamp.types.Subscription;
 
 public interface ISession {
 
-//    CompletableFuture<Subscription> subscribe(
-//            String topic,
-//            IEventHandler handler,
-//            SubscribeOptions options);
-
-    <T> CompletableFuture<Subscription> subscribe(
+    CompletableFuture<Subscription> subscribe(
             String topic,
-            Consumer<T> handler);
+            Consumer<List<Object>> handler);
+
+    CompletableFuture<Subscription> subscribe(
+            String topic,
+            Consumer<List<Object>> handler,
+            SubscribeOptions options);
 
     <T> CompletableFuture<Subscription> subscribe(
             String topic,
             Consumer<T> handler,
-            SubscribeOptions options);
+            TypeReference<T> resultType);
 
     <T> CompletableFuture<Subscription> subscribe(
             String topic,
-            Function<T, CompletableFuture<ReceptionResult>> handler);
+            Consumer<T> handler,
+            TypeReference<T> resultType,
+            SubscribeOptions options);
+
+    CompletableFuture<Subscription> subscribe(
+            String topic,
+            Function<List<Object>, CompletableFuture<ReceptionResult>> handler);
+
+    CompletableFuture<Subscription> subscribe(
+            String topic,
+            Function<List<Object>, CompletableFuture<ReceptionResult>> handler,
+            SubscribeOptions options);
 
     <T> CompletableFuture<Subscription> subscribe(
             String topic,
             Function<T, CompletableFuture<ReceptionResult>> handler,
-            SubscribeOptions options);
+            TypeReference<T> resultType);
 
     <T> CompletableFuture<Subscription> subscribe(
             String topic,
-            BiConsumer<T, EventDetails> handler);
+            Function<T, CompletableFuture<ReceptionResult>> handler,
+            TypeReference<T> resultType,
+            SubscribeOptions options);
+
+    CompletableFuture<Subscription> subscribe(
+            String topic,
+            BiConsumer<List<Object>, EventDetails> handler);
+
+    CompletableFuture<Subscription> subscribe(
+            String topic,
+            BiConsumer<List<Object>, EventDetails> handler,
+            SubscribeOptions options);
 
     <T> CompletableFuture<Subscription> subscribe(
             String topic,
             BiConsumer<T, EventDetails> handler,
-            SubscribeOptions options);
+            TypeReference<T> resultType);
 
     <T> CompletableFuture<Subscription> subscribe(
             String topic,
-            BiFunction<T, EventDetails, CompletableFuture<ReceptionResult>> handler);
+            BiConsumer<T, EventDetails> handler,
+            TypeReference<T> resultType,
+            SubscribeOptions options);
+
+    CompletableFuture<Subscription> subscribe(
+            String topic,
+            BiFunction<List<Object>, EventDetails, CompletableFuture<ReceptionResult>> handler);
+
+    CompletableFuture<Subscription> subscribe(
+            String topic,
+            BiFunction<List<Object>, EventDetails, CompletableFuture<ReceptionResult>> handler,
+            SubscribeOptions options);
 
     <T> CompletableFuture<Subscription> subscribe(
             String topic,
             BiFunction<T, EventDetails, CompletableFuture<ReceptionResult>> handler,
+            TypeReference<T> resultType);
+
+    <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            BiFunction<T, EventDetails, CompletableFuture<ReceptionResult>> handler,
+            TypeReference<T> resultType,
             SubscribeOptions options);
 
-    <T, U> CompletableFuture<Subscription> subscribe(
+    CompletableFuture<Subscription> subscribe(
             String topic,
-            TriConsumer<T, U, EventDetails> handler);
+            TriConsumer<List<Object>, Map<String, Object>, EventDetails> handler);
 
-    <T, U> CompletableFuture<Subscription> subscribe(
+    CompletableFuture<Subscription> subscribe(
             String topic,
-            TriConsumer<T, U, EventDetails> handler,
+            TriConsumer<List<Object>, Map<String, Object>, EventDetails> handler,
             SubscribeOptions options);
 
-    <T, U> CompletableFuture<Subscription> subscribe(
+    CompletableFuture<Subscription> subscribe(
             String topic,
-            TriFunction<T, U, EventDetails, CompletableFuture<ReceptionResult>> handler);
+            TriFunction<List<Object>, Map<String, Object>, EventDetails, CompletableFuture<ReceptionResult>> handler);
 
-    <T, U> CompletableFuture<Subscription> subscribe(
+    CompletableFuture<Subscription> subscribe(
             String topic,
-            TriFunction<T, U, EventDetails, CompletableFuture<ReceptionResult>> handler,
+            TriFunction<List<Object>, Map<String, Object>, EventDetails, CompletableFuture<ReceptionResult>> handler,
             SubscribeOptions options);
 
     CompletableFuture<Publication> publish(
