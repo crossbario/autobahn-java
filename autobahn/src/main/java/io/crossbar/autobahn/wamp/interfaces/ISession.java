@@ -28,7 +28,6 @@ import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.CloseDetails;
 import io.crossbar.autobahn.wamp.types.EventDetails;
 import io.crossbar.autobahn.wamp.types.InvocationDetails;
-import io.crossbar.autobahn.wamp.types.InvocationResult;
 import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.PublishOptions;
 import io.crossbar.autobahn.wamp.types.ReceptionResult;
@@ -158,13 +157,13 @@ public interface ISession {
 
     CompletableFuture<Publication> publish(String topic);
 
-    CompletableFuture<Registration> register(
+    <T> CompletableFuture<Registration> register(
             String procedure,
-            Supplier<CompletableFuture<InvocationResult>> endpoint);
+            Supplier<T> endpoint);
 
-    CompletableFuture<Registration> register(
+    <T> CompletableFuture<Registration> register(
             String procedure,
-            Supplier<CompletableFuture<InvocationResult>> endpoint,
+            Supplier<T> endpoint,
             RegisterOptions options);
 
     CompletableFuture<Registration> register(
@@ -176,31 +175,31 @@ public interface ISession {
             IInvocationHandler endpoint,
             RegisterOptions options);
 
-    <T> CompletableFuture<Registration> register(
+    <T, R> CompletableFuture<Registration> register(
             String procedure,
-            Function<T, CompletableFuture<InvocationResult>> endpoint);
+            Function<T, R> endpoint);
 
-    <T> CompletableFuture<Registration> register(
+    <T, R> CompletableFuture<Registration> register(
             String procedure,
-            Function<T, CompletableFuture<InvocationResult>> endpoint,
+            Function<T, R> endpoint,
             RegisterOptions options);
 
-    <T> CompletableFuture<Registration> register(
+    <T, R> CompletableFuture<Registration> register(
             String procedure,
-            BiFunction<T, InvocationDetails, CompletableFuture<InvocationResult>> endpoint);
+            BiFunction<T, InvocationDetails, R> endpoint);
 
-    <T> CompletableFuture<Registration> register(
+    <T, R> CompletableFuture<Registration> register(
             String procedure,
-            BiFunction<T, InvocationDetails, CompletableFuture<InvocationResult>> endpoint,
+            BiFunction<T, InvocationDetails, R> endpoint,
             RegisterOptions options);
 
-    <T, U> CompletableFuture<Registration> register(
+    <T, U, R> CompletableFuture<Registration> register(
             String procedure,
-            TriFunction<T, U, InvocationDetails, CompletableFuture<InvocationResult>> endpoint);
+            TriFunction<T, U, InvocationDetails, R> endpoint);
 
-    <T, U> CompletableFuture<Registration> register(
+    <T, U, R> CompletableFuture<Registration> register(
             String procedure,
-            TriFunction<T, U, InvocationDetails, CompletableFuture<InvocationResult>> endpoint,
+            TriFunction<T, U, InvocationDetails, R> endpoint,
             RegisterOptions options);
 
     CompletableFuture<CallResult> call(String procedure);

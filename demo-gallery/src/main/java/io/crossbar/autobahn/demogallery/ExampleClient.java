@@ -25,7 +25,6 @@ import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.CloseDetails;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
 import io.crossbar.autobahn.wamp.types.InvocationDetails;
-import io.crossbar.autobahn.wamp.types.InvocationResult;
 import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
@@ -106,13 +105,13 @@ public class ExampleClient {
         LOGGER.info(String.format("Session with ID=%s, disconnected.", session.getID()));
     }
 
-    private CompletableFuture<InvocationResult> add2(List<Object> args, InvocationDetails details) {
+    private List<Object> add2(List<Object> args, InvocationDetails details) {
         int res = (int) args.get(0) + (int) args.get(1);
         List<Object> arr = new ArrayList<>();
         arr.add(res);
         arr.add(details.session.getID());
         arr.add("Java");
-        return CompletableFuture.completedFuture(new InvocationResult(arr));
+        return arr;
     }
 
     private void onCounter(List<Object> args) {
