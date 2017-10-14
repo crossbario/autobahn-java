@@ -1230,6 +1230,16 @@ public class Session implements ISession, ITransportHandler {
         return mJoinFuture;
     }
 
+    @Override
+    public void leave() {
+        leave(null, null);
+    }
+
+    @Override
+    public void leave(String reason) {
+        leave(reason, null);
+    }
+
     /**
      * Leave the currently joined WAMP session.
      * @param reason URI representing the reason to leave

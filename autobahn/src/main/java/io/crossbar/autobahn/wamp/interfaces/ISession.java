@@ -234,6 +234,10 @@ public interface ISession {
 
     CompletableFuture<SessionDetails> join(String realm, List<String> authMethods);
 
+    void leave();
+
+    void leave(String reason);
+
     void leave(String reason, String message);
 
     boolean isConnected();
