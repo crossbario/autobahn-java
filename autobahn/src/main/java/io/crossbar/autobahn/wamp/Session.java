@@ -278,7 +278,7 @@ public class Session implements ISession, ITransportHandler {
                         mSubscriptions.put(msg.subscription, new ArrayList<>());
                     }
                     Subscription subscription = new Subscription(
-                            msg.subscription, request.topic, request.handler);
+                            msg.subscription, request.topic, request.resultType, request.handler);
                     mSubscriptions.get(msg.subscription).add(subscription);
                     request.onReply.complete(subscription);
                 } else {
@@ -305,38 +305,39 @@ public class Session implements ISession, ITransportHandler {
                             null, this);
 
                     CompletableFuture future = null;
+
+                    // Check if we expect a POJO.
+                    Object arg = subscription.resultType == null ? msg.args:
+                            mSerializer.convertValue(msg.args.get(0), subscription.resultType);
+
                     if (subscription.handler instanceof Consumer) {
                         Consumer handler = (Consumer) subscription.handler;
-                        future = CompletableFuture.runAsync(
-                                () -> handler.accept(msg.args.get(0)), getExecutor());
+                        future = CompletableFuture.runAsync(() -> handler.accept(arg),
+                                getExecutor());
                     } else if (subscription.handler instanceof Function) {
                         Function handler = (Function) subscription.handler;
                         future = CompletableFuture.runAsync(
-                                () -> handler.apply(msg.args.get(0)), getExecutor());
+                                () -> handler.apply(arg), getExecutor());
                     } else if (subscription.handler instanceof BiConsumer) {
                         BiConsumer handler = (BiConsumer) subscription.handler;
                         future = CompletableFuture.runAsync(
-                                () -> handler.accept(msg.args.get(0), details), getExecutor());
+                                () -> handler.accept(arg, details), getExecutor());
                     } else if (subscription.handler instanceof BiFunction) {
                         BiFunction handler = (BiFunction) subscription.handler;
                         future = CompletableFuture.runAsync(
-                                () -> handler.apply(msg.args.get(0), details), getExecutor());
+                                () -> handler.apply(arg, details), getExecutor());
                     } else if (subscription.handler instanceof TriConsumer) {
                         TriConsumer handler = (TriConsumer) subscription.handler;
                         future = CompletableFuture.runAsync(
-                                () -> handler.accept(msg.args, msg.kwargs, details),
+                                () -> handler.accept(arg, msg.kwargs, details),
                                 getExecutor());
                     } else if (subscription.handler instanceof TriFunction) {
                         TriFunction handler = (TriFunction) subscription.handler;
                         future = CompletableFuture.runAsync(
-                                () -> handler.apply(msg.args, msg.kwargs, details),
+                                () -> handler.apply(arg, msg.kwargs, details),
                                 getExecutor());
                     } else {
                         // FIXME: never going to reach here, though would be better to throw here.
-//                                IEventHandler handler = (IEventHandler) subscription.handler;
-//                                future = CompletableFuture.runAsync(
-//                                        () -> handler.accept(msg.args, msg.kwargs, details),
-//                                        getExecutor());
                     }
                     futures.add(future);
                 }
@@ -498,40 +499,58 @@ public class Session implements ISession, ITransportHandler {
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
     }
 
-    private CompletableFuture<Subscription> reallySubscribe(String topic, Object handler,
-                                                            SubscribeOptions options) {
+    private <T> CompletableFuture<Subscription> reallySubscribe(
+            String topic,
+            Object handler,
+            TypeReference<T> resultType,
+            SubscribeOptions options) {
         throwIfNotConnected();
         CompletableFuture<Subscription> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
         mSubscribeRequests.put(requestID,
-                new SubscribeRequest(requestID, topic, future, handler));
+                new SubscribeRequest(requestID, topic, future, resultType, handler));
         send(new Subscribe(requestID, options, topic));
         return future;
     }
 
-//    @Override
-//    public CompletableFuture<Subscription> subscribe(String topic,
-//                                                     IEventHandler handler,
-//                                                     SubscribeOptions options) {
-//        return reallySubscribe(topic, handler, options);
-//    }
-
-    /**
-     * Subscribes to a WAMP topic
-     * @param topic URI of the topic to subscribe
-     * @param handler callback method for results of publication to the topic.
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Subscription}
-     */
     @Override
-    public <T> CompletableFuture<Subscription> subscribe(String topic, Consumer<T> handler) {
-        return reallySubscribe(topic, handler, null);
+    public CompletableFuture<Subscription> subscribe(
+            String topic,
+            Consumer<List<Object>> handler) {
+        return reallySubscribe(topic, handler, null, null);
+    }
+
+    @Override
+    public CompletableFuture<Subscription> subscribe(
+            String topic,
+            Consumer<List<Object>> handler,
+            SubscribeOptions options) {
+        return reallySubscribe(topic, handler, null, options);
     }
 
     /**
      * Subscribes to a WAMP topic
      * @param topic URI of the topic to subscribe
      * @param handler callback method for results of publication to the topic.
+     * @param resultType TypeReference encapsulating the class of the first
+     *                   parameter of the callback method
+     * @return a CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.Subscription}
+     */
+    @Override
+    public <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            Consumer<T> handler,
+            TypeReference<T> resultType) {
+        return reallySubscribe(topic, handler, resultType, null);
+    }
+
+    /**
+     * Subscribes to a WAMP topic
+     * @param topic URI of the topic to subscribe
+     * @param handler callback method for results of publication to the topic.
+     * @param resultType TypeReference encapsulating the class of the first
+     *                   parameter of the callback method
      * @param options options for the subscribe
      * @return a CompletableFuture that resolves to an instance of
      * {@link io.crossbar.autobahn.wamp.types.Subscription}
@@ -539,8 +558,24 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public <T> CompletableFuture<Subscription> subscribe(String topic,
                                                          Consumer<T> handler,
+                                                         TypeReference<T> resultType,
                                                          SubscribeOptions options) {
-        return reallySubscribe(topic, handler, options);
+        return reallySubscribe(topic, handler, resultType, options);
+    }
+
+    @Override
+    public CompletableFuture<Subscription> subscribe(
+            String topic,
+            Function<List<Object>, CompletableFuture<ReceptionResult>> handler) {
+        return reallySubscribe(topic, handler, null, null);
+    }
+
+    @Override
+    public CompletableFuture<Subscription> subscribe(
+            String topic,
+            Function<List<Object>, CompletableFuture<ReceptionResult>> handler,
+            SubscribeOptions options) {
+        return reallySubscribe(topic, handler, null, options);
     }
 
     /**
@@ -552,9 +587,10 @@ public class Session implements ISession, ITransportHandler {
      */
     @Override
     public <T> CompletableFuture<Subscription> subscribe(
-            String topic, Function<T,
-            CompletableFuture<ReceptionResult>> handler) {
-        return reallySubscribe(topic, handler, null);
+            String topic,
+            Function<T,CompletableFuture<ReceptionResult>> handler,
+            TypeReference<T> resultType) {
+        return reallySubscribe(topic, handler, resultType, null);
     }
 
     /**
@@ -570,8 +606,23 @@ public class Session implements ISession, ITransportHandler {
     public <T> CompletableFuture<Subscription> subscribe(
             String topic,
             Function<T, CompletableFuture<ReceptionResult>> handler,
+            TypeReference<T> resultType,
             SubscribeOptions options) {
-        return reallySubscribe(topic, handler, options);
+        return reallySubscribe(topic, handler, resultType, options);
+    }
+
+    @Override
+    public CompletableFuture<Subscription> subscribe(
+            String topic,
+            BiConsumer<List<Object>, EventDetails> handler) {
+        return reallySubscribe(topic, handler, null, null);
+    }
+
+    @Override
+    public CompletableFuture<Subscription> subscribe(
+            String topic,
+            BiConsumer<List<Object>, EventDetails> handler, SubscribeOptions options) {
+        return reallySubscribe(topic, handler, null, options);
     }
 
     /**
@@ -584,8 +635,9 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public <T> CompletableFuture<Subscription> subscribe(
             String topic,
-            BiConsumer<T, EventDetails> handler) {
-        return reallySubscribe(topic, handler, null);
+            BiConsumer<T, EventDetails> handler,
+            TypeReference<T> resultType) {
+        return reallySubscribe(topic, handler, resultType, null);
     }
 
     /**
@@ -601,8 +653,24 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public <T> CompletableFuture<Subscription> subscribe(String topic,
                                                          BiConsumer<T, EventDetails> handler,
+                                                         TypeReference<T> resultType,
                                                          SubscribeOptions options) {
-        return reallySubscribe(topic, handler, options);
+        return reallySubscribe(topic, handler, resultType, options);
+    }
+
+    @Override
+    public CompletableFuture<Subscription> subscribe(
+            String topic,
+            BiFunction<List<Object>, EventDetails, CompletableFuture<ReceptionResult>> handler) {
+        return reallySubscribe(topic, handler, null, null);
+    }
+
+    @Override
+    public CompletableFuture<Subscription> subscribe(
+            String topic,
+            BiFunction<List<Object>, EventDetails, CompletableFuture<ReceptionResult>> handler,
+            SubscribeOptions options) {
+        return reallySubscribe(topic, handler, null, options);
     }
 
     /**
@@ -615,9 +683,9 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public <T> CompletableFuture<Subscription> subscribe(
             String topic,
-            BiFunction<T, EventDetails,
-            CompletableFuture<ReceptionResult>> handler) {
-        return reallySubscribe(topic, handler, null);
+            BiFunction<T, EventDetails, CompletableFuture<ReceptionResult>> handler,
+            TypeReference<T> resultType) {
+        return reallySubscribe(topic, handler, resultType, null);
     }
 
     /**
@@ -633,8 +701,9 @@ public class Session implements ISession, ITransportHandler {
     public <T> CompletableFuture<Subscription> subscribe(
             String topic,
             BiFunction<T, EventDetails, CompletableFuture<ReceptionResult>> handler,
+            TypeReference<T> resultType,
             SubscribeOptions options) {
-        return reallySubscribe(topic, handler, options);
+        return reallySubscribe(topic, handler, resultType, options);
     }
 
     /**
@@ -645,10 +714,10 @@ public class Session implements ISession, ITransportHandler {
      * {@link io.crossbar.autobahn.wamp.types.Subscription}
      */
     @Override
-    public <T, U> CompletableFuture<Subscription> subscribe(
+    public CompletableFuture<Subscription> subscribe(
             String topic,
-            TriConsumer<T, U, EventDetails> handler) {
-        return reallySubscribe(topic, handler, null);
+            TriConsumer<List<Object>, Map<String, Object>, EventDetails> handler) {
+        return reallySubscribe(topic, handler, null, null);
     }
 
     /**
@@ -661,11 +730,11 @@ public class Session implements ISession, ITransportHandler {
      * {@link io.crossbar.autobahn.wamp.types.Subscription}
      */
     @Override
-    public <T, U> CompletableFuture<Subscription> subscribe(
+    public CompletableFuture<Subscription> subscribe(
             String topic,
-            TriConsumer<T, U, EventDetails> handler,
+            TriConsumer<List<Object>, Map<String, Object>, EventDetails> handler,
             SubscribeOptions options) {
-        return reallySubscribe(topic, handler, options);
+        return reallySubscribe(topic, handler, null, options);
     }
 
     /**
@@ -676,10 +745,11 @@ public class Session implements ISession, ITransportHandler {
      * {@link io.crossbar.autobahn.wamp.types.Subscription}
      */
     @Override
-    public <T, U> CompletableFuture<Subscription> subscribe(
+    public CompletableFuture<Subscription> subscribe(
             String topic,
-            TriFunction<T, U, EventDetails, CompletableFuture<ReceptionResult>> handler) {
-        return reallySubscribe(topic, handler, null);
+            TriFunction<List<Object>, Map<String, Object>, EventDetails,
+                    CompletableFuture<ReceptionResult>> handler) {
+        return reallySubscribe(topic, handler, null, null);
     }
 
     /**
@@ -692,11 +762,12 @@ public class Session implements ISession, ITransportHandler {
      * {@link io.crossbar.autobahn.wamp.types.Subscription}
      */
     @Override
-    public <T, U> CompletableFuture<Subscription> subscribe(
+    public CompletableFuture<Subscription> subscribe(
             String topic,
-            TriFunction<T, U, EventDetails, CompletableFuture<ReceptionResult>> handler,
+            TriFunction<List<Object>, Map<String, Object>, EventDetails,
+                    CompletableFuture<ReceptionResult>> handler,
             SubscribeOptions options) {
-        return reallySubscribe(topic, handler, options);
+        return reallySubscribe(topic, handler, null, options);
     }
 
     private CompletableFuture<Publication> reallyPublish(String topic, List<Object> args,
