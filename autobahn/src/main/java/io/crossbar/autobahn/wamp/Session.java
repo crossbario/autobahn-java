@@ -263,6 +263,9 @@ public class Session implements ISession, ITransportHandler {
                 // we cannot currently POJO automap these cases!
                 request.onReply.complete(mSerializer.convertValue(
                         msg.args.get(0), request.resultTypeRef));
+            } else if (request.resultTypeClass != null) {
+                request.onReply.complete(mSerializer.convertValue(
+                        msg.args.get(0), request.resultTypeClass));
             } else {
                 request.onReply.complete(new CallResult(msg.args, msg.kwargs));
             }
