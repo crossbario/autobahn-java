@@ -165,10 +165,11 @@ public class Session implements ISession, ITransportHandler {
         mTransport = transport;
         mSerializer = serializer;
 
-        // FIXME: should be async.
-        for (OnConnectListener listener: mOnConnectListeners) {
-            listener.onConnect(this);
-        }
+        runAsync(() -> {
+            for (OnConnectListener listener: mOnConnectListeners) {
+                listener.onConnect(this);
+            }
+        }, getExecutor());
     }
 
     private void send(IMessage message) {
@@ -230,7 +231,7 @@ public class Session implements ISession, ITransportHandler {
                             () -> listener.onLeave(this, details), getExecutor()));
                 }
                 CompletableFuture d = combineFutures(futures);
-                d.thenRun(() -> {
+                d.thenRunAsync(() -> {
                     LOGGER.d("Notified Session.onLeave listeners, now closing transport");
                     mState = STATE_DISCONNECTED;
                     if (mTransport != null && mTransport.isOpen()) {
@@ -240,7 +241,7 @@ public class Session implements ISession, ITransportHandler {
                             throw new CompletionException(e);
                         }
                     }
-                });
+                }, getExecutor());
             } else {
                 // FIXME: handle Challenge message here.
                 LOGGER.w("FIXME (no session): unprocessed message:");
@@ -435,7 +436,7 @@ public class Session implements ISession, ITransportHandler {
                             () -> listener.onLeave(this, details), getExecutor()));
                 }
                 CompletableFuture d = combineFutures(futures);
-                d.thenRun(() -> {
+                d.thenRunAsync(() -> {
                     LOGGER.d("Notified Session.onLeave listeners, now closing transport");
                     if (mTransport != null && mTransport.isOpen()) {
                         try {
@@ -445,7 +446,7 @@ public class Session implements ISession, ITransportHandler {
                         }
                     }
                     mState = STATE_DISCONNECTED;
-                });
+                }, getExecutor());
             } else if (message instanceof Error) {
                 Error msg = (Error) message;
                 CompletableFuture<?> onReply = null;
@@ -490,12 +491,12 @@ public class Session implements ISession, ITransportHandler {
                     () -> listener.onDisconnect(this, wasClean), getExecutor()));
         }
         CompletableFuture d = combineFutures(futures);
-        d.thenRun(() -> {
+        d.thenRunAsync(() -> {
             LOGGER.d("Notified all Session.onDisconnect listeners.");
             mTransport = null;
             mSerializer = null;
             mState = STATE_DISCONNECTED;
-        });
+        }, getExecutor());
     }
 
     @Override
