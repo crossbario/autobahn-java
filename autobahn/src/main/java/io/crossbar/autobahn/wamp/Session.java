@@ -462,7 +462,8 @@ public class Session implements ISession, ITransportHandler {
                 mRegisterRequest.remove(msg.request);
             }
             if (onReply != null) {
-                onReply.completeExceptionally(new ApplicationError(msg.error));
+                onReply.completeExceptionally(new ApplicationError(
+                        msg.error, msg.args, msg.kwargs));
             } else {
                 throw new ProtocolError(String.format(
                         "ERROR received for non-pending request_type: %s and request ID %s",

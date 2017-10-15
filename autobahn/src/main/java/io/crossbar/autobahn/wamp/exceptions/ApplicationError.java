@@ -11,10 +11,17 @@
 
 package io.crossbar.autobahn.wamp.exceptions;
 
+import java.util.List;
+import java.util.Map;
+
 public class ApplicationError extends Error {
 
-    // # FIXME: can be extended from here, currently only notify error URI.
-    public ApplicationError(String message) {
+    public final List<Object> args;
+    public final Map<String, Object> kwargs;
+
+    public ApplicationError(String message, List<Object> args, Map<String, Object> kwargs) {
         super(message);
+        this.args = args;
+        this.kwargs = kwargs;
     }
 }
