@@ -15,10 +15,11 @@ import java.net.URI;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 import javax.net.ssl.SSLException;
 
+import io.crossbar.autobahn.utils.ABLogger;
+import io.crossbar.autobahn.utils.IABLogger;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.serializers.CBORSerializer;
@@ -53,7 +54,8 @@ import io.netty.handler.timeout.IdleStateHandler;
 
 public class NettyWebSocket implements ITransport {
 
-    private static final Logger LOGGER = Logger.getLogger(NettyWebSocket.class.getName());
+    private static final IABLogger LOGGER = ABLogger.getLogger(
+            NettyWebSocket.class.getName());
     private static final String SERIALIZERS_DEFAULT = String.format(
             "%s,%s,%s", CBORSerializer.NAME, MessagePackSerializer.NAME, JSONSerializer.NAME);
 
@@ -178,7 +180,7 @@ public class NettyWebSocket implements ITransport {
 
     @Override
     public void close() throws Exception {
-        LOGGER.info("close()");
+        LOGGER.v("close()");
         if (mHandler != null && mChannel != null) {
             mHandler.close(mChannel, true);
         }
@@ -186,7 +188,7 @@ public class NettyWebSocket implements ITransport {
 
     @Override
     public void abort() throws Exception {
-        LOGGER.info("abort()");
+        LOGGER.v("abort()");
         close();
     }
 
