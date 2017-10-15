@@ -507,9 +507,7 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
-    public CompletableFuture<Subscription> subscribe(
-            String topic,
-            Consumer<List<Object>> handler) {
+    public CompletableFuture<Subscription> subscribe(String topic, Consumer<List<Object>> handler) {
         return reallySubscribe(topic, handler, null, null);
     }
 
@@ -521,15 +519,6 @@ public class Session implements ISession, ITransportHandler {
         return reallySubscribe(topic, handler, null, options);
     }
 
-    /**
-     * Subscribes to a WAMP topic
-     * @param topic URI of the topic to subscribe
-     * @param handler callback method for results of publication to the topic.
-     * @param resultType TypeReference encapsulating the class of the first
-     *                   parameter of the callback method
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Subscription}
-     */
     @Override
     public <T> CompletableFuture<Subscription> subscribe(
             String topic,
@@ -538,16 +527,6 @@ public class Session implements ISession, ITransportHandler {
         return reallySubscribe(topic, handler, resultType, null);
     }
 
-    /**
-     * Subscribes to a WAMP topic
-     * @param topic URI of the topic to subscribe
-     * @param handler callback method for results of publication to the topic.
-     * @param resultType TypeReference encapsulating the class of the first
-     *                   parameter of the callback method
-     * @param options options for the subscribe
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Subscription}
-     */
     @Override
     public <T> CompletableFuture<Subscription> subscribe(String topic,
                                                          Consumer<T> handler,
@@ -571,13 +550,6 @@ public class Session implements ISession, ITransportHandler {
         return reallySubscribe(topic, handler, null, options);
     }
 
-    /**
-     * Subscribes to a WAMP topic
-     * @param topic URI of the topic to subscribe
-     * @param handler callback method for results of publication to the topic.
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Subscription}
-     */
     @Override
     public <T> CompletableFuture<Subscription> subscribe(
             String topic,
@@ -586,15 +558,6 @@ public class Session implements ISession, ITransportHandler {
         return reallySubscribe(topic, handler, resultType, null);
     }
 
-    /**
-     * Subscribes to a WAMP topic. This is a convenience method that takes
-     * a callback method with simplified signature
-     * @param topic URI of the topic to subscribe
-     * @param handler callback method for results of publication to the topic.
-     * @param options options for the subscribe
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Subscription}
-     */
     @Override
     public <T> CompletableFuture<Subscription> subscribe(
             String topic,
@@ -618,13 +581,6 @@ public class Session implements ISession, ITransportHandler {
         return reallySubscribe(topic, handler, null, options);
     }
 
-    /**
-     * Subscribes to a WAMP topic
-     * @param topic URI of the topic to subscribe
-     * @param handler callback method for results of publication to the topic.
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Subscription}
-     */
     @Override
     public <T> CompletableFuture<Subscription> subscribe(
             String topic,
@@ -633,21 +589,12 @@ public class Session implements ISession, ITransportHandler {
         return reallySubscribe(topic, handler, resultType, null);
     }
 
-    /**
-     * Subscribes to a WAMP topic. This is a convenience method that takes
-     * a callback method with simplified signature that does not return
-     * anything
-     * @param topic URI of the topic to subscribe
-     * @param handler callback method for results of publication to the topic.
-     * @param options options for the subscribe
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Subscription}
-     */
     @Override
-    public <T> CompletableFuture<Subscription> subscribe(String topic,
-                                                         BiConsumer<T, EventDetails> handler,
-                                                         TypeReference<T> resultType,
-                                                         SubscribeOptions options) {
+    public <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            BiConsumer<T, EventDetails> handler,
+            TypeReference<T> resultType,
+            SubscribeOptions options) {
         return reallySubscribe(topic, handler, resultType, options);
     }
 
@@ -666,13 +613,6 @@ public class Session implements ISession, ITransportHandler {
         return reallySubscribe(topic, handler, null, options);
     }
 
-    /**
-     * Subscribes to a WAMP topic
-     * @param topic URI of the topic to subscribe
-     * @param handler callback method for results of publication to the topic.
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Subscription}
-     */
     @Override
     public <T> CompletableFuture<Subscription> subscribe(
             String topic,
@@ -681,15 +621,6 @@ public class Session implements ISession, ITransportHandler {
         return reallySubscribe(topic, handler, resultType, null);
     }
 
-    /**
-     * Subscribes to a WAMP topic. This is a convenience method that takes
-     * a callback method with simplified signature
-     * @param topic URI of the topic to subscribe
-     * @param handler callback method for results of publication to the topic.
-     * @param options options for the subscribe
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Subscription}
-     */
     @Override
     public <T> CompletableFuture<Subscription> subscribe(
             String topic,
@@ -699,13 +630,6 @@ public class Session implements ISession, ITransportHandler {
         return reallySubscribe(topic, handler, resultType, options);
     }
 
-    /**
-     * Subscribes to a WAMP topic
-     * @param topic URI of the topic to subscribe
-     * @param handler callback method for results of publication to the topic.
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Subscription}
-     */
     @Override
     public CompletableFuture<Subscription> subscribe(
             String topic,
@@ -713,15 +637,6 @@ public class Session implements ISession, ITransportHandler {
         return reallySubscribe(topic, handler, null, null);
     }
 
-    /**
-     * Subscribes to a WAMP topic. This is a convenience method that takes
-     * a callback method with simplified signature
-     * @param topic URI of the topic to subscribe
-     * @param handler callback method for results of publication to the topic.
-     * @param options options for the subscribe
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Subscription}
-     */
     @Override
     public CompletableFuture<Subscription> subscribe(
             String topic,
@@ -730,13 +645,6 @@ public class Session implements ISession, ITransportHandler {
         return reallySubscribe(topic, handler, null, options);
     }
 
-    /**
-     * Subscribes to a WAMP topic
-     * @param topic URI of the topic to subscribe
-     * @param handler callback method for results of publication to the topic.
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Subscription}
-     */
     @Override
     public CompletableFuture<Subscription> subscribe(
             String topic,
@@ -745,15 +653,6 @@ public class Session implements ISession, ITransportHandler {
         return reallySubscribe(topic, handler, null, null);
     }
 
-    /**
-     * Subscribes to a WAMP topic. This is a convenience method that takes
-     * a callback method with simplified signature
-     * @param topic URI of the topic to subscribe
-     * @param handler callback method for results of publication to the topic.
-     * @param options options for the subscribe
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Subscription}
-     */
     @Override
     public CompletableFuture<Subscription> subscribe(
             String topic,
@@ -780,15 +679,6 @@ public class Session implements ISession, ITransportHandler {
         return future;
     }
 
-    /**
-     * Publishes to a previously registered WAMP topic
-     * @param topic URI of the topic
-     * @param args positional arguments for the topic
-     * @param kwargs keyword arguments for the topic
-     * @param options options for the publication
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Publication}
-     */
     @Override
     public CompletableFuture<Publication> publish(
             String topic,
@@ -798,15 +688,6 @@ public class Session implements ISession, ITransportHandler {
         return reallyPublish(topic, args, kwargs, options);
     }
 
-    /**
-     * Publishes to a previously registered WAMP topic that takes a single
-     * argument.
-     * @param topic URI of the topic
-     * @param arg positional argument for the topic
-     * @param options options for the publication
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Publication}
-     */
     @Override
     public CompletableFuture<Publication> publish(
             String topic,
@@ -817,15 +698,6 @@ public class Session implements ISession, ITransportHandler {
         return reallyPublish(topic, args, null, options);
     }
 
-    /**
-     * Publishes to a previously registered WAMP topic that takes multiple
-     * positional arguments.
-     * @param topic URI of the topic
-     * @param options options for the publication
-     * @param args positional arguments for the topic
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Publication}
-     */
     @Override
     public CompletableFuture<Publication> publish(
             String topic,
@@ -834,44 +706,25 @@ public class Session implements ISession, ITransportHandler {
         return reallyPublish(topic, Arrays.asList(args), null, options);
     }
 
-    /**
-     * Publishes to a previously registered WAMP topic that takes multiple
-     * positional arguments.
-     * @param topic URI of the topic
-     * @param args positional arguments for the topic
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Publication}
-     */
     @Override
     public CompletableFuture<Publication> publish(String topic, Object... args) {
         return reallyPublish(topic, Arrays.asList(args), null, null);
     }
 
-    /**
-     * Publishes to a previously registered WAMP topic that takes no arguments.
-     * @param topic URI of the topic
-     * @param options options for the publication
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Publication}
-     */
     @Override
     public CompletableFuture<Publication> publish(String topic, PublishOptions options) {
         return reallyPublish(topic, null, null, options);
     }
 
-    /**
-     * Publishes to a previously registered WAMP topic that takes no arguments.
-     * @param topic URI of the topic
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Publication}
-     */
     @Override
     public CompletableFuture<Publication> publish(String topic) {
         return reallyPublish(topic, null, null, null);
     }
 
-    private CompletableFuture<Registration> reallyRegister(String procedure, Object endpoint,
-                                                           RegisterOptions options) {
+    private CompletableFuture<Registration> reallyRegister(
+            String procedure,
+            Object endpoint,
+            RegisterOptions options) {
         throwIfNotConnected();
         CompletableFuture<Registration> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
@@ -885,13 +738,6 @@ public class Session implements ISession, ITransportHandler {
         return future;
     }
 
-    /**
-     * Registers a WAMP procedure.
-     * @param procedure name of the procedure
-     * @param endpoint the callee for the remote procedure
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Registration}
-     */
     @Override
     public <T> CompletableFuture<Registration> register(
             String procedure,
@@ -899,14 +745,6 @@ public class Session implements ISession, ITransportHandler {
         return reallyRegister(procedure, endpoint, null);
     }
 
-    /**
-     * Registers a WAMP procedure.
-     * @param procedure name of the procedure
-     * @param endpoint the callee for the remote procedure
-     * @param options options for the procedure registration
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Registration}
-     */
     @Override
     public <T> CompletableFuture<Registration> register(
             String procedure,
@@ -915,13 +753,6 @@ public class Session implements ISession, ITransportHandler {
         return reallyRegister(procedure, endpoint, options);
     }
 
-    /**
-     * Registers a WAMP procedure.
-     * @param procedure name of the procedure
-     * @param endpoint the callee for the remote procedure
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Registration}
-     */
     @Override
     public CompletableFuture<Registration> register(
             String procedure,
@@ -929,14 +760,6 @@ public class Session implements ISession, ITransportHandler {
         return reallyRegister(procedure, endpoint, null);
     }
 
-    /**
-     * Registers a WAMP procedure.
-     * @param procedure name of the procedure
-     * @param endpoint the callee for the remote procedure
-     * @param options options for the procedure registration
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Registration}
-     */
     @Override
     public CompletableFuture<Registration> register(
             String procedure,
@@ -945,13 +768,6 @@ public class Session implements ISession, ITransportHandler {
         return reallyRegister(procedure, endpoint, options);
     }
 
-    /**
-     * Registers a WAMP procedure.
-     * @param procedure name of the procedure
-     * @param endpoint the callee for the remote procedure
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Registration}
-     */
     @Override
     public <T, R> CompletableFuture<Registration> register(
             String procedure,
@@ -959,14 +775,6 @@ public class Session implements ISession, ITransportHandler {
         return reallyRegister(procedure, endpoint, null);
     }
 
-    /**
-     * Registers a WAMP procedure.
-     * @param procedure name of the procedure
-     * @param endpoint the callee for the remote procedure
-     * @param options options for the procedure registration
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Registration}
-     */
     @Override
     public <T, R> CompletableFuture<Registration> register(
             String procedure,
@@ -975,13 +783,6 @@ public class Session implements ISession, ITransportHandler {
         return reallyRegister(procedure, endpoint, options);
     }
 
-    /**
-     * Registers a WAMP procedure.
-     * @param procedure name of the procedure
-     * @param endpoint the callee for the remote procedure
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Registration}
-     */
     @Override
     public <T, R> CompletableFuture<Registration> register(
             String procedure,
@@ -989,14 +790,6 @@ public class Session implements ISession, ITransportHandler {
         return reallyRegister(procedure, endpoint, null);
     }
 
-    /**
-     * Registers a WAMP procedure.
-     * @param procedure name of the procedure
-     * @param endpoint the callee for the remote procedure
-     * @param options options for the procedure registration
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Registration}
-     */
     @Override
     public <T, R> CompletableFuture<Registration> register(
             String procedure,
@@ -1005,13 +798,6 @@ public class Session implements ISession, ITransportHandler {
         return reallyRegister(procedure, endpoint, options);
     }
 
-    /**
-     * Registers a WAMP procedure.
-     * @param procedure name of the procedure
-     * @param endpoint the callee for the remote procedure
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Registration}
-     */
     @Override
     public <T, U, R> CompletableFuture<Registration> register(
             String procedure,
@@ -1019,14 +805,6 @@ public class Session implements ISession, ITransportHandler {
         return reallyRegister(procedure, endpoint, null);
     }
 
-    /**
-     * Registers a WAMP procedure.
-     * @param procedure name of the procedure
-     * @param endpoint the callee for the remote procedure
-     * @param options options for the procedure registration
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Registration}
-     */
     @Override
     public <T, U, R> CompletableFuture<Registration> register(
             String procedure,
@@ -1056,38 +834,17 @@ public class Session implements ISession, ITransportHandler {
         return future;
     }
 
-    /**
-     * Call a remote procedure.
-     * @param procedure URI of the procedure to call
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.CallResult}
-     */
     @Override
     public CompletableFuture<CallResult> call(String procedure) {
         return reallyCall(procedure, null, null, null, null);
     }
 
-    /**
-     * Call a remote procedure.
-     * @param procedure URI of the procedure to call
-     * @param args positional arguments for the procedure
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.CallResult}
-     */
     @Override
     public CompletableFuture<CallResult> call(String procedure, Object... args) {
         return reallyCall(procedure, Arrays.asList(args), null,
                 null, null);
     }
 
-    /**
-     * Call a remote procedure.
-     * @param procedure URI of the procedure to call
-     * @param options options for the WAMP call
-     * @param args positional arguments for the procedure
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.CallResult}
-     */
     @Override
     public CompletableFuture<CallResult> call(
             String procedure,
@@ -1096,26 +853,11 @@ public class Session implements ISession, ITransportHandler {
         return reallyCall(procedure, Arrays.asList(args), null, null, options);
     }
 
-    /**
-     * Call a remote procedure.
-     * @param procedure URI of the procedure to call
-     * @param kwargs keyword arguments for the procedure
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.CallResult}
-     */
     @Override
     public CompletableFuture<CallResult> call(String procedure, Map<String, Object> kwargs) {
         return reallyCall(procedure, null, kwargs, null, null);
     }
 
-    /**
-     * Call a remote procedure.
-     * @param procedure URI of the procedure to call
-     * @param kwargs keyword arguments for the procedure
-     * @param options options for the WAMP call
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.CallResult}
-     */
     @Override
     public CompletableFuture<CallResult> call(
             String procedure,
@@ -1124,15 +866,6 @@ public class Session implements ISession, ITransportHandler {
         return reallyCall(procedure, null, kwargs, null, options);
     }
 
-    /**
-     * Call a remote procedure.
-     * @param procedure URI of the procedure to call
-     * @param args positional arguments for the procedure
-     * @param kwargs keyword arguments for the procedure
-     * @param options options for the WAMP call
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.CallResult}
-     */
     @Override
     public CompletableFuture<CallResult> call(
             String procedure,
@@ -1141,18 +874,6 @@ public class Session implements ISession, ITransportHandler {
         return reallyCall(procedure, args, kwargs, null, options);
     }
 
-    /**
-     * Call a remote procedure where the result needs to be resolved to a
-     * POJO.
-     * @param procedure URI of the procedure to call
-     * @param args positional arguments for the procedure
-     * @param kwargs keyword arguments for the procedure
-     * @param resultType TypeReference encapsulating the class that the
-     *                   returned CompletableFuture should resolve to
-     * @param options options for the WAMP call
-     * @return a CompletableFuture that resolves to an instance of
-     * the class provided with resultType
-     */
     @Override
     public <T> CompletableFuture<T> call(
             String procedure,
@@ -1161,18 +882,6 @@ public class Session implements ISession, ITransportHandler {
         return reallyCall(procedure, args, kwargs, resultType, options);
     }
 
-    /**
-     * Call a remote procedure where the result needs to be resolved to a
-     * POJO. This is a convenience method to pass positional arguments
-     * directly to the method call.
-     * @param procedure URI of the procedure to call
-     * @param resultType TypeReference encapsulating the class that the
-     *                   returned CompletableFuture should resolve to
-     * @param options options for the WAMP call
-     * @param args positional arguments for the procedure
-     * @return a CompletableFuture that resolves to an instance of
-     * the class provided with resultType
-     */
     @Override
     public <T> CompletableFuture<T> call(
             String procedure,
@@ -1181,24 +890,11 @@ public class Session implements ISession, ITransportHandler {
         return reallyCall(procedure, Arrays.asList(args), null, resultType, options);
     }
 
-    /**
-     * Join a realm on the WAMP router
-     * @param realm name of the realm to join
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.SessionDetails}
-     */
     @Override
     public CompletableFuture<SessionDetails> join(String realm) {
         return join(realm, null);
     }
 
-    /**
-     * Join a realm on the WAMP router
-     * @param realm name of the realm to join
-     * @param authMethods list of authentication methods to try
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.SessionDetails}
-     */
     @Override
     public CompletableFuture<SessionDetails> join(String realm, List<String> authMethods) {
         LOGGER.d("Called join() with realm=" + realm);
@@ -1225,11 +921,6 @@ public class Session implements ISession, ITransportHandler {
         leave(reason, null);
     }
 
-    /**
-     * Leave the currently joined WAMP session.
-     * @param reason URI representing the reason to leave
-     * @param message the leave message
-     */
     @Override
     public void leave(String reason, String message) {
         LOGGER.d(String.format("reason=%s message=%s", reason, message));
