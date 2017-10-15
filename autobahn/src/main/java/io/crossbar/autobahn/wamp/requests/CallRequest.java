@@ -11,35 +11,31 @@
 
 package io.crossbar.autobahn.wamp.requests;
 
-import java.util.concurrent.CompletableFuture;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import java.util.concurrent.CompletableFuture;
+
 import io.crossbar.autobahn.wamp.types.CallOptions;
-import io.crossbar.autobahn.wamp.types.CallResult;
 
 
 public class CallRequest extends Request {
     public final String procedure;
     public final CallOptions options;
     public final CompletableFuture onReply;
-    public final TypeReference resultType;
+    public final TypeReference resultTypeRef;
+    public final Class resultTypeClass;
 
     public CallRequest(long request, String procedure, CompletableFuture onReply,
-                       CallOptions options) {
+                       CallOptions options, TypeReference resultTypeRef, Class resultTypeClass) {
         super(request);
         this.procedure = procedure;
         this.options = options;
         this.onReply = onReply;
-        this.resultType = null;
-    }
-
-    public CallRequest(long request, String procedure, CompletableFuture onReply,
-                       CallOptions options, TypeReference resultType) {
-        super(request);
-        this.procedure = procedure;
-        this.options = options;
-        this.onReply = onReply;
-        this.resultType = resultType;
+        if (resultTypeRef != null && resultTypeClass != null) {
+            throw new IllegalArgumentException(
+                    "Can only provide one of resultTypeRef or resultTypeClass");
+        }
+        this.resultTypeRef = resultTypeRef;
+        this.resultTypeClass = resultTypeClass;
     }
 }
