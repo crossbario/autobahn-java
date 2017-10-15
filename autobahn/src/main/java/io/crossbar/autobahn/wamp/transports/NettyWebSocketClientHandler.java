@@ -11,8 +11,8 @@
 
 package io.crossbar.autobahn.wamp.transports;
 
-import java.util.logging.Logger;
-
+import io.crossbar.autobahn.utils.ABLogger;
+import io.crossbar.autobahn.utils.IABLogger;
 import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
@@ -38,7 +38,7 @@ import io.netty.util.CharsetUtil;
 
 public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
 
-    private static final Logger LOGGER = Logger.getLogger(
+    private static final IABLogger LOGGER = ABLogger.getLogger(
             NettyWebSocketClientHandler.class.getName());
 
     private final WebSocketClientHandshaker mHandshaker;
@@ -70,7 +70,7 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-        LOGGER.info("WebSocket Client disconnected!");
+        LOGGER.i("WebSocket Client disconnected!");
         mTransportHandler.onDisconnect(mWasCleanClose);
     }
 
@@ -85,7 +85,7 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
         if (!mHandshaker.isHandshakeComplete()) {
             FullHttpResponse response = (FullHttpResponse) msg;
             String negotiatedSerializer = response.headers().get("Sec-WebSocket-Protocol");
-            LOGGER.info(String.format("Negotiated serializer=%s", negotiatedSerializer));
+            LOGGER.d(String.format("Negotiated serializer=%s", negotiatedSerializer));
             ISerializer serializer = initializeSerializer(negotiatedSerializer);
             mHandshaker.finishHandshake(ch, response);
             mHandshakeFuture.setSuccess();
@@ -100,14 +100,14 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
         } else if (msg instanceof BinaryWebSocketFrame) {
             BinaryWebSocketFrame binaryWebSocketFrame = (BinaryWebSocketFrame) msg;
             byte[] payload = new byte[binaryWebSocketFrame.content().readableBytes()];
-            LOGGER.info(String.format("Received binary frame, content length=%s", payload.length));
+            LOGGER.v(String.format("Received binary frame, content length=%s", payload.length));
             binaryWebSocketFrame.content().readBytes(payload);
             mTransportHandler.onMessage(payload, true);
 
         } else if (msg instanceof TextWebSocketFrame) {
             TextWebSocketFrame textWebSocketFrame = (TextWebSocketFrame) msg;
             byte[] payload = new byte[textWebSocketFrame.content().readableBytes()];
-            LOGGER.info(String.format("Received Text frame, content length=%s", payload.length));
+            LOGGER.v(String.format("Received Text frame, content length=%s", payload.length));
             textWebSocketFrame.content().readBytes(payload);
             mTransportHandler.onMessage(payload, false);
 
@@ -117,11 +117,11 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
 
         } else if (msg instanceof PongWebSocketFrame) {
             // Not really doing anything here.
-            LOGGER.info("WebSocket Client received pong.");
+            LOGGER.v("WebSocket Client received pong.");
 
         } else if (msg instanceof CloseWebSocketFrame) {
             CloseWebSocketFrame closeWebSocketFrame = (CloseWebSocketFrame) msg;
-            LOGGER.info(String.format(
+            LOGGER.d(String.format(
                     "Received Close frame, code=%s, reason=%s",
                     closeWebSocketFrame.statusCode(), closeWebSocketFrame.reasonText()));
             close(ctx, closeWebSocketFrame.statusCode() == 1000);

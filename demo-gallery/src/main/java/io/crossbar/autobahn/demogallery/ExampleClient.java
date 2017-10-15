@@ -26,6 +26,7 @@ import io.crossbar.autobahn.wamp.types.CloseDetails;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
 import io.crossbar.autobahn.wamp.types.InvocationDetails;
 import io.crossbar.autobahn.wamp.types.Publication;
+import io.crossbar.autobahn.wamp.types.PublishOptions;
 import io.crossbar.autobahn.wamp.types.Registration;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
 import io.crossbar.autobahn.wamp.types.Subscription;
@@ -33,6 +34,8 @@ import io.crossbar.autobahn.wamp.types.Subscription;
 public class ExampleClient {
 
     private static final Logger LOGGER = Logger.getLogger(ExampleClient.class.getName());
+    private static final String PROC_ADD2 = "com.example.add2";
+    private static final String TOPIC_COUNTER = "com.example.oncounter";
 
     public CompletableFuture<ExitInfo> main(String websocketURL, String realm) {
         Session session = new Session();
@@ -51,46 +54,42 @@ public class ExampleClient {
     }
 
     private void onJoinCallback(Session session, SessionDetails details) {
-        CompletableFuture<Registration> regFuture = session.register(
-                "com.example.add2", this::add2);
-        regFuture.thenAccept(
-                registration -> LOGGER.info("Registered procedure: com.example.add2"));
+        CompletableFuture<Registration> regFuture = session.register(PROC_ADD2, this::add2);
+        regFuture.thenAccept(reg -> LOGGER.info("Registered procedure: com.example.add2"));
 
         CompletableFuture<Subscription> subFuture = session.subscribe(
-                "com.example.oncounter", this::onCounter);
+                TOPIC_COUNTER, this::onCounter);
         subFuture.thenAccept(subscription ->
                 LOGGER.info(String.format("Subscribed to topic: %s", subscription.topic)));
 
         final int[] x = {0};
         final int[] counter = {0};
 
-        List<Object> args = new ArrayList<>();
-        args.add(x[0]);
-        args.add(3);
+        final PublishOptions publishOptions = new PublishOptions(true, false);
 
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
         executorService.scheduleAtFixedRate(() -> {
 
             // here we CALL every second
-            CompletableFuture<CallResult> f =
-                    session.call("com.example.add2", args, null, null);
-
-            f.thenAccept(result -> {
-                LOGGER.info(String.format("Got result: %s, ", result.results.get(0)));
-                x[0] += 1;
-                args.set(0, x[0]);
-            });
-
-            f.exceptionally(throwable -> {
-                LOGGER.info(String.format("ERROR - call failed: %s", throwable.getMessage()));
-                return null;
+            CompletableFuture<CallResult> f = session.call(PROC_ADD2, x[0], 3);
+            f.whenComplete((callResult, throwable) -> {
+                if (throwable == null) {
+                    LOGGER.info(String.format("Got result: %s, ", callResult.results.get(0)));
+                    x[0] += 1;
+                } else {
+                    LOGGER.info(String.format("ERROR - call failed: %s", throwable.getMessage()));
+                }
             });
 
             CompletableFuture<Publication> p = session.publish(
-                    "com.example.oncounter", counter[0], session.getID(), "Java");
-            p.thenAccept(publication -> {
-                LOGGER.info("published to 'oncounter' with counter " + counter[0]);
-                counter[0] += 1;
+                    TOPIC_COUNTER, publishOptions, counter[0], session.getID(), "Java");
+            p.whenComplete((publication, throwable) -> {
+                if (throwable == null) {
+                    LOGGER.info("published to 'oncounter' with counter " + counter[0]);
+                    counter[0] += 1;
+                } else {
+                    LOGGER.info(String.format("ERROR - pub failed: %s", throwable.getMessage()));
+                }
             });
 
         }, 0, 2, TimeUnit.SECONDS);
