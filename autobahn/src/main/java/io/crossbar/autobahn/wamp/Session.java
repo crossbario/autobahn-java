@@ -78,6 +78,7 @@ import io.crossbar.autobahn.wamp.utils.Platform;
 
 import static io.crossbar.autobahn.wamp.messages.MessageMap.MESSAGE_TYPE_MAP;
 import static io.crossbar.autobahn.wamp.utils.Shortcuts.getOrDefault;
+import static java.util.concurrent.CompletableFuture.runAsync;
 
 
 public class Session implements ISession, ITransportHandler {
@@ -210,7 +211,7 @@ public class Session implements ISession, ITransportHandler {
                 mJoinFuture.complete(details);
                 List<CompletableFuture<?>> futures = new ArrayList<>();
                 for (OnJoinListener listener: mOnJoinListeners) {
-                    futures.add(CompletableFuture.runAsync(
+                    futures.add(runAsync(
                             () -> listener.onJoin(this, details), getExecutor()));
                 }
                 CompletableFuture d = combineFutures(futures);
@@ -225,7 +226,7 @@ public class Session implements ISession, ITransportHandler {
                 CloseDetails details = new CloseDetails(abortMessage.reason, abortMessage.message);
                 List<CompletableFuture<?>> futures = new ArrayList<>();
                 for (OnLeaveListener listener: mOnLeaveListeners) {
-                    futures.add(CompletableFuture.runAsync(
+                    futures.add(runAsync(
                             () -> listener.onLeave(this, details), getExecutor()));
                 }
                 CompletableFuture d = combineFutures(futures);
@@ -312,28 +313,28 @@ public class Session implements ISession, ITransportHandler {
 
                     if (subscription.handler instanceof Consumer) {
                         Consumer handler = (Consumer) subscription.handler;
-                        future = CompletableFuture.runAsync(() -> handler.accept(arg),
+                        future = runAsync(() -> handler.accept(arg),
                                 getExecutor());
                     } else if (subscription.handler instanceof Function) {
                         Function handler = (Function) subscription.handler;
-                        future = CompletableFuture.runAsync(
+                        future = runAsync(
                                 () -> handler.apply(arg), getExecutor());
                     } else if (subscription.handler instanceof BiConsumer) {
                         BiConsumer handler = (BiConsumer) subscription.handler;
-                        future = CompletableFuture.runAsync(
+                        future = runAsync(
                                 () -> handler.accept(arg, details), getExecutor());
                     } else if (subscription.handler instanceof BiFunction) {
                         BiFunction handler = (BiFunction) subscription.handler;
-                        future = CompletableFuture.runAsync(
+                        future = runAsync(
                                 () -> handler.apply(arg, details), getExecutor());
                     } else if (subscription.handler instanceof TriConsumer) {
                         TriConsumer handler = (TriConsumer) subscription.handler;
-                        future = CompletableFuture.runAsync(
+                        future = runAsync(
                                 () -> handler.accept(arg, msg.kwargs, details),
                                 getExecutor());
                     } else if (subscription.handler instanceof TriFunction) {
                         TriFunction handler = (TriFunction) subscription.handler;
-                        future = CompletableFuture.runAsync(
+                        future = runAsync(
                                 () -> handler.apply(arg, msg.kwargs, details),
                                 getExecutor());
                     } else {
@@ -376,54 +377,61 @@ public class Session implements ISession, ITransportHandler {
                 Registration registration = getOrDefault(
                         mRegistrations, msg.registration, null);
 
-                if (registration != null) {
+                if (registration == null) {
+                    throw new ProtocolError(String.format(
+                            "INVOCATION received for non-registered registration ID %s",
+                            msg.registration));
+                }
 
-                    InvocationDetails details = new InvocationDetails(
-                            registration, registration.procedure, -1,
-                            null, null, this);
+                InvocationDetails details = new InvocationDetails(
+                        registration, registration.procedure, -1,
+                        null, null, this);
 
-                    CompletableFuture<InvocationResult> result;
+                runAsync(() -> {
+                    Object result;
                     if (registration.endpoint instanceof Supplier) {
                         Supplier endpoint = (Supplier) registration.endpoint;
-                        result = (CompletableFuture<InvocationResult>) endpoint.get();
+                        result = endpoint.get();
                     } else if (registration.endpoint instanceof Function) {
                         Function endpoint = (Function) registration.endpoint;
-                        result = (CompletableFuture<InvocationResult>) endpoint.apply(msg.args);
+                        result = endpoint.apply(msg.args);
                     } else if (registration.endpoint instanceof BiFunction) {
                         BiFunction endpoint = (BiFunction) registration.endpoint;
-                        result = (CompletableFuture<InvocationResult>) endpoint.apply(
-                                msg.args, details);
+                        result = endpoint.apply(msg.args, details);
                     } else if (registration.endpoint instanceof TriFunction) {
                         TriFunction endpoint = (TriFunction) registration.endpoint;
-                        result = (CompletableFuture<InvocationResult>) endpoint.apply(
-                                msg.args, msg.kwargs, details);
+                        result = endpoint.apply(msg.args, msg.kwargs, details);
                     } else {
                         IInvocationHandler endpoint = (IInvocationHandler) registration.endpoint;
                         result = endpoint.apply(msg.args, msg.kwargs, details);
                     }
 
-                    result.whenCompleteAsync((invocationResult, invocationException) -> {
-                        if (invocationException != null) {
-                            LOGGER.w("FIXME: send call error: " +
-                                    invocationException.getMessage());
-                        }
-                        else {
-                            send(new Yield(msg.request, invocationResult.results,
-                                    invocationResult.kwresults));
-                        }
-                    }, getExecutor());
-                } else {
-                    throw new ProtocolError(String.format(
-                            "INVOCATION received for non-registered registration ID %s",
-                            msg.registration));
-                }
+                    if (result instanceof InvocationResult) {
+                        InvocationResult res = (InvocationResult) result;
+                        send(new Yield(msg.request, res.results, res.kwresults));
+                    } else if (result instanceof List) {
+                        send(new Yield(msg.request, (List) result, null));
+                    } else if (result instanceof Map) {
+                        send(new Yield(msg.request, null, (Map) result));
+                    } else {
+                        List<Object> item = new ArrayList<>();
+                        item.add(result);
+                        send(new Yield(msg.request, item, null));
+                    }
+                }, getExecutor()).whenCompleteAsync((aVoid, throwable) -> {
+                    // FIXME: implement better errors
+                    List<Object> args = new ArrayList<>();
+                    args.add(throwable.getMessage());
+                    send(new Error(Invocation.MESSAGE_TYPE, msg.request,
+                            "io.crossbar.autobahn.invocation_error", args, null));
+                });
             } else if (message instanceof Goodbye) {
                 Goodbye goodbyeMessage = (Goodbye) message;
                 CloseDetails details = new CloseDetails(
                         goodbyeMessage.reason, goodbyeMessage.message);
                 List<CompletableFuture<?>> futures = new ArrayList<>();
                 for (OnLeaveListener listener: mOnLeaveListeners) {
-                    futures.add(CompletableFuture.runAsync(
+                    futures.add(runAsync(
                             () -> listener.onLeave(this, details), getExecutor()));
                 }
                 CompletableFuture d = combineFutures(futures);
@@ -478,7 +486,7 @@ public class Session implements ISession, ITransportHandler {
 
         List<CompletableFuture<?>> futures = new ArrayList<>();
         for (OnDisconnectListener listener: mOnDisconnectListeners) {
-            futures.add(CompletableFuture.runAsync(
+            futures.add(runAsync(
                     () -> listener.onDisconnect(this, wasClean), getExecutor()));
         }
         CompletableFuture d = combineFutures(futures);
@@ -900,10 +908,26 @@ public class Session implements ISession, ITransportHandler {
      * {@link io.crossbar.autobahn.wamp.types.Registration}
      */
     @Override
-    public CompletableFuture<Registration> register(
+    public <T> CompletableFuture<Registration> register(
             String procedure,
-            Supplier<CompletableFuture<InvocationResult>> endpoint) {
+            Supplier<T> endpoint) {
         return reallyRegister(procedure, endpoint, null);
+    }
+
+    /**
+     * Registers a WAMP procedure.
+     * @param procedure name of the procedure
+     * @param endpoint the callee for the remote procedure
+     * @param options options for the procedure registration
+     * @return a CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.Registration}
+     */
+    @Override
+    public <T> CompletableFuture<Registration> register(
+            String procedure,
+            Supplier<T> endpoint,
+            RegisterOptions options) {
+        return reallyRegister(procedure, endpoint, options);
     }
 
     /**
@@ -931,22 +955,6 @@ public class Session implements ISession, ITransportHandler {
     @Override
     public CompletableFuture<Registration> register(
             String procedure,
-            Supplier endpoint,
-            RegisterOptions options) {
-        return reallyRegister(procedure, endpoint, options);
-    }
-
-    /**
-     * Registers a WAMP procedure.
-     * @param procedure name of the procedure
-     * @param endpoint the callee for the remote procedure
-     * @param options options for the procedure registration
-     * @return a CompletableFuture that resolves to an instance of
-     * {@link io.crossbar.autobahn.wamp.types.Registration}
-     */
-    @Override
-    public CompletableFuture<Registration> register(
-            String procedure,
             IInvocationHandler endpoint,
             RegisterOptions options) {
         return reallyRegister(procedure, endpoint, options);
@@ -960,9 +968,9 @@ public class Session implements ISession, ITransportHandler {
      * {@link io.crossbar.autobahn.wamp.types.Registration}
      */
     @Override
-    public <T> CompletableFuture<Registration> register(
+    public <T, R> CompletableFuture<Registration> register(
             String procedure,
-            Function<T, CompletableFuture<InvocationResult>> endpoint) {
+            Function<T, R> endpoint) {
         return reallyRegister(procedure, endpoint, null);
     }
 
@@ -975,9 +983,9 @@ public class Session implements ISession, ITransportHandler {
      * {@link io.crossbar.autobahn.wamp.types.Registration}
      */
     @Override
-    public <T> CompletableFuture<Registration> register(
+    public <T, R> CompletableFuture<Registration> register(
             String procedure,
-            Function<T, CompletableFuture<InvocationResult>> endpoint,
+            Function<T, R> endpoint,
             RegisterOptions options) {
         return reallyRegister(procedure, endpoint, options);
     }
@@ -990,9 +998,9 @@ public class Session implements ISession, ITransportHandler {
      * {@link io.crossbar.autobahn.wamp.types.Registration}
      */
     @Override
-    public <T> CompletableFuture<Registration> register(
+    public <T, R> CompletableFuture<Registration> register(
             String procedure,
-            BiFunction<T, InvocationDetails, CompletableFuture<InvocationResult>> endpoint) {
+            BiFunction<T, InvocationDetails, R> endpoint) {
         return reallyRegister(procedure, endpoint, null);
     }
 
@@ -1005,9 +1013,9 @@ public class Session implements ISession, ITransportHandler {
      * {@link io.crossbar.autobahn.wamp.types.Registration}
      */
     @Override
-    public <T> CompletableFuture<Registration> register(
+    public <T, R> CompletableFuture<Registration> register(
             String procedure,
-            BiFunction<T, InvocationDetails, CompletableFuture<InvocationResult>> endpoint,
+            BiFunction<T, InvocationDetails, R> endpoint,
             RegisterOptions options) {
         return reallyRegister(procedure, endpoint, options);
     }
@@ -1020,9 +1028,9 @@ public class Session implements ISession, ITransportHandler {
      * {@link io.crossbar.autobahn.wamp.types.Registration}
      */
     @Override
-    public <T, U> CompletableFuture<Registration> register(
+    public <T, U, R> CompletableFuture<Registration> register(
             String procedure,
-            TriFunction<T, U, InvocationDetails, CompletableFuture<InvocationResult>> endpoint) {
+            TriFunction<T, U, InvocationDetails, R> endpoint) {
         return reallyRegister(procedure, endpoint, null);
     }
 
@@ -1035,9 +1043,9 @@ public class Session implements ISession, ITransportHandler {
      * {@link io.crossbar.autobahn.wamp.types.Registration}
      */
     @Override
-    public <T, U> CompletableFuture<Registration> register(
+    public <T, U, R> CompletableFuture<Registration> register(
             String procedure,
-            TriFunction<T, U, InvocationDetails, CompletableFuture<InvocationResult>> endpoint,
+            TriFunction<T, U, InvocationDetails, R> endpoint,
             RegisterOptions options) {
         return reallyRegister(procedure, endpoint, options);
     }
@@ -1220,6 +1228,16 @@ public class Session implements ISession, ITransportHandler {
         mJoinFuture = new CompletableFuture<>();
         mState = STATE_HELLO_SENT;
         return mJoinFuture;
+    }
+
+    @Override
+    public void leave() {
+        leave(null, null);
+    }
+
+    @Override
+    public void leave(String reason) {
+        leave(reason, null);
     }
 
     /**

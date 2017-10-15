@@ -13,7 +13,6 @@ package io.crossbar.autobahn.wamp.interfaces;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.types.InvocationDetails;
 import io.crossbar.autobahn.wamp.types.InvocationResult;
@@ -21,7 +20,7 @@ import io.crossbar.autobahn.wamp.types.InvocationResult;
 
 @FunctionalInterface
 public interface IInvocationHandler {
-    CompletableFuture<InvocationResult> apply(List<Object> args,
-                                              Map<String, Object> kwargs,
-                                              InvocationDetails details);
+    InvocationResult apply(List<Object> args,
+                           Map<String, Object> kwargs,
+                           InvocationDetails details);
 }
