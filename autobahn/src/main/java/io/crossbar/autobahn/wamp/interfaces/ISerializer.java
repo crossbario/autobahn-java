@@ -52,6 +52,12 @@ public abstract class ISerializer {
         return mapper.convertValue(fromValue, toValueTypeRef);
     }
 
+    public <T> T convertValue(Object fromValue, Class<T> toValueTypeClass) {
+        // https://github.com/FasterXML/jackson-databind#tutorial-fancier-stuff-conversions
+        // ResultType result = mapper.convertValue(sourceObject, ResultType.class);
+        return mapper.convertValue(fromValue, toValueTypeClass);
+    }
+
     public boolean isBinary() {
         return true;
     }

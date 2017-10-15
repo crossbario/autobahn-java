@@ -21,15 +21,21 @@ import io.crossbar.autobahn.wamp.types.Subscription;
 public class SubscribeRequest extends Request {
     public final String topic;
     public final CompletableFuture<Subscription> onReply;
-    public final TypeReference resultType;
+    public final TypeReference resultTypeRef;
+    public final Class resultTypeClass;
     public final Object handler;
 
     public SubscribeRequest(long request, String topic, CompletableFuture<Subscription> onReply,
-                            TypeReference resultType, Object handler) {
+                            TypeReference resultTypeRef, Class resultTypeClass, Object handler) {
         super(request);
         this.topic = topic;
         this.onReply = onReply;
-        this.resultType = resultType;
+        if (resultTypeRef != null && resultTypeClass != null) {
+            throw new IllegalArgumentException(
+                    "Can only provide one of resultTypeRef or resultTypeClass");
+        }
+        this.resultTypeRef = resultTypeRef;
+        this.resultTypeClass = resultTypeClass;
         this.handler = handler;
     }
 }

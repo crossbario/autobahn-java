@@ -258,11 +258,14 @@ public class Session implements ISession, ITransportHandler {
             }
 
             mCallRequests.remove(msg.request);
-            if (request.resultType != null) {
+            if (request.resultTypeRef != null) {
                 // FIXME: check args length > 1 and == 0, and kwargs != null
                 // we cannot currently POJO automap these cases!
                 request.onReply.complete(mSerializer.convertValue(
-                        msg.args.get(0), request.resultType));
+                        msg.args.get(0), request.resultTypeRef));
+            } else if (request.resultTypeClass != null) {
+                request.onReply.complete(mSerializer.convertValue(
+                        msg.args.get(0), request.resultTypeClass));
             } else {
                 request.onReply.complete(new CallResult(msg.args, msg.kwargs));
             }
@@ -279,8 +282,8 @@ public class Session implements ISession, ITransportHandler {
             if (!mSubscriptions.containsKey(msg.subscription)) {
                 mSubscriptions.put(msg.subscription, new ArrayList<>());
             }
-            Subscription subscription = new Subscription(
-                    msg.subscription, request.topic, request.resultType, request.handler);
+            Subscription subscription = new Subscription(msg.subscription, request.topic,
+                    request.resultTypeRef, request.resultTypeClass, request.handler);
             mSubscriptions.get(msg.subscription).add(subscription);
             request.onReply.complete(subscription);
         } else if (message instanceof Event) {
@@ -304,8 +307,14 @@ public class Session implements ISession, ITransportHandler {
 
                 CompletableFuture future = null;
                 // Check if we expect a POJO.
-                Object arg = subscription.resultType == null ? msg.args:
-                        mSerializer.convertValue(msg.args.get(0), subscription.resultType);
+                Object arg;
+                if (subscription.resultTypeRef != null) {
+                    arg = mSerializer.convertValue(msg.args.get(0), subscription.resultTypeRef);
+                } else if (subscription.resultTypeClass != null) {
+                    arg = mSerializer.convertValue(msg.args.get(0), subscription.resultTypeClass);
+                } else {
+                    arg = msg.args;
+                }
 
                 if (subscription.handler instanceof Consumer) {
                     Consumer handler = (Consumer) subscription.handler;
@@ -495,20 +504,21 @@ public class Session implements ISession, ITransportHandler {
     private <T> CompletableFuture<Subscription> reallySubscribe(
             String topic,
             Object handler,
-            TypeReference<T> resultType,
-            SubscribeOptions options) {
+            SubscribeOptions options,
+            TypeReference<T> resultTypeRef,
+            Class<T> resultTypeClass) {
         throwIfNotConnected();
         CompletableFuture<Subscription> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
-        mSubscribeRequests.put(requestID,
-                new SubscribeRequest(requestID, topic, future, resultType, handler));
+        mSubscribeRequests.put(requestID, new SubscribeRequest(requestID, topic, future,
+                resultTypeRef, resultTypeClass, handler));
         send(new Subscribe(requestID, options, topic));
         return future;
     }
 
     @Override
     public CompletableFuture<Subscription> subscribe(String topic, Consumer<List<Object>> handler) {
-        return reallySubscribe(topic, handler, null, null);
+        return reallySubscribe(topic, handler, null, null, null);
     }
 
     @Override
@@ -516,7 +526,7 @@ public class Session implements ISession, ITransportHandler {
             String topic,
             Consumer<List<Object>> handler,
             SubscribeOptions options) {
-        return reallySubscribe(topic, handler, null, options);
+        return reallySubscribe(topic, handler, options, null, null);
     }
 
     @Override
@@ -524,22 +534,40 @@ public class Session implements ISession, ITransportHandler {
             String topic,
             Consumer<T> handler,
             TypeReference<T> resultType) {
-        return reallySubscribe(topic, handler, resultType, null);
+        return reallySubscribe(topic, handler, null, resultType, null);
     }
 
     @Override
-    public <T> CompletableFuture<Subscription> subscribe(String topic,
-                                                         Consumer<T> handler,
-                                                         TypeReference<T> resultType,
-                                                         SubscribeOptions options) {
-        return reallySubscribe(topic, handler, resultType, options);
+    public <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            Consumer<T> handler,
+            Class<T> resultType) {
+        return reallySubscribe(topic, handler, null, null, resultType);
+    }
+
+    @Override
+    public <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            Consumer<T> handler,
+            TypeReference<T> resultType,
+            SubscribeOptions options) {
+        return reallySubscribe(topic, handler, options, resultType, null);
+    }
+
+    @Override
+    public <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            Consumer<T> handler,
+            Class<T> resultType,
+            SubscribeOptions options) {
+        return reallySubscribe(topic, handler, options, null, resultType);
     }
 
     @Override
     public CompletableFuture<Subscription> subscribe(
             String topic,
             Function<List<Object>, CompletableFuture<ReceptionResult>> handler) {
-        return reallySubscribe(topic, handler, null, null);
+        return reallySubscribe(topic, handler, null, null, null);
     }
 
     @Override
@@ -547,7 +575,7 @@ public class Session implements ISession, ITransportHandler {
             String topic,
             Function<List<Object>, CompletableFuture<ReceptionResult>> handler,
             SubscribeOptions options) {
-        return reallySubscribe(topic, handler, null, options);
+        return reallySubscribe(topic, handler, options, null, null);
     }
 
     @Override
@@ -555,7 +583,15 @@ public class Session implements ISession, ITransportHandler {
             String topic,
             Function<T,CompletableFuture<ReceptionResult>> handler,
             TypeReference<T> resultType) {
-        return reallySubscribe(topic, handler, resultType, null);
+        return reallySubscribe(topic, handler, null, resultType, null);
+    }
+
+    @Override
+    public <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            Function<T, CompletableFuture<ReceptionResult>> handler,
+            Class<T> resultType) {
+        return reallySubscribe(topic, handler, null, null, resultType);
     }
 
     @Override
@@ -564,21 +600,30 @@ public class Session implements ISession, ITransportHandler {
             Function<T, CompletableFuture<ReceptionResult>> handler,
             TypeReference<T> resultType,
             SubscribeOptions options) {
-        return reallySubscribe(topic, handler, resultType, options);
+        return reallySubscribe(topic, handler, options, resultType, null);
+    }
+
+    @Override
+    public <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            Function<T, CompletableFuture<ReceptionResult>> handler,
+            Class<T> resultType,
+            SubscribeOptions options) {
+        return reallySubscribe(topic, handler, options, null, resultType);
     }
 
     @Override
     public CompletableFuture<Subscription> subscribe(
             String topic,
             BiConsumer<List<Object>, EventDetails> handler) {
-        return reallySubscribe(topic, handler, null, null);
+        return reallySubscribe(topic, handler, null, null, null);
     }
 
     @Override
     public CompletableFuture<Subscription> subscribe(
             String topic,
             BiConsumer<List<Object>, EventDetails> handler, SubscribeOptions options) {
-        return reallySubscribe(topic, handler, null, options);
+        return reallySubscribe(topic, handler, options, null, null);
     }
 
     @Override
@@ -586,7 +631,15 @@ public class Session implements ISession, ITransportHandler {
             String topic,
             BiConsumer<T, EventDetails> handler,
             TypeReference<T> resultType) {
-        return reallySubscribe(topic, handler, resultType, null);
+        return reallySubscribe(topic, handler, null, resultType, null);
+    }
+
+    @Override
+    public <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            BiConsumer<T, EventDetails> handler,
+            Class<T> resultType) {
+        return reallySubscribe(topic, handler, null, null, resultType);
     }
 
     @Override
@@ -595,14 +648,23 @@ public class Session implements ISession, ITransportHandler {
             BiConsumer<T, EventDetails> handler,
             TypeReference<T> resultType,
             SubscribeOptions options) {
-        return reallySubscribe(topic, handler, resultType, options);
+        return reallySubscribe(topic, handler, options, resultType, null);
+    }
+
+    @Override
+    public <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            BiConsumer<T, EventDetails> handler,
+            Class<T> resultType,
+            SubscribeOptions options) {
+        return reallySubscribe(topic, handler, options, null, resultType);
     }
 
     @Override
     public CompletableFuture<Subscription> subscribe(
             String topic,
             BiFunction<List<Object>, EventDetails, CompletableFuture<ReceptionResult>> handler) {
-        return reallySubscribe(topic, handler, null, null);
+        return reallySubscribe(topic, handler, null, null, null);
     }
 
     @Override
@@ -610,7 +672,7 @@ public class Session implements ISession, ITransportHandler {
             String topic,
             BiFunction<List<Object>, EventDetails, CompletableFuture<ReceptionResult>> handler,
             SubscribeOptions options) {
-        return reallySubscribe(topic, handler, null, options);
+        return reallySubscribe(topic, handler, options, null, null);
     }
 
     @Override
@@ -618,7 +680,15 @@ public class Session implements ISession, ITransportHandler {
             String topic,
             BiFunction<T, EventDetails, CompletableFuture<ReceptionResult>> handler,
             TypeReference<T> resultType) {
-        return reallySubscribe(topic, handler, resultType, null);
+        return reallySubscribe(topic, handler, null, resultType, null);
+    }
+
+    @Override
+    public <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            BiFunction<T, EventDetails, CompletableFuture<ReceptionResult>> handler,
+            Class<T> resultType) {
+        return reallySubscribe(topic, handler, null, null, resultType);
     }
 
     @Override
@@ -627,14 +697,23 @@ public class Session implements ISession, ITransportHandler {
             BiFunction<T, EventDetails, CompletableFuture<ReceptionResult>> handler,
             TypeReference<T> resultType,
             SubscribeOptions options) {
-        return reallySubscribe(topic, handler, resultType, options);
+        return reallySubscribe(topic, handler, options, resultType, null);
+    }
+
+    @Override
+    public <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            BiFunction<T, EventDetails, CompletableFuture<ReceptionResult>> handler,
+            Class<T> resultType,
+            SubscribeOptions options) {
+        return reallySubscribe(topic, handler, options, null, resultType);
     }
 
     @Override
     public CompletableFuture<Subscription> subscribe(
             String topic,
             TriConsumer<List<Object>, Map<String, Object>, EventDetails> handler) {
-        return reallySubscribe(topic, handler, null, null);
+        return reallySubscribe(topic, handler, null, null, null);
     }
 
     @Override
@@ -642,7 +721,7 @@ public class Session implements ISession, ITransportHandler {
             String topic,
             TriConsumer<List<Object>, Map<String, Object>, EventDetails> handler,
             SubscribeOptions options) {
-        return reallySubscribe(topic, handler, null, options);
+        return reallySubscribe(topic, handler, options, null, null);
     }
 
     @Override
@@ -650,7 +729,7 @@ public class Session implements ISession, ITransportHandler {
             String topic,
             TriFunction<List<Object>, Map<String, Object>, EventDetails,
                     CompletableFuture<ReceptionResult>> handler) {
-        return reallySubscribe(topic, handler, null, null);
+        return reallySubscribe(topic, handler, null, null, null);
     }
 
     @Override
@@ -659,7 +738,7 @@ public class Session implements ISession, ITransportHandler {
             TriFunction<List<Object>, Map<String, Object>, EventDetails,
                     CompletableFuture<ReceptionResult>> handler,
             SubscribeOptions options) {
-        return reallySubscribe(topic, handler, null, options);
+        return reallySubscribe(topic, handler, options, null, null);
     }
 
     private CompletableFuture<Publication> reallyPublish(String topic, List<Object> args,
@@ -816,15 +895,17 @@ public class Session implements ISession, ITransportHandler {
     private <T> CompletableFuture<T> reallyCall(
             String procedure,
             List<Object> args, Map<String, Object> kwargs,
-            TypeReference<T> resultType, CallOptions options) {
+            CallOptions options,
+            TypeReference<T> resultTypeReference,
+            Class<T> resultTypeClass) {
         throwIfNotConnected();
 
         CompletableFuture<T> future = new CompletableFuture<>();
 
         long requestID = mIDGenerator.next();
 
-        mCallRequests.put(requestID,
-                new CallRequest(requestID, procedure, future, options, resultType));
+        mCallRequests.put(requestID, new CallRequest(requestID, procedure, future, options,
+                resultTypeReference, resultTypeClass));
 
         if (options == null) {
             send(new Call(requestID, procedure, args, kwargs, 0));
@@ -836,13 +917,26 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public CompletableFuture<CallResult> call(String procedure) {
-        return reallyCall(procedure, null, null, null, null);
+        return reallyCall(procedure, null, null, null,
+                null, null);
     }
 
     @Override
     public CompletableFuture<CallResult> call(String procedure, Object... args) {
         return reallyCall(procedure, Arrays.asList(args), null,
-                null, null);
+                null, null, null);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(String procedure, TypeReference<T> resultType) {
+        return reallyCall(procedure, null, null, null, resultType,
+                null);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(String procedure, Class<T> resultType) {
+        return reallyCall(procedure, null, null, null, null,
+                resultType);
     }
 
     @Override
@@ -850,12 +944,104 @@ public class Session implements ISession, ITransportHandler {
             String procedure,
             CallOptions options,
             Object... args) {
-        return reallyCall(procedure, Arrays.asList(args), null, null, options);
+        return reallyCall(procedure, Arrays.asList(args), null, options,
+                null, null);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(
+            String procedure,
+            TypeReference<T> resultType,
+            CallOptions options) {
+        return reallyCall(procedure, null, null, options, resultType,
+                null);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(
+            String procedure,
+            Class<T> resultType,
+            CallOptions options) {
+        return reallyCall(procedure, null, null, options, null,
+                resultType);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(
+            String procedure,
+            List<Object> args,
+            TypeReference<T> resultType) {
+        return reallyCall(procedure, args, null, null, resultType,
+                null);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(String procedure, List<Object> args, Class<T> resultType) {
+        return reallyCall(procedure, args, null, null, null,
+                resultType);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(
+            String procedure,
+            List<Object> args,
+            TypeReference<T> resultType,
+            CallOptions options) {
+        return reallyCall(procedure, args, null, options, resultType, null);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(
+            String procedure,
+            List<Object> args,
+            Class<T> resultType,
+            CallOptions options) {
+        return reallyCall(procedure, args, null, options, null,
+                resultType);
     }
 
     @Override
     public CompletableFuture<CallResult> call(String procedure, Map<String, Object> kwargs) {
-        return reallyCall(procedure, null, kwargs, null, null);
+        return reallyCall(procedure, null, kwargs, null, null,
+                null);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(
+            String procedure,
+            Map<String, Object> kwargs,
+            TypeReference<T> resultType) {
+        return reallyCall(procedure, null, kwargs, null, resultType,
+                null);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(
+            String procedure,
+            Map<String, Object> kwargs,
+            Class<T> resultType) {
+        return reallyCall(procedure, null, kwargs, null, null,
+                resultType);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(
+            String procedure,
+            Map<String, Object> kwargs,
+            TypeReference<T> resultType,
+            CallOptions options) {
+        return reallyCall(procedure, null, kwargs, options, resultType,
+                null);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(
+            String procedure,
+            Map<String, Object> kwargs,
+            Class<T> resultType,
+            CallOptions options) {
+        return reallyCall(procedure, null, kwargs, options, null,
+                resultType);
     }
 
     @Override
@@ -863,31 +1049,67 @@ public class Session implements ISession, ITransportHandler {
             String procedure,
             Map<String, Object> kwargs,
             CallOptions options) {
-        return reallyCall(procedure, null, kwargs, null, options);
+        return reallyCall(procedure, null, kwargs, options, null,
+                null);
     }
 
     @Override
     public CompletableFuture<CallResult> call(
             String procedure,
-            List<Object> args, Map<String, Object> kwargs,
+            List<Object> args,
+            Map<String, Object> kwargs,
             CallOptions options) {
-        return reallyCall(procedure, args, kwargs, null, options);
+        return reallyCall(procedure, args, kwargs, options, null,
+                null);
     }
 
     @Override
     public <T> CompletableFuture<T> call(
             String procedure,
-            List<Object> args, Map<String, Object> kwargs,
-            TypeReference<T> resultType, CallOptions options) {
-        return reallyCall(procedure, args, kwargs, resultType, options);
+            List<Object> args,
+            Map<String, Object> kwargs,
+            TypeReference<T> resultType) {
+        return reallyCall(procedure, args, kwargs, null, resultType, null);
     }
 
     @Override
     public <T> CompletableFuture<T> call(
             String procedure,
-            TypeReference<T> resultType, CallOptions options,
+            List<Object> args,
+            Map<String, Object> kwargs,
+            Class<T> resultType) {
+        return reallyCall(procedure, args, kwargs, null, null,
+                resultType);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(
+            String procedure,
+            List<Object> args,
+            Map<String, Object> kwargs,
+            TypeReference<T> resultType,
+            CallOptions options) {
+        return reallyCall(procedure, args, kwargs, options, resultType, null);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(
+            String procedure,
+            List<Object> args,
+            Map<String, Object> kwargs,
+            Class<T> resultType,
+            CallOptions options) {
+        return reallyCall(procedure, args, kwargs, options, null, resultType);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> call(
+            String procedure,
+            TypeReference<T> resultType,
+            CallOptions options,
             Object... args) {
-        return reallyCall(procedure, Arrays.asList(args), null, resultType, options);
+        return reallyCall(procedure, Arrays.asList(args), null, options, resultType,
+                null);
     }
 
     @Override

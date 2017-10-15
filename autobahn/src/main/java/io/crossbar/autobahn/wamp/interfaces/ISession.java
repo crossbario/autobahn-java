@@ -77,6 +77,11 @@ public interface ISession {
             Consumer<T> handler,
             TypeReference<T> resultType);
 
+    <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            Consumer<T> handler,
+            Class<T> resultType);
+
     /**
      * Subscribes to a WAMP topic.
      * @param topic URI of the topic to subscribe
@@ -91,6 +96,12 @@ public interface ISession {
             String topic,
             Consumer<T> handler,
             TypeReference<T> resultType,
+            SubscribeOptions options);
+
+    <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            Consumer<T> handler,
+            Class<T> resultType,
             SubscribeOptions options);
 
     /**
@@ -131,6 +142,11 @@ public interface ISession {
             Function<T, CompletableFuture<ReceptionResult>> handler,
             TypeReference<T> resultType);
 
+    <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            Function<T, CompletableFuture<ReceptionResult>> handler,
+            Class<T> resultType);
+
     /**
      * Subscribes to a WAMP topic.
      * @param topic URI of the topic to subscribe
@@ -145,6 +161,12 @@ public interface ISession {
             String topic,
             Function<T, CompletableFuture<ReceptionResult>> handler,
             TypeReference<T> resultType,
+            SubscribeOptions options);
+
+    <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            Function<T, CompletableFuture<ReceptionResult>> handler,
+            Class<T> resultType,
             SubscribeOptions options);
 
     /**
@@ -185,6 +207,11 @@ public interface ISession {
             BiConsumer<T, EventDetails> handler,
             TypeReference<T> resultType);
 
+    <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            BiConsumer<T, EventDetails> handler,
+            Class<T> resultType);
+
     /**
      * Subscribes to a WAMP topic.
      * @param topic URI of the topic to subscribe
@@ -199,6 +226,12 @@ public interface ISession {
             String topic,
             BiConsumer<T, EventDetails> handler,
             TypeReference<T> resultType,
+            SubscribeOptions options);
+
+    <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            BiConsumer<T, EventDetails> handler,
+            Class<T> resultType,
             SubscribeOptions options);
 
     /**
@@ -239,6 +272,11 @@ public interface ISession {
             BiFunction<T, EventDetails, CompletableFuture<ReceptionResult>> handler,
             TypeReference<T> resultType);
 
+    <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            BiFunction<T, EventDetails, CompletableFuture<ReceptionResult>> handler,
+            Class<T> resultType);
+
     /**
      * Subscribes to a WAMP topic.
      * @param topic URI of the topic to subscribe
@@ -253,6 +291,12 @@ public interface ISession {
             String topic,
             BiFunction<T, EventDetails, CompletableFuture<ReceptionResult>> handler,
             TypeReference<T> resultType,
+            SubscribeOptions options);
+
+    <T> CompletableFuture<Subscription> subscribe(
+            String topic,
+            BiFunction<T, EventDetails, CompletableFuture<ReceptionResult>> handler,
+            Class<T> resultType,
             SubscribeOptions options);
 
     /**
@@ -506,6 +550,10 @@ public interface ISession {
      */
     CompletableFuture<CallResult> call(String procedure, Object... args);
 
+    <T> CompletableFuture<T> call(String procedure, TypeReference<T> resultType);
+
+    <T> CompletableFuture<T> call(String procedure, Class<T> resultType);
+
     /**
      * Calls a remote procedure.
      * @param procedure URI of the procedure to call
@@ -516,6 +564,32 @@ public interface ISession {
      */
     CompletableFuture<CallResult> call(String procedure, CallOptions options, Object... args);
 
+    <T> CompletableFuture<T> call(
+            String procedure,
+            TypeReference<T> resultType,
+            CallOptions options);
+
+    <T> CompletableFuture<T> call(String procedure, Class<T> resultType, CallOptions options);
+
+    <T> CompletableFuture<T> call(
+            String procedure,
+            List<Object> args,
+            TypeReference<T> resultType);
+
+    <T> CompletableFuture<T> call(String procedure, List<Object> args, Class<T> resultType);
+
+    <T> CompletableFuture<T> call(
+            String procedure,
+            List<Object> args,
+            TypeReference<T> resultType,
+            CallOptions options);
+
+    <T> CompletableFuture<T> call(
+            String procedure,
+            List<Object> args,
+            Class<T> resultType,
+            CallOptions options);
+
     /**
      * Calls a remote procedure.
      * @param procedure URI of the procedure to call
@@ -524,6 +598,28 @@ public interface ISession {
      * {@link io.crossbar.autobahn.wamp.types.CallResult}
      */
     CompletableFuture<CallResult> call(String procedure, Map<String, Object> kwargs);
+
+    <T> CompletableFuture<T> call(
+            String procedure,
+            Map<String, Object> kwargs,
+            TypeReference<T> resultType);
+
+    <T> CompletableFuture<T> call(
+            String procedure,
+            Map<String, Object> kwargs,
+            Class<T> resultType);
+
+    <T> CompletableFuture<T> call(
+            String procedure,
+            Map<String, Object> kwargs,
+            TypeReference<T> resultType,
+            CallOptions options);
+
+    <T> CompletableFuture<T> call(
+            String procedure,
+            Map<String, Object> kwargs,
+            Class<T> resultType,
+            CallOptions options);
 
     /**
      * Calls a remote procedure.
@@ -551,6 +647,16 @@ public interface ISession {
                                        Map<String, Object> kwargs,
                                        CallOptions options);
 
+    <T> CompletableFuture<T> call(String procedure,
+                                  List<Object> args,
+                                  Map<String, Object> kwargs,
+                                  TypeReference<T> resultType);
+
+    <T> CompletableFuture<T> call(String procedure,
+                                  List<Object> args,
+                                  Map<String, Object> kwargs,
+                                  Class<T> resultType);
+
     /**
      * Calls a remote procedure where the result needs to be resolved to a
      * POJO.
@@ -567,6 +673,12 @@ public interface ISession {
                                   List<Object> args,
                                   Map<String, Object> kwargs,
                                   TypeReference<T> resultType,
+                                  CallOptions options);
+
+    <T> CompletableFuture<T> call(String procedure,
+                                  List<Object> args,
+                                  Map<String, Object> kwargs,
+                                  Class<T> resultType,
                                   CallOptions options);
 
     /**

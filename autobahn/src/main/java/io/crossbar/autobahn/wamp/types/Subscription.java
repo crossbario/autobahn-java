@@ -16,13 +16,16 @@ import com.fasterxml.jackson.core.type.TypeReference;
 public class Subscription {
     public final long subscription;
     public final String topic;
-    public final TypeReference resultType;
+    public final TypeReference resultTypeRef;
+    public final Class resultTypeClass;
     public final Object handler;
 
-    public Subscription(long subscription, String topic, TypeReference resultType, Object handler) {
+    public Subscription(long subscription, String topic, TypeReference resultTypeRef,
+                        Class resultTypeClass, Object handler) {
         this.subscription = subscription;
         this.topic = topic;
-        this.resultType = resultType;
+        this.resultTypeRef = resultTypeRef;
+        this.resultTypeClass = resultTypeClass;
         this.handler = handler;
     }
 }

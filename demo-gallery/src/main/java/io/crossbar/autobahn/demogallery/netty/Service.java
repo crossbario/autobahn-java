@@ -66,7 +66,7 @@ public class Service {
 
         // call a remote procedure that returns a Person
         CompletableFuture<Void> f1 =
-            mSession.call("com.example.get_person", new TypeReference<Person>() {}, null)
+            mSession.call("com.example.get_person", Person.class)
                 .handleAsync(
                     (person, throwable) -> {
                         if (throwable != null) {
@@ -83,7 +83,7 @@ public class Service {
 
         // call a remote procedure that returns a Person .. slowly (3 secs delay)
         CompletableFuture<Void> f2 =
-            mSession.call("com.example.get_person_delayed", null, null, new TypeReference<Person>() {}, null)
+            mSession.call("com.example.get_person_delayed", Person.class)
                 .handleAsync(
                     (person, throwable) -> {
                         if (throwable != null) {
@@ -101,7 +101,7 @@ public class Service {
 
         // call a remote procedure that returns a List<Person>
         CompletableFuture<Void> f3 =
-            mSession.call("com.example.get_all_persons", null, null, new TypeReference<List<Person>>() {}, null)
+            mSession.call("com.example.get_all_persons", new TypeReference<List<Person>>() {})
                 .handleAsync(
                     (persons, throwable) -> {
                         if (throwable != null) {
@@ -124,7 +124,7 @@ public class Service {
         args.add("development");
 
         CompletableFuture<Void> f4 =
-            mSession.call("com.example.get_persons_by_department", args, null, new TypeReference<List<Person>>() {}, null)
+            mSession.call("com.example.get_persons_by_department", args, new TypeReference<List<Person>>() {})
                 .handleAsync(
                     (persons, throwable) -> {
                         if (throwable != null) {
@@ -145,7 +145,7 @@ public class Service {
 
         // call a remote procedure that returns a Map<String, List<Person>>
         CompletableFuture<Void> f5 =
-            mSession.call("com.example.get_persons_by_department", null, null, new TypeReference<Map<String, List<Person>>>() {}, null)
+            mSession.call("com.example.get_persons_by_department", new TypeReference<Map<String, List<Person>>>() {})
                 .handleAsync(
                     (Map<String, List<Person>> persons_by_department, Throwable throwable) -> {
                         if (throwable != null) {
