@@ -61,7 +61,7 @@ public class Main {
     }
 
     private static void readAndSetLogLevel() throws IOException {
-        String logLevel = System.getProperty("logLevel", "INFO");
+        String logLevel = System.getProperty("logLevel", "FINEST");
         String config = String.format(LOG_CONFIG, logLevel, logLevel);
         InputStream stream = new ByteArrayInputStream(config.getBytes(Charset.forName("UTF-8")));
         LogManager.getLogManager().readConfiguration(stream);

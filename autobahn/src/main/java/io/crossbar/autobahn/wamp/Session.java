@@ -382,8 +382,7 @@ public class Session implements ISession, ITransportHandler {
             }
 
             InvocationDetails details = new InvocationDetails(
-                    registration, registration.procedure, -1,
-                    null, null, this);
+                    registration, registration.procedure, -1, null, null, this);
 
             runAsync(() -> {
                 Object result;
@@ -404,7 +403,20 @@ public class Session implements ISession, ITransportHandler {
                     result = endpoint.apply(msg.args, msg.kwargs, details);
                 }
 
-                if (result instanceof InvocationResult) {
+                if (result instanceof CompletableFuture) {
+                    CompletableFuture<InvocationResult> fResult =
+                            (CompletableFuture<InvocationResult>) result;
+                    fResult.whenCompleteAsync((invocRes, throwable) -> {
+                        if (throwable != null) {
+                            List<Object> args = new ArrayList<>();
+                            args.add(throwable.getMessage());
+                            send(new Error(Invocation.MESSAGE_TYPE, msg.request,
+                                    "wamp.error.runtime_error", args, null));
+                        } else {
+                            send(new Yield(msg.request, invocRes.results, invocRes.kwresults));
+                        }
+                    }, getExecutor());
+                } else if (result instanceof InvocationResult) {
                     InvocationResult res = (InvocationResult) result;
                     send(new Yield(msg.request, res.results, res.kwresults));
                 } else if (result instanceof List) {
@@ -418,10 +430,12 @@ public class Session implements ISession, ITransportHandler {
                 }
             }, getExecutor()).whenCompleteAsync((aVoid, throwable) -> {
                 // FIXME: implement better errors
-                List<Object> args = new ArrayList<>();
-                args.add(throwable.getMessage());
-                send(new Error(Invocation.MESSAGE_TYPE, msg.request,
-                        "io.crossbar.autobahn.invocation_error", args, null));
+                if (throwable != null) {
+                    List<Object> args = new ArrayList<>();
+                    args.add(throwable.getMessage());
+                    send(new Error(Invocation.MESSAGE_TYPE, msg.request, "wamp.error.runtime_error",
+                            args, null));
+                }
             });
         } else if (message instanceof Goodbye) {
             Goodbye msg = (Goodbye) message;
