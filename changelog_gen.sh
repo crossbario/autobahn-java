@@ -3,9 +3,10 @@
 set -e
 
 FILE=$(mktemp)
-
-echo '# Release' $(git describe --abbrev=0)'\n' >> $FILE
-git log $(git describe --abbrev=0)..HEAD --pretty=format:"  * %s" >> $FILE
+TAG_CURRENT=$(git describe --abbrev=0)
+TAG_PREVIOUS=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1))
+echo '# Release' $TAG_CURRENT'\n' >> $FILE
+git log $TAG_PREVIOUS..$TAG_CURRENT --pretty=format:"  * %s" >> $FILE
 echo '\n\n' >> $FILE
 cat CHANGELOG.md >> $FILE
 cp $FILE CHANGELOG.md
