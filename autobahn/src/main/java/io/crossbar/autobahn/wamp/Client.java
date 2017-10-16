@@ -97,10 +97,11 @@ public class Client {
     public CompletableFuture<ExitInfo> connect() {
         CompletableFuture<ExitInfo> exitFuture = new CompletableFuture<>();
         mSession.addOnConnectListener((session) ->
-                mSession.join(mRealm, null).thenAccept(details ->
+                mSession.join(mRealm).thenAccept(details ->
                         LOGGER.i(String.format("JOINED session=%s realm=%s", details.sessionID,
                                 details.realm))));
-        mSession.addOnDisconnectListener((session, wasClean) -> exitFuture.complete(new ExitInfo(wasClean)));
+        mSession.addOnDisconnectListener((session, wasClean) ->
+                exitFuture.complete(new ExitInfo(wasClean)));
         CompletableFuture.runAsync(() -> {
             try {
                 mTransports.get(0).connect(mSession);
