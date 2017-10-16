@@ -11,7 +11,7 @@
 
 package io.crossbar.autobahn.demogallery;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -95,27 +95,21 @@ public class ExampleClient {
         }, 0, 2, TimeUnit.SECONDS);
     }
 
-    private void onLeaveCallback(Session session, CloseDetails closeDetails) {
-        LOGGER.info(String.format("Left reason=%s, message=%s",
-                closeDetails.reason, closeDetails.message));
+    private void onLeaveCallback(Session session, CloseDetails detail) {
+        LOGGER.info(String.format("Left reason=%s, message=%s", detail.reason, detail.message));
     }
 
     private void onDisconnectCallback(Session session, boolean wasClean) {
         LOGGER.info(String.format("Session with ID=%s, disconnected.", session.getID()));
     }
 
-    private List<Object> add2(List<Object> args, InvocationDetails details) {
-        int res = (int) args.get(0) + (int) args.get(1);
-        List<Object> arr = new ArrayList<>();
-        arr.add(res);
-        arr.add(details.session.getID());
-        arr.add("Java");
-        return arr;
+    private List<Object> add2(List<Integer> args, InvocationDetails details) {
+        int res = args.get(0) + args.get(1);
+        return Arrays.asList(res, details.session.getID(), "Java");
     }
 
     private void onCounter(List<Object> args) {
-        LOGGER.info(String.format(
-                "oncounter event, counter value=%s from component %s (%s)",
+        LOGGER.info(String.format("oncounter event, counter value=%s from component %s (%s)",
                 args.get(0), args.get(1), args.get(2)));
     }
 }
