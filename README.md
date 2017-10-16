@@ -35,20 +35,25 @@ and finally
 
     $ make java # Starts the java (Netty) based demo client that performs WAMP actions
 
-### Show me some code
+## Show me some code
 
 The code in demo-gallery contains some examples on how to use the autobahn library, it also contains convenience methods to use. Below is a basic set of code examples showing all 4 WAMP actions.
 
-Subscribe to a topic
+### Subscribe to a topic
 
 ```java
 public void demonstrateSubscribe(Session session, SessionDetails details) {
     // Subscribe to topic to receive its events.
-    CompletableFuture<Subscription> subFuture = session.subscribe(
-            "com.myapp.hello", this::onEvent);
-    subFuture.thenAccept(subscription -> {
-        // We have successfully subscribed.
-        System.out.println("Subscribed to topic " + subscription.topic);
+    CompletableFuture<Subscription> subFuture = session.subscribe("com.myapp.hello",
+            this::onEvent);
+    subFuture.whenComplete((subscription, throwable) -> {
+        if (throwable != null) {
+            // We have successfully subscribed.
+            System.out.println("Subscribed to topic " + subscription.topic);
+        } else {
+            // Something went bad.
+            throwable.printStackTrace();
+        }
     });
 }
 
@@ -56,25 +61,41 @@ private void onEvent(List<Object> args, Map<String, Object> kwargs, EventDetails
     System.out.println(String.format("Got event: %s", args.get(0)));
 }
 ```
-
-Publish to a topic
+Since we are only accessing `args` in onEvent(), we could simplify it like:
+```java
+private void onEvent(List<Object> args) {
+    System.out.println(String.format("Got event: %s", args.get(0)));
+}
+```
+### Publish to a topic
 
 ```java
 public void demonstratePublish(Session session, SessionDetails details) {
-    // Publish to a topic.
-    CompletableFuture<Publication> pubFuture = session.publish(
-            "com.myapp.hello", "Hello World!");
+    // Publish to a topic that takes a single arguments
+    List<Object> args = Arrays.asList("Hello World!", 900, "UNIQUE");
+    CompletableFuture<Publication> pubFuture = session.publish("com.myapp.hello", args);
     pubFuture.thenAccept(publication -> System.out.println("Published successfully"));
+    // Shows we can separate out exception handling
+    pubFuture.exceptionally(throwable -> {
+        throwable.printStackTrace();
+        return null;
+    });
+}
+```
+A simpler call would look like:
+```java
+public void demonstratePublish(Session session, SessionDetails details) {
+    CompletableFuture<Publication> pubFuture = session.publish("com.myapp.hello", "Hi!");
+    ...
 }
 ```
 
-Register a procedure
+### Register a procedure
 
 ```java
 public void demonstrateRegister(Session session, SessionDetails details) {
     // Register a procedure.
-    CompletableFuture<Registration> regFuture = session.register(
-            "com.myapp.add2", this::add2);
+    CompletableFuture<Registration> regFuture = session.register("com.myapp.add2", this::add2);
     regFuture.thenAccept(registration ->
             System.out.println("Successfully registered procedure: " + registration.procedure));
 }
@@ -87,20 +108,26 @@ private CompletableFuture<InvocationResult> add2(
     return CompletableFuture.completedFuture(new InvocationResult(arr));
 }
 ```
+A very precise `add2` may look like:
+```java
+private List<Object> add2(List<Integer> args, InvocationDetails details) {
+    int res = args.get(0) + args.get(1);
+    return Arrays.asList(res, details.session.getID(), "Java");
+}
+```
 
-Call a procedure
+### Call a procedure
 
 ```java
 public void demonstrateCall(Session session, SessionDetails details) {
     // Call a remote procedure.
-    CompletableFuture<CallResult> callFuture = session.call(
-            "com.myapp.add2", 10, 20);
+    CompletableFuture<CallResult> callFuture = session.call("com.myapp.add2", 10, 20);
     callFuture.thenAccept(callResult ->
             System.out.println(String.format("Call result: %s", callResult.results.get(0))));
 }
 ```
 
-Connecting the dots
+### Connecting the dots
 
 ```java
 public void main() {
@@ -109,6 +136,8 @@ public void main() {
     // Add all onJoin listeners
     session.addOnJoinListener(this::demonstrateSubscribe);
     session.addOnJoinListener(this::demonstratePublish);
+    session.addOnJoinListener(this::demonstrateCall);
+    session.addOnJoinListener(this::demonstrateRegister);
 
     // finally, provide everything to a Client and connect
     Client client = new Client(session, url, realm);
