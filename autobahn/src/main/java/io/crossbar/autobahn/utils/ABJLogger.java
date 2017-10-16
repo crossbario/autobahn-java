@@ -15,36 +15,36 @@ class ABJLogger implements IABLogger {
 
     @Override
     public void v(String msg) {
-        if (DEBUG) LOGGER.log(Level.FINER, msg);
+        if (DEBUG) LOGGER.logp(Level.FINER, LOGGER.getName(), null, msg);
     }
 
     @Override
     public void v(String msg, Throwable throwable) {
-        if (DEBUG) LOGGER.log(Level.FINER, msg, throwable);
+        if (DEBUG) LOGGER.logp(Level.FINER, LOGGER.getName(), null, msg, throwable);
     }
 
     @Override
     public void d(String msg) {
-        if (DEBUG) LOGGER.log(Level.FINE, msg);
+        if (DEBUG) LOGGER.logp(Level.FINE, LOGGER.getName(), null, msg);
     }
 
     @Override
     public void i(String msg) {
-        LOGGER.log(Level.INFO, msg);
+        LOGGER.logp(Level.INFO, LOGGER.getName(), null, msg);
     }
 
     @Override
     public void w(String msg) {
-        LOGGER.log(Level.WARNING, msg);
+        LOGGER.logp(Level.WARNING, LOGGER.getName(), null, msg);
     }
 
     @Override
     public void w(String msg, Throwable throwable) {
-        LOGGER.log(Level.WARNING, msg, throwable);
+        LOGGER.logp(Level.WARNING, LOGGER.getName(), null, msg, throwable);
     }
 
     @Override
     public void e(String msg) {
-        LOGGER.log(Level.SEVERE, msg);
+        LOGGER.logp(Level.SEVERE, LOGGER.getName(), null, msg);
     }
 }
