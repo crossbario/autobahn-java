@@ -11,14 +11,13 @@
 
 package io.crossbar.autobahn.wamp.utils;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 public class IDGenerator {
-    private long mNext;
+    private AtomicLong mNext = new AtomicLong();
 
     public long next() {
-        mNext += 1;
-        if (mNext > 9007199254740992L) {
-            mNext = 1;
-        }
-        return mNext;
+        // return numbers in the range [0, 2**53-1]
+        return mNext.getAndIncrement() & 0x1fffffffffffffL;
     }
 }
