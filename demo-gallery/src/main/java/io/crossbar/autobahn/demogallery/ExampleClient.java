@@ -36,8 +36,11 @@ public class ExampleClient {
     private static final Logger LOGGER = Logger.getLogger(ExampleClient.class.getName());
     private static final String PROC_ADD2 = "com.example.add2";
     private static final String TOPIC_COUNTER = "com.example.oncounter";
+    private String mRealm;
 
     public CompletableFuture<ExitInfo> main(String websocketURL, String realm) {
+        this.mRealm = realm;
+
         Session session = new Session();
         session.addOnConnectListener(this::onConnectCallback);
         session.addOnJoinListener(this::onJoinCallback);
@@ -45,12 +48,16 @@ public class ExampleClient {
         session.addOnDisconnectListener(this::onDisconnectCallback);
 
         // finally, provide everything to a Client instance and connect
-        Client client = new Client(session, websocketURL, realm);
+        Client client = new Client(session, websocketURL);
         return client.connect();
     }
 
     private void onConnectCallback(Session session) {
         LOGGER.info("Session connected, ID=" + session.getID());
+
+        session.join(this.mRealm).thenAccept(details -> LOGGER.info(String.format("JOINED session=%s realm=%s",
+                details.sessionID,
+                details.realm)));
     }
 
     private void onJoinCallback(Session session, SessionDetails details) {

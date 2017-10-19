@@ -716,6 +716,16 @@ public interface ISession {
     CompletableFuture<SessionDetails> join(String realm, List<String> authMethods);
 
     /**
+     * Joins a realm on the WAMP router
+     * @param realm name of the realm to join
+     * @param authMethods list of authentication methods to try
+     * @param authId the authentication ID to announce
+     * @return a CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.SessionDetails}
+     */
+    CompletableFuture<SessionDetails> join(String realm, List<String> authMethods, String authId);
+
+    /**
      * Leaves the currently joined WAMP session.
      */
     void leave();
@@ -758,5 +768,9 @@ public interface ISession {
     // FIXME: come up with an equivalent of txaio.IFailedFuture as first arg.
     interface OnUserErrorListener {
         void onUserError(Session session, String message);
+    }
+
+    interface OnChallengeListener {
+        void onChallenge(Session session, String method, Map<String, Object> extra);
     }
 }
