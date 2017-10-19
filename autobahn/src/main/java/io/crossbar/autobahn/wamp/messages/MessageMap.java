@@ -41,5 +41,6 @@ public class MessageMap {
         MESSAGE_TYPE_MAP.put(Invocation.MESSAGE_TYPE, Invocation.class);
         MESSAGE_TYPE_MAP.put(Yield.MESSAGE_TYPE, Yield.class);
         MESSAGE_TYPE_MAP.put(Interrupt.MESSAGE_TYPE, Interrupt.class);
+        MESSAGE_TYPE_MAP.put(Challenge.MESSAGE_TYPE, Challenge.class);
     }
 }

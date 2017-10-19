@@ -30,9 +30,6 @@ public class Client {
     private final List<ITransport> mTransports;
 
     private Session mSession;
-    private String mRealm;
-    private List<IAuthenticator> mAuthenticators;
-
     private Executor mExecutor;
 
     public Client(String webSocketURL) {
@@ -55,16 +52,14 @@ public class Client {
         mExecutor = executor;
     }
 
-    public Client(Session session, String webSocketURL, String realm) {
+    public Client(Session session, String webSocketURL) {
         this(webSocketURL);
         mSession = session;
-        mRealm = realm;
     }
 
-    public Client(Session session, String webSocketURL, String realm, Executor executor) {
+    public Client(Session session, String webSocketURL, Executor executor) {
         this(webSocketURL);
         mSession = session;
-        mRealm = realm;
         mExecutor = executor;
     }
 
@@ -81,25 +76,15 @@ public class Client {
         return mExecutor == null ? Platform.autoSelectExecutor(): mExecutor;
     }
 
-    public void add(Session session, String realm, List<IAuthenticator> authenticators) {
+    public void add(Session session) {
         if (mSession != null) {
             throw new IllegalStateException("Addition of multiple sessions not implemented");
         }
         mSession = session;
-        mRealm = realm;
-        mAuthenticators = authenticators;
-    }
-
-    public void add(Session session, String realm) {
-        add(session, realm, null);
     }
 
     public CompletableFuture<ExitInfo> connect() {
         CompletableFuture<ExitInfo> exitFuture = new CompletableFuture<>();
-        mSession.addOnConnectListener((session) ->
-                mSession.join(mRealm).thenAccept(details ->
-                        LOGGER.i(String.format("JOINED session=%s realm=%s", details.sessionID,
-                                details.realm))));
         mSession.addOnDisconnectListener((session, wasClean) ->
                 exitFuture.complete(new ExitInfo(wasClean)));
         CompletableFuture.runAsync(() -> {

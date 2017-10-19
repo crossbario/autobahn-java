@@ -25,6 +25,10 @@ public class Hello implements IMessage {
 
     public final String realm;
     public final Map<String, Map> roles;
+    public final List<String> authMethods;
+    public final String authId;
+    public final String authRole;
+    public final Map<String, Object> authExtra;
 
     @Override
     public List<Object> marshal() {
@@ -32,7 +36,21 @@ public class Hello implements IMessage {
         marshaled.add(MESSAGE_TYPE);
         marshaled.add(realm);
         Map<String, Object> details = new HashMap<>();
-        details.put("roles", roles);
+        if (roles != null && !roles.isEmpty()) {
+            details.put("roles", roles);
+        }
+        if (authMethods != null && !authMethods.isEmpty()) {
+            details.put("authmethods", authMethods);
+        }
+        if (authId != null && !authId.isEmpty()) {
+            details.put("authid", authId);
+        }
+        if (authRole != null && !authRole.isEmpty()) {
+            details.put("authrole", authRole);
+        }
+        if (authExtra != null && !authExtra.isEmpty()) {
+            details.put("authextra", authExtra);
+        }
         marshaled.add(details);
         return marshaled;
     }
@@ -45,11 +63,15 @@ public class Hello implements IMessage {
         Map<String, Object> details = (Map<String, Object>) wmsg.get(2);
         Map<String, Map> roles = (Map<String, Map>) details.get("roles");
 
-        return new Hello(realm, roles);
+        return new Hello(realm, roles, null, null, null, null);
     }
 
-    public Hello(String realm, Map<String, Map> roles) {
+    public Hello(String realm, Map<String, Map> roles,List<String> authMethods, String authId, String authRole, Map<String, Object> authExtra) {
         this.realm = realm;
         this.roles = roles;
+        this.authMethods = authMethods;
+        this.authId = authId;
+        this.authRole = authRole;
+        this.authExtra = authExtra;
     }
 }

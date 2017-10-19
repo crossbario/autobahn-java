@@ -36,6 +36,8 @@ public class Service {
     // and finally joins a realm.
     private final Session mSession;
 
+    private String mRealm;
+
     public Service(Executor executor) {
         // everything should be run on the user supplied executor
         mExecutor = executor;
@@ -43,14 +45,18 @@ public class Service {
         // first, we create a session object (that may or may not be reused)
         mSession = new Session(executor);
 
+        mSession.addOnConnectListener(this::onConnectCallback);
+
         // when the session joins a realm, run our code
         mSession.addOnJoinListener(this::onJoinHandler4);
     }
 
     public int start(String url, String realm) {
         LOGGER.info(String.format("Called with url=%s, realm=%s", url, realm));
+        this.mRealm = realm;
+
         // finally, provide everything to a Client instance
-        Client client = new Client(mSession, url, realm, mExecutor);
+        Client client = new Client(mSession, url, mExecutor);
         CompletableFuture<ExitInfo> exitFuture = client.connect();
         try {
             ExitInfo exitInfo = exitFuture.get();
@@ -59,6 +65,14 @@ public class Service {
             LOGGER.severe(e.getMessage());
             return 1;
         }
+    }
+
+    private void onConnectCallback(Session session) {
+        LOGGER.info("Session connected, ID=" + session.getID());
+
+        session.join(this.mRealm).thenAccept(details -> LOGGER.info(String.format("JOINED session=%s realm=%s",
+                details.sessionID,
+                details.realm)));
     }
 
     private void onJoinHandler4(Session session, SessionDetails details) {

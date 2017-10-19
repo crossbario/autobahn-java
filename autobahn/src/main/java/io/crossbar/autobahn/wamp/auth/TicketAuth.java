@@ -11,6 +11,7 @@
 
 package io.crossbar.autobahn.wamp.auth;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -30,7 +31,15 @@ public class TicketAuth implements IAuthenticator {
     public TicketAuth (String authid, String ticket, Map<String, Object> authextra) {
         this.authid = authid;
         this.ticket = ticket;
-        this.authextra = authextra;
+        if (authextra == null) {
+            this.authextra = new HashMap<>();
+        } else {
+            this.authextra = authextra;
+        }
+    }
+
+    public TicketAuth (String authid, String ticket) {
+        this(authid, ticket, null);
     }
 
     public CompletableFuture<ChallengeResponse> onChallenge(Session session, Challenge challenge) {
