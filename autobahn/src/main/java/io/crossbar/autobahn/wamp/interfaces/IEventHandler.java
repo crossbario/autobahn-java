@@ -13,7 +13,7 @@ package io.crossbar.autobahn.wamp.interfaces;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java8.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.types.EventDetails;
 import io.crossbar.autobahn.wamp.types.ReceptionResult;

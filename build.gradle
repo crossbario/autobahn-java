@@ -8,33 +8,36 @@ project.ext {
     PLUGIN_JAVA_APP = 'application'
     PLUGIN_JAVA_LIB = 'java-library'
     IS_ANDROID = PLATFORM == PLATFORM_ANDROID
-    BUILD_LEGACY = project.properties.get('buildLegacy', false)
+    //IS_ANDROID = true
+    BUILD_LEGACY = project.properties.get('buildLegacy', true)
 }
 
 buildscript {
+    ext {
+        kotlin_version = "1.1.60"
+    }
     repositories {
+        google()
         jcenter()
-        maven {
-            url 'https://maven.google.com'
-        }
     }
     dependencies {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
-    }
-    // Android specific dependencies.
-    if (project.properties.get('buildPlatform', 'android') == 'android') {
-        dependencies {
-            classpath 'com.android.tools.build:gradle:3.0.0-beta7'
-            classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
-        }
+        classpath 'me.tatarka:gradle-retrolambda:3.7.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+
+        // Android buildscript dependencies
+        // TODO: Would be nicer to have these in the Android modules themselves... but w/ the AGP3.0 changes
+        // that may not be possible (see variant aware issues)
+        // https://developer.android.com/studio/build/gradle-plugin-3-0-0-migration.html#known_issues
+        classpath 'com.android.tools.build:gradle:3.0.0'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
     }
 }
 
 allprojects {
     repositories {
+        google()
         jcenter()
-        maven {
-            url 'https://maven.google.com'
-        }
+        mavenLocal()
     }
 }
