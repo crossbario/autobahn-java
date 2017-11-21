@@ -1,1 +1,1 @@
-include ':demo-gallery', ':autobahn'
+include ':autobahn', ':autobahn-android', ':autobahn-transports-okhttp', ':autobahn-transports-netty'

@@ -13,7 +13,7 @@ package io.crossbar.autobahn.wamp.requests;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
-import java.util.concurrent.CompletableFuture;
+import java8.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.types.CallOptions;
 

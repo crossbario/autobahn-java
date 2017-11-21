@@ -1,0 +1,12 @@
+apply plugin: 'kotlin'
+
+dependencies {
+    testImplementation 'junit:junit:4.12'
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'com.squareup.okhttp3:okhttp:3.9.1'
+
+    implementation project(':autobahn')
+}
+
+apply from: rootProject.file('gradle-mvn-push.gradle')

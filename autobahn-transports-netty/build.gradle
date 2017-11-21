@@ -1,0 +1,11 @@
+apply plugin: 'java-library'
+
+dependencies {
+    implementation project(":autobahn")
+
+    implementation 'io.netty:netty-codec-http:4.1.2.Final'
+    implementation 'io.netty:netty-handler:4.1.2.Final'
+}
+
+sourceCompatibility = "1.7"
+targetCompatibility = "1.7"

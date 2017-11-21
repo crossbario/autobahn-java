@@ -4,7 +4,7 @@ import android.util.Log;
 
 import static io.crossbar.autobahn.utils.Globals.DEBUG;
 
-class ABALogger implements IABLogger {
+public class ABALogger implements IABLogger {
 
     private final String mTag;
 

@@ -9,7 +9,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-package io.crossbar.autobahn.wamp.transports;
+package io.crossbar.autobahn.transports;
 
 import java.util.List;
 import java.util.logging.Logger;

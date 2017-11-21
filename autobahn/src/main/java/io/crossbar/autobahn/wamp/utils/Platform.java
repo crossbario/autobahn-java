@@ -12,7 +12,7 @@
 package io.crossbar.autobahn.wamp.utils;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.ForkJoinPool;
+import java8.util.concurrent.ForkJoinPool;
 
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 
@@ -42,9 +42,9 @@ public class Platform {
 
         try {
             if (isAndroid()) {
-                transportClass = Class.forName("io.crossbar.autobahn.wamp.transports.AndroidWebSocket");
+                transportClass = Class.forName("io.crossbar.autobahn.transports.AndroidWebSocket");
             } else {
-                transportClass = Class.forName("io.crossbar.autobahn.wamp.transports.NettyWebSocket");
+                transportClass = Class.forName("io.crossbar.autobahn.transports.NettyWebSocket");
             }
 
             return (ITransport) transportClass.getConstructor(String.class).newInstance(webSocketURL);

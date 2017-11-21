@@ -9,7 +9,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-package io.crossbar.autobahn.wamp.transports;
+package io.crossbar.autobahn.transports.netty;
 
 import java.net.URI;
 import java.util.List;
@@ -127,9 +127,9 @@ public class NettyWebSocket implements ITransport {
     public void connect(ITransportHandler transportHandler) throws Exception {
         URI uri;
         uri = new URI(mUri);
-        int port = validateURIAndGetPort(uri);
-        String scheme = uri.getScheme();
-        String host = uri.getHost();
+        final int port = validateURIAndGetPort(uri);
+        final String scheme = uri.getScheme();
+        final String host = uri.getHost();
 
         final SslContext sslContext = getSSLContext(scheme);
 
