@@ -12,6 +12,7 @@
 package io.crossbar.autobahn.wamp.messages;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -40,7 +41,11 @@ public class Authenticate implements IMessage {
         List<Object> marshaled = new ArrayList<>();
         marshaled.add(MESSAGE_TYPE);
         marshaled.add(signature);
-        marshaled.add(extra);
+        if (extra == null) {
+            marshaled.add(new HashMap<>());
+        } else {
+            marshaled.add(extra);
+        }
         return marshaled;
     }
 }

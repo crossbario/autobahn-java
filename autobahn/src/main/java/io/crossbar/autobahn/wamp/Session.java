@@ -40,7 +40,9 @@ import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.interfaces.TriConsumer;
 import io.crossbar.autobahn.wamp.interfaces.TriFunction;
 import io.crossbar.autobahn.wamp.messages.Abort;
+import io.crossbar.autobahn.wamp.messages.Authenticate;
 import io.crossbar.autobahn.wamp.messages.Call;
+import io.crossbar.autobahn.wamp.messages.Challenge;
 import io.crossbar.autobahn.wamp.messages.Error;
 import io.crossbar.autobahn.wamp.messages.Event;
 import io.crossbar.autobahn.wamp.messages.Goodbye;
@@ -61,6 +63,7 @@ import io.crossbar.autobahn.wamp.requests.RegisterRequest;
 import io.crossbar.autobahn.wamp.requests.SubscribeRequest;
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
+import io.crossbar.autobahn.wamp.types.ChallengeResponse;
 import io.crossbar.autobahn.wamp.types.CloseDetails;
 import io.crossbar.autobahn.wamp.types.EventDetails;
 import io.crossbar.autobahn.wamp.types.InvocationDetails;
@@ -111,6 +114,8 @@ public class Session implements ISession, ITransportHandler {
     private final Map<Long, RegisterRequest> mRegisterRequest;
     private final Map<Long, List<Subscription>> mSubscriptions;
     private final Map<Long, Registration> mRegistrations;
+
+    private OnChallengeListener mOnChallengeListener;
 
     private int mState = STATE_DISCONNECTED;
     private long mSessionID;
@@ -241,10 +246,14 @@ public class Session implements ISession, ITransportHandler {
                     }
                 }
             }, getExecutor());
-        } else {
-            // FIXME: handle Challenge message here.
-            LOGGER.w("FIXME (no session): unprocessed message:");
-            LOGGER.w(message.toString());
+        } else if (message instanceof Challenge) {
+            Challenge msg = (Challenge) message;
+            io.crossbar.autobahn.wamp.types.Challenge challenge =
+                    new io.crossbar.autobahn.wamp.types.Challenge(msg.method, msg.extra);
+            runAsync(() -> {
+                ChallengeResponse response = mOnChallengeListener.onChallenge(challenge);
+                send(new Authenticate(response.signature, response.extra));
+            }, getExecutor());
         }
     }
 
@@ -271,8 +280,7 @@ public class Session implements ISession, ITransportHandler {
             }
         } else if (message instanceof Subscribed) {
             Subscribed msg = (Subscribed) message;
-            SubscribeRequest request = getOrDefault(
-                    mSubscribeRequests, msg.request, null);
+            SubscribeRequest request = getOrDefault(mSubscribeRequests, msg.request, null);
             if (request == null) {
                 throw new ProtocolError(String.format(
                         "SUBSCRIBED received for non-pending request ID %s", msg.request));
@@ -345,8 +353,7 @@ public class Session implements ISession, ITransportHandler {
             combineFutures(futures);
         } else if (message instanceof Published) {
             Published msg = (Published) message;
-            PublishRequest request = getOrDefault(
-                    mPublishRequests, msg.request, null);
+            PublishRequest request = getOrDefault(mPublishRequests, msg.request, null);
             if (request == null) {
                 throw new ProtocolError(String.format(
                         "PUBLISHED received for non-pending request ID %s", msg.request));
@@ -1142,7 +1149,7 @@ public class Session implements ISession, ITransportHandler {
         roles.put("subscriber", new HashMap<>());
         roles.put("caller", new HashMap<>());
         roles.put("callee", new HashMap<>());
-        send(new Hello(realm, roles));
+        send(new Hello(realm, roles, authMethods, "client1"));
         mJoinFuture = new CompletableFuture<>();
         mState = STATE_HELLO_SENT;
         return mJoinFuture;
@@ -1211,6 +1218,10 @@ public class Session implements ISession, ITransportHandler {
 
     public void removeOnUserErrorListener(OnUserErrorListener listener) {
         removeListener(mOnUserErrorListeners, listener);
+    }
+
+    public void setOnChallengeListener(OnChallengeListener listener) {
+        mOnChallengeListener = listener;
     }
 
     private <T> T addListener(ArrayList<T> listeners, T listener) {

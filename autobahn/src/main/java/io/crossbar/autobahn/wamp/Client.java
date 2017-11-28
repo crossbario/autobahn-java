@@ -96,8 +96,11 @@ public class Client {
 
     public CompletableFuture<ExitInfo> connect() {
         CompletableFuture<ExitInfo> exitFuture = new CompletableFuture<>();
+        List<String> authMethods = new ArrayList<>();
+        authMethods.add("anonymous");
+        authMethods.add("ticket");
         mSession.addOnConnectListener((session) ->
-                mSession.join(mRealm).thenAccept(details ->
+                mSession.join(mRealm, authMethods).thenAccept(details ->
                         LOGGER.i(String.format("JOINED session=%s realm=%s", details.sessionID,
                                 details.realm))));
         mSession.addOnDisconnectListener((session, wasClean) ->
