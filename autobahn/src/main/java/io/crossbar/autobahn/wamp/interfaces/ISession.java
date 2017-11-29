@@ -23,10 +23,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import io.crossbar.autobahn.wamp.Session;
-import io.crossbar.autobahn.wamp.types.Challenge;
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
-import io.crossbar.autobahn.wamp.types.ChallengeResponse;
 import io.crossbar.autobahn.wamp.types.CloseDetails;
 import io.crossbar.autobahn.wamp.types.EventDetails;
 import io.crossbar.autobahn.wamp.types.InvocationDetails;
@@ -711,11 +709,11 @@ public interface ISession {
     /**
      * Joins a realm on the WAMP router
      * @param realm name of the realm to join
-     * @param authMethods list of authentication methods to try
+     * @param authenticators list of authentication methods to try
      * @return a CompletableFuture that resolves to an instance of
      * {@link io.crossbar.autobahn.wamp.types.SessionDetails}
      */
-    CompletableFuture<SessionDetails> join(String realm, List<String> authMethods);
+    CompletableFuture<SessionDetails> join(String realm, List<IAuthenticator> authenticators);
 
     /**
      * Leaves the currently joined WAMP session.
@@ -760,9 +758,5 @@ public interface ISession {
     // FIXME: come up with an equivalent of txaio.IFailedFuture as first arg.
     interface OnUserErrorListener {
         void onUserError(Session session, String message);
-    }
-
-    interface OnChallengeListener {
-        ChallengeResponse onChallenge(Challenge challenge);
     }
 }

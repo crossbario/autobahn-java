@@ -68,6 +68,14 @@ public class Client {
         mExecutor = executor;
     }
 
+    public Client(Session session, String webSocketURL, String realm,
+                  List<IAuthenticator> authenticators) {
+        this(webSocketURL);
+        mSession = session;
+        mRealm = realm;
+        mAuthenticators = authenticators;
+    }
+
     public Client(List<ITransport> transports) {
         mTransports = transports;
     }
@@ -96,11 +104,8 @@ public class Client {
 
     public CompletableFuture<ExitInfo> connect() {
         CompletableFuture<ExitInfo> exitFuture = new CompletableFuture<>();
-        List<String> authMethods = new ArrayList<>();
-        authMethods.add("anonymous");
-        authMethods.add("ticket");
         mSession.addOnConnectListener((session) ->
-                mSession.join(mRealm, authMethods).thenAccept(details ->
+                mSession.join(mRealm, mAuthenticators).thenAccept(details ->
                         LOGGER.i(String.format("JOINED session=%s realm=%s", details.sessionID,
                                 details.realm))));
         mSession.addOnDisconnectListener((session, wasClean) ->
