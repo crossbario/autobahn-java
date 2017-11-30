@@ -21,6 +21,7 @@ public class MessageMap {
 
     static {
         MESSAGE_TYPE_MAP.put(Hello.MESSAGE_TYPE, Hello.class);
+        MESSAGE_TYPE_MAP.put(Challenge.MESSAGE_TYPE, Challenge.class);
         MESSAGE_TYPE_MAP.put(Welcome.MESSAGE_TYPE, Welcome.class);
         MESSAGE_TYPE_MAP.put(Abort.MESSAGE_TYPE, Abort.class);
         MESSAGE_TYPE_MAP.put(Goodbye.MESSAGE_TYPE, Goodbye.class);

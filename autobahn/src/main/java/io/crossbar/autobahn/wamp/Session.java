@@ -29,8 +29,10 @@ import java.util.function.Supplier;
 
 import io.crossbar.autobahn.utils.ABLogger;
 import io.crossbar.autobahn.utils.IABLogger;
+import io.crossbar.autobahn.wamp.auth.TicketAuth;
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
+import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
 import io.crossbar.autobahn.wamp.interfaces.IInvocationHandler;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
 import io.crossbar.autobahn.wamp.interfaces.ISerializer;
@@ -40,7 +42,9 @@ import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.interfaces.TriConsumer;
 import io.crossbar.autobahn.wamp.interfaces.TriFunction;
 import io.crossbar.autobahn.wamp.messages.Abort;
+import io.crossbar.autobahn.wamp.messages.Authenticate;
 import io.crossbar.autobahn.wamp.messages.Call;
+import io.crossbar.autobahn.wamp.messages.Challenge;
 import io.crossbar.autobahn.wamp.messages.Error;
 import io.crossbar.autobahn.wamp.messages.Event;
 import io.crossbar.autobahn.wamp.messages.Goodbye;
@@ -97,6 +101,7 @@ public class Session implements ISession, ITransportHandler {
     private ISerializer mSerializer;
     private Executor mExecutor;
     private CompletableFuture<SessionDetails> mJoinFuture;
+    private List<IAuthenticator> mAuthenticators;
 
     private final ArrayList<OnJoinListener> mOnJoinListeners;
     private final ArrayList<OnReadyListener> mOnReadyListeners;
@@ -241,10 +246,20 @@ public class Session implements ISession, ITransportHandler {
                     }
                 }
             }, getExecutor());
-        } else {
-            // FIXME: handle Challenge message here.
-            LOGGER.w("FIXME (no session): unprocessed message:");
-            LOGGER.w(message.toString());
+        } else if (message instanceof Challenge) {
+            Challenge msg = (Challenge) message;
+            io.crossbar.autobahn.wamp.types.Challenge challenge =
+                    new io.crossbar.autobahn.wamp.types.Challenge(msg.method, msg.extra);
+            if (msg.method.equals("ticket") && mAuthenticators != null) {
+                for (IAuthenticator authenticator: mAuthenticators) {
+                    if (authenticator.getAuthMethod().equals("ticket")) {
+                        TicketAuth auth = (TicketAuth) authenticator;
+                        auth.onChallenge(this, challenge).whenCompleteAsync(
+                                (response, throwable) -> send(new Authenticate(
+                                        response.signature, response.extra)), getExecutor());
+                    }
+                }
+            }
         }
     }
 
@@ -271,8 +286,7 @@ public class Session implements ISession, ITransportHandler {
             }
         } else if (message instanceof Subscribed) {
             Subscribed msg = (Subscribed) message;
-            SubscribeRequest request = getOrDefault(
-                    mSubscribeRequests, msg.request, null);
+            SubscribeRequest request = getOrDefault(mSubscribeRequests, msg.request, null);
             if (request == null) {
                 throw new ProtocolError(String.format(
                         "SUBSCRIBED received for non-pending request ID %s", msg.request));
@@ -345,8 +359,7 @@ public class Session implements ISession, ITransportHandler {
             combineFutures(futures);
         } else if (message instanceof Published) {
             Published msg = (Published) message;
-            PublishRequest request = getOrDefault(
-                    mPublishRequests, msg.request, null);
+            PublishRequest request = getOrDefault(mPublishRequests, msg.request, null);
             if (request == null) {
                 throw new ProtocolError(String.format(
                         "PUBLISHED received for non-pending request ID %s", msg.request));
@@ -1127,25 +1140,47 @@ public class Session implements ISession, ITransportHandler {
                 null);
     }
 
-    @Override
-    public CompletableFuture<SessionDetails> join(String realm) {
-        return join(realm, null);
-    }
-
-    @Override
-    public CompletableFuture<SessionDetails> join(String realm, List<String> authMethods) {
+    private CompletableFuture<SessionDetails> reallyJoin(
+            String realm,
+            List<IAuthenticator> authenticators) {
         LOGGER.d("Called join() with realm=" + realm);
         mRealm = realm;
+        mAuthenticators = authenticators;
         mGoodbyeSent = false;
         Map<String, Map> roles = new HashMap<>();
         roles.put("publisher", new HashMap<>());
         roles.put("subscriber", new HashMap<>());
         roles.put("caller", new HashMap<>());
         roles.put("callee", new HashMap<>());
-        send(new Hello(realm, roles));
+        if (mAuthenticators == null) {
+            send(new Hello(realm, roles));
+        } else {
+            List<String> authMethods = new ArrayList<>();
+            String authID = null;
+            for (IAuthenticator authenticator: mAuthenticators) {
+                authMethods.add(authenticator.getAuthMethod());
+                if (authenticator.getAuthMethod().equals("ticket")) {
+                    TicketAuth auth = (TicketAuth) authenticator;
+                    authID = auth.authid;
+                }
+            }
+            send(new Hello(realm, roles, authMethods, authID));
+        }
         mJoinFuture = new CompletableFuture<>();
         mState = STATE_HELLO_SENT;
         return mJoinFuture;
+    }
+
+    @Override
+    public CompletableFuture<SessionDetails> join(String realm) {
+        return reallyJoin(realm, null);
+    }
+
+    @Override
+    public CompletableFuture<SessionDetails> join(
+            String realm,
+            List<IAuthenticator> authenticators) {
+        return reallyJoin(realm, authenticators);
     }
 
     @Override

@@ -709,11 +709,11 @@ public interface ISession {
     /**
      * Joins a realm on the WAMP router
      * @param realm name of the realm to join
-     * @param authMethods list of authentication methods to try
+     * @param authenticators list of authentication methods to try
      * @return a CompletableFuture that resolves to an instance of
      * {@link io.crossbar.autobahn.wamp.types.SessionDetails}
      */
-    CompletableFuture<SessionDetails> join(String realm, List<String> authMethods);
+    CompletableFuture<SessionDetails> join(String realm, List<IAuthenticator> authenticators);
 
     /**
      * Leaves the currently joined WAMP session.
