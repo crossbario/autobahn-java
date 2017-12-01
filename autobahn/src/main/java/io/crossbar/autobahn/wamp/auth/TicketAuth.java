@@ -22,10 +22,14 @@ import io.crossbar.autobahn.wamp.Session;
 
 public class TicketAuth implements IAuthenticator {
 
-    public final String authmethod = "ticket";
+    public static final String authmethod = "ticket";
     public final String authid;
     public final Map<String, Object> authextra;
     public final String ticket;
+
+    public TicketAuth(String authid, String ticket) {
+        this(authid, ticket, null);
+    }
 
     public TicketAuth(String authid, String ticket, Map<String, Object> authextra) {
         this.authid = authid;
