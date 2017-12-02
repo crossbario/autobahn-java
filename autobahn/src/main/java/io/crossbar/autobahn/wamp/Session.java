@@ -30,6 +30,7 @@ import java.util.function.Supplier;
 import io.crossbar.autobahn.utils.ABLogger;
 import io.crossbar.autobahn.utils.IABLogger;
 import io.crossbar.autobahn.wamp.auth.ChallengeResponseAuth;
+import io.crossbar.autobahn.wamp.auth.CryptosignAuth;
 import io.crossbar.autobahn.wamp.auth.TicketAuth;
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
@@ -263,11 +264,20 @@ public class Session implements ISession, ITransportHandler {
                         }
                     }
                 } else if (msg.method.equals(ChallengeResponseAuth.authmethod)) {
-                    System.out.println(msg.extra);
                     for (IAuthenticator authenticator: mAuthenticators) {
                         if (authenticator.getAuthMethod().equals(
                                 ChallengeResponseAuth.authmethod)) {
                             ChallengeResponseAuth auth = (ChallengeResponseAuth) authenticator;
+                            auth.onChallenge(this, challenge).whenCompleteAsync(
+                                    (response, throwable) -> send(new Authenticate(
+                                            response.signature, response.extra)), getExecutor());
+                            break;
+                        }
+                    }
+                } else if (msg.method.equals(CryptosignAuth.authmethod)) {
+                    for (IAuthenticator authenticator: mAuthenticators) {
+                        if (authenticator.getAuthMethod().equals(CryptosignAuth.authmethod)) {
+                            CryptosignAuth auth = (CryptosignAuth) authenticator;
                             auth.onChallenge(this, challenge).whenCompleteAsync(
                                     (response, throwable) -> send(new Authenticate(
                                             response.signature, response.extra)), getExecutor());
@@ -1173,6 +1183,7 @@ public class Session implements ISession, ITransportHandler {
         } else {
             List<String> authMethods = new ArrayList<>();
             String authID = null;
+            Map<String, Object> authextra = null;
             for (IAuthenticator authenticator: mAuthenticators) {
                 authMethods.add(authenticator.getAuthMethod());
                 if (authenticator.getAuthMethod().equals(TicketAuth.authmethod)) {
@@ -1181,9 +1192,14 @@ public class Session implements ISession, ITransportHandler {
                 } else if (authenticator.getAuthMethod().equals(ChallengeResponseAuth.authmethod)) {
                     ChallengeResponseAuth auth = (ChallengeResponseAuth) authenticator;
                     authID = auth.authid;
+                } else if (authenticator.getAuthMethod().equals(CryptosignAuth.authmethod)) {
+                    CryptosignAuth auth = (CryptosignAuth) authenticator;
+                    authID = auth.authid;
+                    authextra = new HashMap<>();
+                    authextra.put("pubkey", "9ba40d4e5fa97bffc958528abb035ac505c8ea1d6720922f1ca2b4f3f35895bd");
                 }
             }
-            send(new Hello(realm, roles, authMethods, authID));
+            send(new Hello(realm, roles, authMethods, authID, authextra));
         }
         mJoinFuture = new CompletableFuture<>();
         mState = STATE_HELLO_SENT;
