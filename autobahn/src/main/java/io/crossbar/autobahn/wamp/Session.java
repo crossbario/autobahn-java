@@ -29,6 +29,7 @@ import java.util.function.Supplier;
 
 import io.crossbar.autobahn.utils.ABLogger;
 import io.crossbar.autobahn.utils.IABLogger;
+import io.crossbar.autobahn.wamp.auth.ChallengeResponseAuth;
 import io.crossbar.autobahn.wamp.auth.TicketAuth;
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
@@ -250,13 +251,28 @@ public class Session implements ISession, ITransportHandler {
             Challenge msg = (Challenge) message;
             io.crossbar.autobahn.wamp.types.Challenge challenge =
                     new io.crossbar.autobahn.wamp.types.Challenge(msg.method, msg.extra);
-            if (msg.method.equals("ticket") && mAuthenticators != null) {
-                for (IAuthenticator authenticator: mAuthenticators) {
-                    if (authenticator.getAuthMethod().equals("ticket")) {
-                        TicketAuth auth = (TicketAuth) authenticator;
-                        auth.onChallenge(this, challenge).whenCompleteAsync(
-                                (response, throwable) -> send(new Authenticate(
-                                        response.signature, response.extra)), getExecutor());
+            if (mAuthenticators != null) {
+                if (msg.method.equals(TicketAuth.authmethod)) {
+                    for (IAuthenticator authenticator: mAuthenticators) {
+                        if (authenticator.getAuthMethod().equals(TicketAuth.authmethod)) {
+                            TicketAuth auth = (TicketAuth) authenticator;
+                            auth.onChallenge(this, challenge).whenCompleteAsync(
+                                    (response, throwable) -> send(new Authenticate(
+                                            response.signature, response.extra)), getExecutor());
+                            break;
+                        }
+                    }
+                } else if (msg.method.equals(ChallengeResponseAuth.authmethod)) {
+                    System.out.println(msg.extra);
+                    for (IAuthenticator authenticator: mAuthenticators) {
+                        if (authenticator.getAuthMethod().equals(
+                                ChallengeResponseAuth.authmethod)) {
+                            ChallengeResponseAuth auth = (ChallengeResponseAuth) authenticator;
+                            auth.onChallenge(this, challenge).whenCompleteAsync(
+                                    (response, throwable) -> send(new Authenticate(
+                                            response.signature, response.extra)), getExecutor());
+                            break;
+                        }
                     }
                 }
             }
@@ -1159,8 +1175,11 @@ public class Session implements ISession, ITransportHandler {
             String authID = null;
             for (IAuthenticator authenticator: mAuthenticators) {
                 authMethods.add(authenticator.getAuthMethod());
-                if (authenticator.getAuthMethod().equals("ticket")) {
+                if (authenticator.getAuthMethod().equals(TicketAuth.authmethod)) {
                     TicketAuth auth = (TicketAuth) authenticator;
+                    authID = auth.authid;
+                } else if (authenticator.getAuthMethod().equals(ChallengeResponseAuth.authmethod)) {
+                    ChallengeResponseAuth auth = (ChallengeResponseAuth) authenticator;
                     authID = auth.authid;
                 }
             }

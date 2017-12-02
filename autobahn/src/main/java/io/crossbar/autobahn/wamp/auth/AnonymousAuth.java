@@ -20,13 +20,11 @@ import io.crossbar.autobahn.wamp.Session;
 
 public class AnonymousAuth implements IAuthenticator {
 
-    public final String authmethod = "anonymous";
+    public static final String authmethod = "anonymous";
     public final String authid = null;
 
     public CompletableFuture<ChallengeResponse> onChallenge(Session session, Challenge challenge) {
-        // anonymous authentication in WAMP will NOT invoke this callback!
-        // FIXME
-        return CompletableFuture.completedFuture(new ChallengeResponse(null, null));
+        throw new UnsupportedOperationException("Anonymous auth does not support challenge.");
     }
 
     @Override
