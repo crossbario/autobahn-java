@@ -1196,7 +1196,7 @@ public class Session implements ISession, ITransportHandler {
                     CryptosignAuth auth = (CryptosignAuth) authenticator;
                     authID = auth.authid;
                     authextra = new HashMap<>();
-                    authextra.put("pubkey", "9ba40d4e5fa97bffc958528abb035ac505c8ea1d6720922f1ca2b4f3f35895bd");
+                    authextra.put("pubkey", "a26c153c455aebb27e99cdd0580a2bfe54806d26a946c552f5fb3488aa9bb53f");
                 }
             }
             send(new Hello(realm, roles, authMethods, authID, authextra));
