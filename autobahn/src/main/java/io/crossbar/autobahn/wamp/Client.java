@@ -76,6 +76,15 @@ public class Client {
         mAuthenticators = authenticators;
     }
 
+    public Client(Session session, String webSocketURL, String realm,
+                  IAuthenticator authenticator) {
+        this(webSocketURL);
+        mSession = session;
+        mRealm = realm;
+        mAuthenticators = new ArrayList<>();
+        mAuthenticators.add(authenticator);
+    }
+
     public Client(List<ITransport> transports) {
         mTransports = transports;
     }
