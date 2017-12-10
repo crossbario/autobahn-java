@@ -20,7 +20,10 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.8.8'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.8.8'
     implementation 'org.msgpack:jackson-dataformat-msgpack:0.8.13'
-    if (!project.IS_ANDROID) {
+    if (project.IS_ANDROID) {
+        implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:1.0.7'
+    } else {
+        implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni:1.0.7'
         implementation 'io.netty:netty-codec-http:4.1.2.Final'
         implementation 'io.netty:netty-handler:4.1.2.Final'
     }

@@ -24,7 +24,7 @@ buildscript {
     // Android specific dependencies.
     if (project.properties.get('buildPlatform', 'android') == 'android') {
         dependencies {
-            classpath 'com.android.tools.build:gradle:3.0.0-beta7'
+            classpath 'com.android.tools.build:gradle:3.0.1'
             classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
         }
     }
