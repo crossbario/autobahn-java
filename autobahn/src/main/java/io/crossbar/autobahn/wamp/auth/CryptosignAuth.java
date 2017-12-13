@@ -2,6 +2,7 @@ package io.crossbar.autobahn.wamp.auth;
 
 import org.libsodium.jni.keys.SigningKey;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -19,13 +20,11 @@ public class CryptosignAuth implements IAuthenticator {
 
     public final String authid;
     public final Map<String, Object> authextra;
-    public final String privkey;
 
     private final byte[] privateKeyRaw;
 
     public CryptosignAuth(String authid, String privkey, Map<String, Object> authextra) {
         this.authid = authid;
-        this.privkey = privkey;
         if (authextra == null || getOrDefault(authextra, "pubkey", null) == null) {
             throw new RuntimeException("authextra must contain privkey");
         }
@@ -41,10 +40,22 @@ public class CryptosignAuth implements IAuthenticator {
         Map<String, Object> authextra = new HashMap<>();
         authextra.put("pubkey", pubkey);
         this.authid = authid;
-        this.privkey = privkey;
         this.authextra = authextra;
         try {
             privateKeyRaw = AuthUtil.decodeString(privkey);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public CryptosignAuth(String authid, File privateKeyFile) {
+        this.authid = authid;
+        try {
+            Map<String, byte[]> keydata = AuthUtil.parseOpenSSHFile(privateKeyFile);
+            Map<String, Object> authextra = new HashMap<>();
+            authextra.put("pubkey", AuthUtil.toHexString(keydata.get("pubkey")));
+            this.authextra = authextra;
+            privateKeyRaw = keydata.get("privkey");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -2,7 +2,6 @@ package io.crossbar.autobahn.wamp.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -87,10 +86,6 @@ public class AuthUtil {
     }
 
     public static Map<String, byte[]> parseOpenSSHFile(File file) throws Exception {
-        if (!file.exists()) {
-            throw new FileNotFoundException(file.getAbsolutePath());
-        }
-
         BufferedReader br = new BufferedReader(new FileReader(file));
         String sCurrentLine;
         List<String> lines = new ArrayList<>();
