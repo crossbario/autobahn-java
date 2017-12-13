@@ -106,31 +106,31 @@ public class AuthUtil {
             base64StringBuilder.append(line);
         }
         String base64String = base64StringBuilder.toString();
-        byte[] ok = decodeString(base64String);
+        byte[] rawKey = decodeString(base64String);
 
-        byte[] verify = Arrays.copyOfRange(ok, 0, OPENSSH_KEY_V1.length());
+        byte[] verify = Arrays.copyOfRange(rawKey, 0, OPENSSH_KEY_V1.length());
         if (!new String(verify).equals(OPENSSH_KEY_V1)) {
             throw new RuntimeException("Invalid OPENSSH file");
         }
 
         boolean occurred = false;
         int index = 0;
-        for (int i = 0; i < ok.length; i++) {
-            if (ok[i] == 's'
-                    && ok[i + 1] == 's'
-                    && ok[i + 2] == 'h'
-                    && ok[i + 3] == '-'
-                    && ok[i + 4] == 'e'
-                    && ok[i + 5] == 'd'
-                    && ok[i + 6] == '2'
-                    && ok[i + 7] == '5'
-                    && ok[i + 8] == '5'
-                    && ok[i + 9] == '1'
-                    && ok[i + 10] == '9'
-                    && ok[i + 11] == 0x00
-                    && ok[i + 12] == 0x00
-                    && ok[i + 13] == 0x00
-                    && ok[i + 14] == ' ') {
+        for (int i = 0; i < rawKey.length; i++) {
+            if (rawKey[i] == 's'
+                    && rawKey[i + 1] == 's'
+                    && rawKey[i + 2] == 'h'
+                    && rawKey[i + 3] == '-'
+                    && rawKey[i + 4] == 'e'
+                    && rawKey[i + 5] == 'd'
+                    && rawKey[i + 6] == '2'
+                    && rawKey[i + 7] == '5'
+                    && rawKey[i + 8] == '5'
+                    && rawKey[i + 9] == '1'
+                    && rawKey[i + 10] == '9'
+                    && rawKey[i + 11] == 0x00
+                    && rawKey[i + 12] == 0x00
+                    && rawKey[i + 13] == 0x00
+                    && rawKey[i + 14] == ' ') {
                 index = i + 15;
                 if (occurred) {
                     break;
@@ -139,20 +139,20 @@ public class AuthUtil {
             }
         }
 
-        byte[] publicKey = Arrays.copyOfRange(ok, index, index + 32);
+        byte[] publicKey = Arrays.copyOfRange(rawKey, index, index + 32);
 
         index += 32;
-        for (int i = index; i < ok.length; i++) {
-            if (ok[i] == 0x00
-                    && ok[i + 1] == 0x00
-                    && ok[i + 2] == 0x00
-                    && ok[i + 3] == '@') {
+        for (int i = index; i < rawKey.length; i++) {
+            if (rawKey[i] == 0x00
+                    && rawKey[i + 1] == 0x00
+                    && rawKey[i + 2] == 0x00
+                    && rawKey[i + 3] == '@') {
                 index = i + 4;
                 break;
             }
         }
 
-        byte[] privateKey = Arrays.copyOfRange(ok, index, index + 32);
+        byte[] privateKey = Arrays.copyOfRange(rawKey, index, index + 32);
 
         Map<String, byte[]> result = new HashMap<>();
         result.put("pubkey", publicKey);
