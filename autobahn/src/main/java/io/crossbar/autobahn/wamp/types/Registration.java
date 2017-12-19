@@ -11,14 +11,38 @@
 
 package io.crossbar.autobahn.wamp.types;
 
+import java.util.concurrent.CompletableFuture;
+
+import io.crossbar.autobahn.wamp.Session;
+
 public class Registration {
     public final long registration;
     public final String procedure;
     public final Object endpoint;
+    public final Session session;
 
-    public Registration(long registration, String procedure, Object endpoint) {
+    private boolean active = true;
+
+    public Registration(long registration, String procedure, Object endpoint, Session session) {
         this.registration = registration;
         this.procedure = procedure;
         this.endpoint = endpoint;
+        this.session = session;
+    }
+
+    public CompletableFuture<Integer> unRegister() {
+        return session.unRegister(this);
+    }
+
+    public void setInactive() {
+        if (active) {
+            active = false;
+        } else {
+            throw new IllegalStateException("Registration already invactive");
+        }
+    }
+
+    public boolean isActive() {
+        return active;
     }
 }

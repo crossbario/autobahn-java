@@ -24,9 +24,9 @@ public class Unsubscribed implements IMessage {
     public static final int MESSAGE_TYPE = 35;
 
     private static final long SUBSCRIPTION_NULL = -1;
-    private final long request;
-    private final long subscription;
-    private final String reason;
+    public final long request;
+    public final long subscription;
+    public final String reason;
 
     public Unsubscribed(long request, long subscription, String reason) {
         this.request = request;
