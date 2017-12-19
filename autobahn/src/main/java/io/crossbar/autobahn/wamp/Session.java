@@ -515,8 +515,8 @@ public class Session implements ISession, ITransportHandler {
             }
             if (mRegistrations.containsKey(request.registrationID)) {
                 mRegistrations.remove(request.registrationID);
-                request.onReply.complete(0);
             }
+            request.onReply.complete(0);
         } else if (message instanceof Unsubscribed) {
             Unsubscribed msg = (Unsubscribed) message;
             UnSubscribeRequest request = getOrDefault(mUnSubscribeRequests, msg.request, null);
