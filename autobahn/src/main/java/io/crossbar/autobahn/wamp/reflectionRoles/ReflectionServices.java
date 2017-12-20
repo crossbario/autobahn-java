@@ -3,6 +3,7 @@ package io.crossbar.autobahn.wamp.reflectionRoles;
 import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 import io.crossbar.autobahn.wamp.types.Registration;
+import io.crossbar.autobahn.wamp.types.Subscription;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -38,6 +39,27 @@ public class ReflectionServices {
         }
 
         return registrations;
+    }
+
+    public List<CompletableFuture<Subscription>> registerSubscriber(Object instance) {
+        List<CompletableFuture<Subscription>> subscriptions = new ArrayList<CompletableFuture<Subscription>>();
+        Class<?> classType = instance.getClass();
+
+        for (Method method : classType.getMethods()) {
+            if (method.isAnnotationPresent(WampTopic.class)) {
+                WampTopic anotation = method.getAnnotation(WampTopic.class);
+
+                MethodEventHandler currentMethodHandler =
+                        new MethodEventHandler(instance, method, this.mSerializer);
+
+                CompletableFuture<Subscription> currentRegistration =
+                        mSession.subscribe(anotation.value(), currentMethodHandler);
+
+                subscriptions.add(currentRegistration);
+            }
+        }
+
+        return subscriptions;
     }
 
     public <TProxy> TProxy getCalleeProxy(Class<TProxy> proxyClass) {

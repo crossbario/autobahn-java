@@ -21,7 +21,6 @@ public class MethodInvocationHandler implements IInvocationHandler {
         this.mInstance = instance;
         this.mMethod = method;
         this.mUnpacker = new ArgumentUnpacker(method.getParameters());
-        // TODO: the serializer should be passed by AutobahnJava somehow.
         this.mSerializer = serializer;
     }
 
