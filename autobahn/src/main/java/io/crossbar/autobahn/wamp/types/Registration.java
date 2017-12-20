@@ -30,7 +30,7 @@ public class Registration {
         this.session = session;
     }
 
-    public CompletableFuture<Integer> unRegister() {
+    public CompletableFuture<Integer> unregister() {
         return session.unregister(this);
     }
 
