@@ -13,15 +13,15 @@ package io.crossbar.autobahn.wamp.requests;
 
 import java.util.concurrent.CompletableFuture;
 
-public class UnRegisterRequest extends Request {
+public class UnsubscribeRequest extends Request {
 
     public final CompletableFuture<Integer> onReply;
-    public final long registrationID;
+    public final long subscriptionID;
 
-    public UnRegisterRequest(long request, CompletableFuture<Integer> onReply,
-                             long registrationID) {
+    public UnsubscribeRequest(long request, CompletableFuture<Integer> onReply,
+                              long subscriptionID) {
         super(request);
         this.onReply = onReply;
-        this.registrationID = registrationID;
+        this.subscriptionID = subscriptionID;
     }
 }

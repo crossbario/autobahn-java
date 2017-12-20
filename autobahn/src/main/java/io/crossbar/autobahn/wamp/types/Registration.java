@@ -31,7 +31,7 @@ public class Registration {
     }
 
     public CompletableFuture<Integer> unRegister() {
-        return session.unRegister(this);
+        return session.unregister(this);
     }
 
     public void setInactive() {

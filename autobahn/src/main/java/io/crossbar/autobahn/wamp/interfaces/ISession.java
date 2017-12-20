@@ -349,7 +349,7 @@ public interface ISession {
                     CompletableFuture<ReceptionResult>> handler,
             SubscribeOptions options);
 
-    CompletableFuture<Integer> unSubscribe(Subscription subscription);
+    CompletableFuture<Integer> unsubscribe(Subscription subscription);
 
     /**
      * Publishes to a WAMP topic.
@@ -535,7 +535,7 @@ public interface ISession {
             TriFunction<T, U, InvocationDetails, R> endpoint,
             RegisterOptions options);
 
-    CompletableFuture<Integer> unRegister(Registration registration);
+    CompletableFuture<Integer> unregister(Registration registration);
 
     /**
      * Calls a remote procedure.

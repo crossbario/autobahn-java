@@ -37,8 +37,8 @@ public class Subscription {
         this.session = session;
     }
 
-    public CompletableFuture<Integer> unSubscribe() {
-        return session.unSubscribe(this);
+    public CompletableFuture<Integer> unsubscribe() {
+        return session.unsubscribe(this);
     }
 
     public void setInactive() {
