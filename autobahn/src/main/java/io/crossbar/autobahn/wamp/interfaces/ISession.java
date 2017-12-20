@@ -349,6 +349,8 @@ public interface ISession {
                     CompletableFuture<ReceptionResult>> handler,
             SubscribeOptions options);
 
+    CompletableFuture<Integer> unsubscribe(Subscription subscription);
+
     /**
      * Publishes to a WAMP topic.
      * @param topic URI of the topic
@@ -532,6 +534,8 @@ public interface ISession {
             String procedure,
             TriFunction<T, U, InvocationDetails, R> endpoint,
             RegisterOptions options);
+
+    CompletableFuture<Integer> unregister(Registration registration);
 
     /**
      * Calls a remote procedure.

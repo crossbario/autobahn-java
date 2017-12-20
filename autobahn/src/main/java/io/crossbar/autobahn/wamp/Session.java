@@ -59,12 +59,18 @@ import io.crossbar.autobahn.wamp.messages.Registered;
 import io.crossbar.autobahn.wamp.messages.Result;
 import io.crossbar.autobahn.wamp.messages.Subscribe;
 import io.crossbar.autobahn.wamp.messages.Subscribed;
+import io.crossbar.autobahn.wamp.messages.Unregister;
+import io.crossbar.autobahn.wamp.messages.Unregistered;
+import io.crossbar.autobahn.wamp.messages.Unsubscribe;
+import io.crossbar.autobahn.wamp.messages.Unsubscribed;
 import io.crossbar.autobahn.wamp.messages.Welcome;
 import io.crossbar.autobahn.wamp.messages.Yield;
 import io.crossbar.autobahn.wamp.requests.CallRequest;
 import io.crossbar.autobahn.wamp.requests.PublishRequest;
 import io.crossbar.autobahn.wamp.requests.RegisterRequest;
 import io.crossbar.autobahn.wamp.requests.SubscribeRequest;
+import io.crossbar.autobahn.wamp.requests.UnregisterRequest;
+import io.crossbar.autobahn.wamp.requests.UnsubscribeRequest;
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.CloseDetails;
@@ -118,6 +124,8 @@ public class Session implements ISession, ITransportHandler {
     private final Map<Long, RegisterRequest> mRegisterRequest;
     private final Map<Long, List<Subscription>> mSubscriptions;
     private final Map<Long, Registration> mRegistrations;
+    private final Map<Long, UnsubscribeRequest> mUnsubscribeRequests;
+    private final Map<Long, UnregisterRequest> mUnregisterRequests;
 
     private int mState = STATE_DISCONNECTED;
     private long mSessionID;
@@ -138,6 +146,8 @@ public class Session implements ISession, ITransportHandler {
         mRegisterRequest = new HashMap<>();
         mSubscriptions = new HashMap<>();
         mRegistrations = new HashMap<>();
+        mUnsubscribeRequests = new HashMap<>();
+        mUnregisterRequests = new HashMap<>();
     }
 
     public Session(Executor executor) {
@@ -323,7 +333,7 @@ public class Session implements ISession, ITransportHandler {
                 mSubscriptions.put(msg.subscription, new ArrayList<>());
             }
             Subscription subscription = new Subscription(msg.subscription, request.topic,
-                    request.resultTypeRef, request.resultTypeClass, request.handler);
+                    request.resultTypeRef, request.resultTypeClass, request.handler, this);
             mSubscriptions.get(msg.subscription).add(subscription);
             request.onReply.complete(subscription);
         } else if (message instanceof Event) {
@@ -406,7 +416,7 @@ public class Session implements ISession, ITransportHandler {
             }
             mRegisterRequest.remove(msg.request);
             Registration registration = new Registration(
-                    msg.registration, request.procedure, request.endpoint);
+                    msg.registration, request.procedure, request.endpoint, this);
             mRegistrations.put(msg.registration, registration);
             request.onReply.complete(registration);
         } else if (message instanceof Invocation) {
@@ -495,6 +505,23 @@ public class Session implements ISession, ITransportHandler {
                 }
                 mState = STATE_DISCONNECTED;
             }, getExecutor());
+        } else if (message instanceof Unregistered) {
+            Unregistered msg = (Unregistered) message;
+            UnregisterRequest request = getOrDefault(mUnregisterRequests, msg.request, null);
+            if (request == null) {
+                throw new ProtocolError(String.format(
+                        "UNREGISTERED received for already unregistered registration ID %s",
+                        msg.registration));
+            }
+            if (mRegistrations.containsKey(request.registrationID)) {
+                mRegistrations.remove(request.registrationID);
+            }
+            request.onReply.complete(0);
+        } else if (message instanceof Unsubscribed) {
+            Unsubscribed msg = (Unsubscribed) message;
+            UnsubscribeRequest request = getOrDefault(mUnsubscribeRequests, msg.request, null);
+            List<Subscription> subscriptions = mSubscriptions.get(request.subscriptionID);
+            request.onReply.complete(subscriptions.size());
         } else if (message instanceof Error) {
             Error msg = (Error) message;
             CompletableFuture<?> onReply = null;
@@ -795,6 +822,33 @@ public class Session implements ISession, ITransportHandler {
         return reallySubscribe(topic, handler, options, null, null);
     }
 
+    @Override
+    public CompletableFuture<Integer> unsubscribe(Subscription subscription) {
+        if (!subscription.isActive()) {
+            throw new IllegalStateException("Subscription is already inactive");
+        }
+        List<Subscription> subscriptions = getOrDefault(mSubscriptions, subscription.subscription,
+                null);
+
+        if (subscriptions == null || !subscriptions.contains(subscription)) {
+            throw new IllegalStateException("Subscription is already inactive");
+        }
+
+        subscriptions.remove(subscription);
+        subscription.setInactive();
+        int remainingCount = subscriptions.size();
+        CompletableFuture<Integer> unsubFuture = new CompletableFuture<>();
+        if (remainingCount == 0) {
+            long requestID = mIDGenerator.next();
+            mUnsubscribeRequests.put(requestID, new UnsubscribeRequest(requestID, unsubFuture,
+                    subscription.subscription));
+            send(new Unsubscribe(requestID, subscription.subscription));
+        } else {
+            unsubFuture.complete(remainingCount);
+        }
+        return unsubFuture;
+    }
+
     private CompletableFuture<Publication> reallyPublish(String topic, List<Object> args,
                                                          Map<String, Object> kwargs,
                                                          PublishOptions options) {
@@ -944,6 +998,23 @@ public class Session implements ISession, ITransportHandler {
             TriFunction<T, U, InvocationDetails, R> endpoint,
             RegisterOptions options) {
         return reallyRegister(procedure, endpoint, options);
+    }
+
+    @Override
+    public CompletableFuture<Integer> unregister(Registration registration) {
+        if (!registration.isActive()) {
+            throw new IllegalStateException("Registration is already inactive");
+        }
+        if (!mRegistrations.containsKey(registration.registration)) {
+            throw new IllegalStateException("Not registered");
+        }
+
+        CompletableFuture<Integer> unregFuture = new CompletableFuture<>();
+        long requestID = mIDGenerator.next();
+        mUnregisterRequests.put(requestID, new UnregisterRequest(requestID, unregFuture,
+                registration.registration));
+        send(new Unregister(requestID, registration.registration));
+        return unregFuture;
     }
 
     private <T> CompletableFuture<T> reallyCall(

@@ -26,9 +26,9 @@ public class Unregistered implements IMessage {
     public static final int MESSAGE_TYPE = 67;
 
     private static final long REGISTRATION_NULL = -1;
-    private final long request;
-    private final long registration;
-    private final String reason;
+    public final long request;
+    public final long registration;
+    public final String reason;
 
     public Unregistered(long request, long registration, String reason) {
         this.request = request;
