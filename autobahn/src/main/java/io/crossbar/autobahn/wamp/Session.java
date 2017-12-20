@@ -216,8 +216,7 @@ public class Session implements ISession, ITransportHandler {
                 onMessage(message);
             }
         } catch (Exception e) {
-            LOGGER.d("mapping received message bytes to IMessage failed: " +
-                    e.getMessage());
+            LOGGER.d("mapping received message bytes to IMessage failed: " + e.getMessage());
         }
     }
 
@@ -342,8 +341,7 @@ public class Session implements ISession, ITransportHandler {
                     mSubscriptions, msg.subscription, null);
             if (subscriptions == null) {
                 throw new ProtocolError(String.format(
-                        "EVENT received for non-subscribed subscription ID %s",
-                        msg.subscription));
+                        "EVENT received for non-subscribed subscription ID %s", msg.subscription));
             }
 
             List<CompletableFuture<?>> futures = new ArrayList<>();
@@ -406,8 +404,7 @@ public class Session implements ISession, ITransportHandler {
             request.onReply.complete(publication);
         } else if (message instanceof Registered) {
             Registered msg = (Registered) message;
-            RegisterRequest request = getOrDefault(
-                    mRegisterRequest, msg.request, null);
+            RegisterRequest request = getOrDefault(mRegisterRequest, msg.request, null);
 
             if (request == null) {
                 throw new ProtocolError(String.format(
@@ -421,8 +418,7 @@ public class Session implements ISession, ITransportHandler {
             request.onReply.complete(registration);
         } else if (message instanceof Invocation) {
             Invocation msg = (Invocation) message;
-            Registration registration = getOrDefault(
-                    mRegistrations, msg.registration, null);
+            Registration registration = getOrDefault(mRegistrations, msg.registration, null);
 
             if (registration == null) {
                 throw new ProtocolError(String.format(
@@ -561,8 +557,7 @@ public class Session implements ISession, ITransportHandler {
 
         List<CompletableFuture<?>> futures = new ArrayList<>();
         for (OnDisconnectListener listener: mOnDisconnectListeners) {
-            futures.add(runAsync(
-                    () -> listener.onDisconnect(this, wasClean), getExecutor()));
+            futures.add(runAsync(() -> listener.onDisconnect(this, wasClean), getExecutor()));
         }
         CompletableFuture d = combineFutures(futures);
         d.thenRunAsync(() -> {
@@ -857,11 +852,10 @@ public class Session implements ISession, ITransportHandler {
         long requestID = mIDGenerator.next();
         mPublishRequests.put(requestID, new PublishRequest(requestID, future));
         if (options != null) {
-            send(new Publish(requestID, topic, args, kwargs, options.acknowledge,
-                    options.excludeMe, options.retain));
+            send(new Publish(requestID, topic, args, kwargs, options.acknowledge, options.excludeMe,
+                    options.retain));
         } else {
-            send(new Publish(requestID, topic, args, kwargs, true,
-                    true, false));
+            send(new Publish(requestID, topic, args, kwargs, true, true, false));
         }
         return future;
     }
@@ -926,9 +920,7 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
-    public <T> CompletableFuture<Registration> register(
-            String procedure,
-            Supplier<T> endpoint) {
+    public <T> CompletableFuture<Registration> register(String procedure, Supplier<T> endpoint) {
         return reallyRegister(procedure, endpoint, null);
     }
 
@@ -941,9 +933,7 @@ public class Session implements ISession, ITransportHandler {
     }
 
     @Override
-    public CompletableFuture<Registration> register(
-            String procedure,
-            IInvocationHandler endpoint) {
+    public CompletableFuture<Registration> register(String procedure, IInvocationHandler endpoint) {
         return reallyRegister(procedure, endpoint, null);
     }
 
@@ -1042,26 +1032,22 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public CompletableFuture<CallResult> call(String procedure) {
-        return reallyCall(procedure, null, null, null,
-                null, null);
+        return reallyCall(procedure, null, null, null, null, null);
     }
 
     @Override
     public CompletableFuture<CallResult> call(String procedure, Object... args) {
-        return reallyCall(procedure, Arrays.asList(args), null,
-                null, null, null);
+        return reallyCall(procedure, Arrays.asList(args), null, null, null, null);
     }
 
     @Override
     public <T> CompletableFuture<T> call(String procedure, TypeReference<T> resultType) {
-        return reallyCall(procedure, null, null, null, resultType,
-                null);
+        return reallyCall(procedure, null, null, null, resultType, null);
     }
 
     @Override
     public <T> CompletableFuture<T> call(String procedure, Class<T> resultType) {
-        return reallyCall(procedure, null, null, null, null,
-                resultType);
+        return reallyCall(procedure, null, null, null, null, resultType);
     }
 
     @Override
@@ -1069,8 +1055,7 @@ public class Session implements ISession, ITransportHandler {
             String procedure,
             CallOptions options,
             Object... args) {
-        return reallyCall(procedure, Arrays.asList(args), null, options,
-                null, null);
+        return reallyCall(procedure, Arrays.asList(args), null, options, null, null);
     }
 
     @Override
@@ -1078,8 +1063,7 @@ public class Session implements ISession, ITransportHandler {
             String procedure,
             TypeReference<T> resultType,
             CallOptions options) {
-        return reallyCall(procedure, null, null, options, resultType,
-                null);
+        return reallyCall(procedure, null, null, options, resultType, null);
     }
 
     @Override
@@ -1087,8 +1071,7 @@ public class Session implements ISession, ITransportHandler {
             String procedure,
             Class<T> resultType,
             CallOptions options) {
-        return reallyCall(procedure, null, null, options, null,
-                resultType);
+        return reallyCall(procedure, null, null, options, null, resultType);
     }
 
     @Override
@@ -1096,14 +1079,12 @@ public class Session implements ISession, ITransportHandler {
             String procedure,
             List<Object> args,
             TypeReference<T> resultType) {
-        return reallyCall(procedure, args, null, null, resultType,
-                null);
+        return reallyCall(procedure, args, null, null, resultType, null);
     }
 
     @Override
     public <T> CompletableFuture<T> call(String procedure, List<Object> args, Class<T> resultType) {
-        return reallyCall(procedure, args, null, null, null,
-                resultType);
+        return reallyCall(procedure, args, null, null, null, resultType);
     }
 
     @Override
@@ -1121,14 +1102,12 @@ public class Session implements ISession, ITransportHandler {
             List<Object> args,
             Class<T> resultType,
             CallOptions options) {
-        return reallyCall(procedure, args, null, options, null,
-                resultType);
+        return reallyCall(procedure, args, null, options, null, resultType);
     }
 
     @Override
     public CompletableFuture<CallResult> call(String procedure, Map<String, Object> kwargs) {
-        return reallyCall(procedure, null, kwargs, null, null,
-                null);
+        return reallyCall(procedure, null, kwargs, null, null, null);
     }
 
     @Override
@@ -1136,8 +1115,7 @@ public class Session implements ISession, ITransportHandler {
             String procedure,
             Map<String, Object> kwargs,
             TypeReference<T> resultType) {
-        return reallyCall(procedure, null, kwargs, null, resultType,
-                null);
+        return reallyCall(procedure, null, kwargs, null, resultType, null);
     }
 
     @Override
@@ -1145,8 +1123,7 @@ public class Session implements ISession, ITransportHandler {
             String procedure,
             Map<String, Object> kwargs,
             Class<T> resultType) {
-        return reallyCall(procedure, null, kwargs, null, null,
-                resultType);
+        return reallyCall(procedure, null, kwargs, null, null, resultType);
     }
 
     @Override
@@ -1155,8 +1132,7 @@ public class Session implements ISession, ITransportHandler {
             Map<String, Object> kwargs,
             TypeReference<T> resultType,
             CallOptions options) {
-        return reallyCall(procedure, null, kwargs, options, resultType,
-                null);
+        return reallyCall(procedure, null, kwargs, options, resultType, null);
     }
 
     @Override
@@ -1165,8 +1141,7 @@ public class Session implements ISession, ITransportHandler {
             Map<String, Object> kwargs,
             Class<T> resultType,
             CallOptions options) {
-        return reallyCall(procedure, null, kwargs, options, null,
-                resultType);
+        return reallyCall(procedure, null, kwargs, options, null, resultType);
     }
 
     @Override
@@ -1174,8 +1149,7 @@ public class Session implements ISession, ITransportHandler {
             String procedure,
             Map<String, Object> kwargs,
             CallOptions options) {
-        return reallyCall(procedure, null, kwargs, options, null,
-                null);
+        return reallyCall(procedure, null, kwargs, options, null, null);
     }
 
     @Override
@@ -1184,8 +1158,7 @@ public class Session implements ISession, ITransportHandler {
             List<Object> args,
             Map<String, Object> kwargs,
             CallOptions options) {
-        return reallyCall(procedure, args, kwargs, options, null,
-                null);
+        return reallyCall(procedure, args, kwargs, options, null, null);
     }
 
     @Override
@@ -1203,8 +1176,7 @@ public class Session implements ISession, ITransportHandler {
             List<Object> args,
             Map<String, Object> kwargs,
             Class<T> resultType) {
-        return reallyCall(procedure, args, kwargs, null, null,
-                resultType);
+        return reallyCall(procedure, args, kwargs, null, null, resultType);
     }
 
     @Override
@@ -1233,8 +1205,7 @@ public class Session implements ISession, ITransportHandler {
             TypeReference<T> resultType,
             CallOptions options,
             Object... args) {
-        return reallyCall(procedure, Arrays.asList(args), null, options, resultType,
-                null);
+        return reallyCall(procedure, Arrays.asList(args), null, options, resultType, null);
     }
 
     private CompletableFuture<SessionDetails> reallyJoin(
