@@ -65,6 +65,8 @@ import io.crossbar.autobahn.wamp.messages.Unsubscribe;
 import io.crossbar.autobahn.wamp.messages.Unsubscribed;
 import io.crossbar.autobahn.wamp.messages.Welcome;
 import io.crossbar.autobahn.wamp.messages.Yield;
+import io.crossbar.autobahn.wamp.reflectionRoles.ReflectionServices;
+import io.crossbar.autobahn.wamp.reflectionRoles.WampException;
 import io.crossbar.autobahn.wamp.requests.CallRequest;
 import io.crossbar.autobahn.wamp.requests.PublishRequest;
 import io.crossbar.autobahn.wamp.requests.RegisterRequest;
@@ -131,6 +133,7 @@ public class Session implements ISession, ITransportHandler {
     private long mSessionID;
     private boolean mGoodbyeSent;
     private String mRealm;
+    private ReflectionServices mReflectionServices;
 
     public Session() {
         mOnJoinListeners = new ArrayList<>();
@@ -181,6 +184,7 @@ public class Session implements ISession, ITransportHandler {
         }
         mTransport = transport;
         mSerializer = serializer;
+        mReflectionServices = new ReflectionServices(this, mSerializer);
 
         runAsync(() -> {
             for (OnConnectListener listener: mOnConnectListeners) {
@@ -453,10 +457,19 @@ public class Session implements ISession, ITransportHandler {
                             (CompletableFuture<InvocationResult>) result;
                     fResult.whenCompleteAsync((invocRes, throwable) -> {
                         if (throwable != null) {
-                            List<Object> args = new ArrayList<>();
-                            args.add(throwable.getMessage());
-                            send(new Error(Invocation.MESSAGE_TYPE, msg.request,
-                                    "wamp.error.runtime_error", args, null));
+
+                            if (throwable instanceof WampException){
+                                WampException casted = (WampException) throwable;
+                                send(new Error(Invocation.MESSAGE_TYPE, msg.request,
+                                        casted.getErrorUri(), casted.getArguments(), casted.getKwArguments()));
+                            }
+                            else{
+                                List<Object> args = new ArrayList<>();
+                                args.add(throwable.getMessage());
+                                send(new Error(Invocation.MESSAGE_TYPE, msg.request,
+                                        "wamp.error.runtime_error", args, null));
+                            }
+
                         } else {
                             send(new Yield(msg.request, invocRes.results, invocRes.kwresults));
                         }
@@ -476,10 +489,18 @@ public class Session implements ISession, ITransportHandler {
             }, getExecutor()).whenCompleteAsync((aVoid, throwable) -> {
                 // FIXME: implement better errors
                 if (throwable != null) {
-                    List<Object> args = new ArrayList<>();
-                    args.add(throwable.getMessage());
-                    send(new Error(Invocation.MESSAGE_TYPE, msg.request, "wamp.error.runtime_error",
-                            args, null));
+                    if (throwable instanceof WampException){
+                        WampException casted = (WampException) throwable;
+                        send(new Error(Invocation.MESSAGE_TYPE, msg.request,
+                                casted.getErrorUri(), casted.getArguments(), casted.getKwArguments()));
+                    }
+                    else
+                    {
+                        List<Object> args = new ArrayList<>();
+                        args.add(throwable.getMessage());
+                        send(new Error(Invocation.MESSAGE_TYPE, msg.request, "wamp.error.runtime_error",
+                                args, null));
+                    }
                 }
             });
         } else if (message instanceof Goodbye) {
@@ -1333,5 +1354,9 @@ public class Session implements ISession, ITransportHandler {
         if (listeners.contains(listener)) {
             listeners.remove(listener);
         }
+    }
+
+    public ReflectionServices getReflectionServices() {
+        return mReflectionServices;
     }
 }
