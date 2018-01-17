@@ -18,6 +18,9 @@ import io.crossbar.autobahn.wamp.interfaces.ITransport;
 
 public class Platform {
 
+    private static boolean IS_PLATFORM_CHECKED = false;
+    private static boolean IS_ANDROID = false;
+
     /**
      * Checks if code is running on Android.
      *
@@ -25,7 +28,29 @@ public class Platform {
      *     is Android based
      */
     public static boolean isAndroid() {
-        return System.getProperty("java.vendor").equals("The Android Project");
+        if (!IS_PLATFORM_CHECKED) {
+            IS_ANDROID = System.getProperty("java.vendor").equals("The Android Project");
+            IS_PLATFORM_CHECKED = true;
+        }
+        return IS_ANDROID;
+    }
+
+    /**
+     * Checks if the underlying platform is Android and if the
+     * API level is greater than equal to the requested value.
+     *
+     * Returns 0 if the platform is not Android.
+     */
+    public static int getAndroidAPIVersion() {
+        if (isAndroid()) {
+            try {
+                Class<?> klass = Class.forName("android.os.Build$VERSION");
+                return klass.getField("SDK_INT").getInt(null);
+            } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return 0;
     }
 
     /**
