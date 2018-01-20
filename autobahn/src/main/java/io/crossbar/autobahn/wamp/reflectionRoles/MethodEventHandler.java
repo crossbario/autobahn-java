@@ -21,6 +21,7 @@ public class MethodEventHandler implements TriConsumer<List<Object>, Map<String,
         this.mUnpacker = new ArgumentUnpacker(method.getParameters());
         this.mSerializer = serializer;
     }
+
     @Override
     public void accept(List<Object> args, Map<String, Object> kwargs, EventDetails details) {
         try {

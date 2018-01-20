@@ -107,8 +107,6 @@ public class Session implements ISession, ITransportHandler {
     private final int STATE_GOODBYE_SENT = 6;
     private final int STATE_ABORT_SENT = 7;
 
-    private final boolean REFLECTION_ROLES_SUPPORTED;
-
     private ITransport mTransport;
     private ISerializer mSerializer;
     private Executor mExecutor;
@@ -153,9 +151,6 @@ public class Session implements ISession, ITransportHandler {
         mRegistrations = new HashMap<>();
         mUnsubscribeRequests = new HashMap<>();
         mUnregisterRequests = new HashMap<>();
-        // ReflectionServices requires Android 8.0+ (API level 26) because of its dependency
-        // on some Java8 features.
-        REFLECTION_ROLES_SUPPORTED = !Platform.isAndroid() || Platform.getAndroidAPIVersion() >= 26;
     }
 
     public Session(Executor executor) {
@@ -189,10 +184,7 @@ public class Session implements ISession, ITransportHandler {
         }
         mTransport = transport;
         mSerializer = serializer;
-
-        if (REFLECTION_ROLES_SUPPORTED) {
-            mReflectionServices = new ReflectionServices(this, mSerializer);
-        }
+        mReflectionServices = new ReflectionServices(this, mSerializer);
 
         runAsync(() -> {
             for (OnConnectListener listener: mOnConnectListeners) {
@@ -1365,9 +1357,6 @@ public class Session implements ISession, ITransportHandler {
     }
 
     public ReflectionServices getReflectionServices() {
-        if (!REFLECTION_ROLES_SUPPORTED) {
-            throw new RuntimeException("Service only supported on non-Android systems for now");
-        }
         return mReflectionServices;
     }
 }
