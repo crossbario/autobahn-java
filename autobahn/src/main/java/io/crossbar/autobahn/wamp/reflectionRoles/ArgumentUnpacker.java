@@ -1,7 +1,9 @@
 package io.crossbar.autobahn.wamp.reflectionRoles;
 
 import io.crossbar.autobahn.wamp.interfaces.ISerializer;
+import io.crossbar.autobahn.wamp.utils.Platform;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.List;
 import java.util.Map;
@@ -9,14 +11,26 @@ import java.util.Map;
 public class ArgumentUnpacker {
     private final ParameterInfo[] mParameters;
 
-    public ArgumentUnpacker(Parameter[] parameters) {
-        mParameters = new ParameterInfo[parameters.length];
+    public ArgumentUnpacker(Method method) {
 
-        for (int i = 0; i < parameters.length; i++) {
-            Parameter parameter = parameters[i];
-            String parameterName = parameter.getName();
-            Class<?> parameterType = parameter.getType();
-            mParameters[i] = new ParameterInfo(i, parameterName, parameterType);
+        if (!Platform.isAndroid() || Platform.getAndroidAPIVersion() >= 26) {
+            Parameter[] parameters = method.getParameters();
+            mParameters = new ParameterInfo[parameters.length];
+            for (int i = 0; i < parameters.length; i++) {
+                Parameter parameter = parameters[i];
+                String parameterName = parameter.getName();
+                Class<?> parameterType = parameter.getType();
+                mParameters[i] = new ParameterInfo(i, parameterName, parameterType);
+            }
+        } else {
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            mParameters = new ParameterInfo[parameterTypes.length];
+
+            for (int i = 0; i < parameterTypes.length; i++) {
+                String parameterName = "arg" + i;
+                Class<?> parameterType = parameterTypes[i];
+                mParameters[i] = new ParameterInfo(i, parameterName, parameterType);
+            }
         }
     }
 
