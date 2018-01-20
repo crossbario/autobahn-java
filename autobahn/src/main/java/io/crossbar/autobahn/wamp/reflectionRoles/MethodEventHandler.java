@@ -18,7 +18,7 @@ public class MethodEventHandler implements TriConsumer<List<Object>, Map<String,
     public MethodEventHandler(Object instance, Method method, ISerializer serializer) {
         this.mInstance = instance;
         this.mMethod = method;
-        this.mUnpacker = new ArgumentUnpacker(method.getParameters());
+        this.mUnpacker = new ArgumentUnpacker(method);
         this.mSerializer = serializer;
     }
 
