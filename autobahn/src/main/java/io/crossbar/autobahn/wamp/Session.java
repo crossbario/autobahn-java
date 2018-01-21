@@ -136,6 +136,10 @@ public class Session implements ISession, ITransportHandler {
     private ReflectionServices mReflectionServices;
 
     public Session() {
+        this(Platform.autoSelectExecutor());
+    }
+
+    public Session(Executor executor) {
         mOnJoinListeners = new ArrayList<>();
         mOnReadyListeners = new ArrayList<>();
         mOnLeaveListeners = new ArrayList<>();
@@ -151,10 +155,9 @@ public class Session implements ISession, ITransportHandler {
         mRegistrations = new HashMap<>();
         mUnsubscribeRequests = new HashMap<>();
         mUnregisterRequests = new HashMap<>();
-    }
-
-    public Session(Executor executor) {
-        this();
+        if (executor == null) {
+            throw new IllegalArgumentException("executor must not be null");
+        }
         mExecutor = executor;
     }
 
@@ -164,10 +167,6 @@ public class Session implements ISession, ITransportHandler {
      */
     public long getID() {
         return mSessionID;
-    }
-
-    private Executor getExecutor() {
-        return mExecutor == null ? Platform.autoSelectExecutor(): mExecutor;
     }
 
     private void throwIfNotConnected() {
@@ -190,7 +189,7 @@ public class Session implements ISession, ITransportHandler {
             for (OnConnectListener listener: mOnConnectListeners) {
                 listener.onConnect(this);
             }
-        }, getExecutor());
+        }, mExecutor);
     }
 
     private void send(IMessage message) {
@@ -233,7 +232,7 @@ public class Session implements ISession, ITransportHandler {
             mJoinFuture.complete(details);
             List<CompletableFuture<?>> futures = new ArrayList<>();
             for (OnJoinListener listener: mOnJoinListeners) {
-                futures.add(runAsync(() -> listener.onJoin(this, details), getExecutor()));
+                futures.add(runAsync(() -> listener.onJoin(this, details), mExecutor));
             }
             CompletableFuture d = combineFutures(futures);
             d.thenRunAsync(() -> {
@@ -241,13 +240,13 @@ public class Session implements ISession, ITransportHandler {
                 for (OnReadyListener listener: mOnReadyListeners) {
                     listener.onReady(this);
                 }
-            }, getExecutor());
+            }, mExecutor);
         } else if (message instanceof Abort) {
             Abort abortMessage = (Abort) message;
             CloseDetails details = new CloseDetails(abortMessage.reason, abortMessage.message);
             List<CompletableFuture<?>> futures = new ArrayList<>();
             for (OnLeaveListener listener: mOnLeaveListeners) {
-                futures.add(runAsync(() -> listener.onLeave(this, details), getExecutor()));
+                futures.add(runAsync(() -> listener.onLeave(this, details), mExecutor));
             }
             CompletableFuture d = combineFutures(futures);
             d.thenRunAsync(() -> {
@@ -260,7 +259,7 @@ public class Session implements ISession, ITransportHandler {
                         throw new CompletionException(e);
                     }
                 }
-            }, getExecutor());
+            }, mExecutor);
         } else if (message instanceof Challenge) {
             Challenge msg = (Challenge) message;
             io.crossbar.autobahn.wamp.types.Challenge challenge =
@@ -272,7 +271,7 @@ public class Session implements ISession, ITransportHandler {
                             TicketAuth auth = (TicketAuth) authenticator;
                             auth.onChallenge(this, challenge).whenCompleteAsync(
                                     (response, throwable) -> send(new Authenticate(
-                                            response.signature, response.extra)), getExecutor());
+                                            response.signature, response.extra)), mExecutor);
                             break;
                         }
                     }
@@ -283,7 +282,7 @@ public class Session implements ISession, ITransportHandler {
                             ChallengeResponseAuth auth = (ChallengeResponseAuth) authenticator;
                             auth.onChallenge(this, challenge).whenCompleteAsync(
                                     (response, throwable) -> send(new Authenticate(
-                                            response.signature, response.extra)), getExecutor());
+                                            response.signature, response.extra)), mExecutor);
                             break;
                         }
                     }
@@ -293,7 +292,7 @@ public class Session implements ISession, ITransportHandler {
                             CryptosignAuth auth = (CryptosignAuth) authenticator;
                             auth.onChallenge(this, challenge).whenCompleteAsync(
                                     (response, throwable) -> send(new Authenticate(
-                                            response.signature, response.extra)), getExecutor());
+                                            response.signature, response.extra)), mExecutor);
                             break;
                         }
                     }
@@ -370,23 +369,23 @@ public class Session implements ISession, ITransportHandler {
 
                 if (subscription.handler instanceof Consumer) {
                     Consumer handler = (Consumer) subscription.handler;
-                    future = runAsync(() -> handler.accept(arg), getExecutor());
+                    future = runAsync(() -> handler.accept(arg), mExecutor);
                 } else if (subscription.handler instanceof Function) {
                     Function handler = (Function) subscription.handler;
-                    future = runAsync(() -> handler.apply(arg), getExecutor());
+                    future = runAsync(() -> handler.apply(arg), mExecutor);
                 } else if (subscription.handler instanceof BiConsumer) {
                     BiConsumer handler = (BiConsumer) subscription.handler;
-                    future = runAsync(() -> handler.accept(arg, details), getExecutor());
+                    future = runAsync(() -> handler.accept(arg, details), mExecutor);
                 } else if (subscription.handler instanceof BiFunction) {
                     BiFunction handler = (BiFunction) subscription.handler;
-                    future = runAsync(() -> handler.apply(arg, details), getExecutor());
+                    future = runAsync(() -> handler.apply(arg, details), mExecutor);
                 } else if (subscription.handler instanceof TriConsumer) {
                     TriConsumer handler = (TriConsumer) subscription.handler;
                     future = runAsync(
-                            () -> handler.accept(arg, msg.kwargs, details), getExecutor());
+                            () -> handler.accept(arg, msg.kwargs, details), mExecutor);
                 } else if (subscription.handler instanceof TriFunction) {
                     TriFunction handler = (TriFunction) subscription.handler;
-                    future = runAsync(() -> handler.apply(arg, msg.kwargs, details), getExecutor());
+                    future = runAsync(() -> handler.apply(arg, msg.kwargs, details), mExecutor);
                 } else {
                     // FIXME: never going to reach here, though would be better to throw.
                 }
@@ -473,7 +472,7 @@ public class Session implements ISession, ITransportHandler {
                         } else {
                             send(new Yield(msg.request, invocRes.results, invocRes.kwresults));
                         }
-                    }, getExecutor());
+                    }, mExecutor);
                 } else if (result instanceof InvocationResult) {
                     InvocationResult res = (InvocationResult) result;
                     send(new Yield(msg.request, res.results, res.kwresults));
@@ -486,7 +485,7 @@ public class Session implements ISession, ITransportHandler {
                     item.add(result);
                     send(new Yield(msg.request, item, null));
                 }
-            }, getExecutor()).whenCompleteAsync((aVoid, throwable) -> {
+            }, mExecutor).whenCompleteAsync((aVoid, throwable) -> {
                 // FIXME: implement better errors
                 if (throwable != null) {
                     if (throwable instanceof WampException){
@@ -508,7 +507,7 @@ public class Session implements ISession, ITransportHandler {
             CloseDetails details = new CloseDetails(msg.reason, msg.message);
             List<CompletableFuture<?>> futures = new ArrayList<>();
             for (OnLeaveListener listener: mOnLeaveListeners) {
-                futures.add(runAsync(() -> listener.onLeave(this, details), getExecutor()));
+                futures.add(runAsync(() -> listener.onLeave(this, details), mExecutor));
             }
             CompletableFuture d = combineFutures(futures);
             d.thenRunAsync(() -> {
@@ -521,7 +520,7 @@ public class Session implements ISession, ITransportHandler {
                     }
                 }
                 mState = STATE_DISCONNECTED;
-            }, getExecutor());
+            }, mExecutor);
         } else if (message instanceof Unregistered) {
             Unregistered msg = (Unregistered) message;
             UnregisterRequest request = getOrDefault(mUnregisterRequests, msg.request, null);
@@ -578,7 +577,7 @@ public class Session implements ISession, ITransportHandler {
 
         List<CompletableFuture<?>> futures = new ArrayList<>();
         for (OnDisconnectListener listener: mOnDisconnectListeners) {
-            futures.add(runAsync(() -> listener.onDisconnect(this, wasClean), getExecutor()));
+            futures.add(runAsync(() -> listener.onDisconnect(this, wasClean), mExecutor));
         }
         CompletableFuture d = combineFutures(futures);
         d.thenRunAsync(() -> {
@@ -586,7 +585,7 @@ public class Session implements ISession, ITransportHandler {
             mTransport = null;
             mSerializer = null;
             mState = STATE_DISCONNECTED;
-        }, getExecutor());
+        }, mExecutor);
     }
 
     @Override

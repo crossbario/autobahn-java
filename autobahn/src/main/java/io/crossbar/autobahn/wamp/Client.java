@@ -36,8 +36,7 @@ public class Client {
     private Executor mExecutor;
 
     public Client(String webSocketURL) {
-        mTransports = new ArrayList<>();
-        mTransports.add(Platform.autoSelectTransport(webSocketURL));
+        this(Platform.autoSelectTransport(webSocketURL));
     }
 
     public Client(ITransport transport) {

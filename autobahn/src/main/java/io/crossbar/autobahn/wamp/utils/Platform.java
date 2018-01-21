@@ -86,7 +86,7 @@ public class Platform {
      * @return Executor instance suitable for current platform
      */
     public static Executor autoSelectExecutor() {
-        if (Platform.isAndroid()) {
+        if (isAndroid()) {
             return new CurrentThreadExecutor();
         } else {
             return ForkJoinPool.commonPool();
