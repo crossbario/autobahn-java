@@ -47,7 +47,7 @@ public void demonstrateSubscribe(Session session, SessionDetails details) {
     CompletableFuture<Subscription> subFuture = session.subscribe("com.myapp.hello",
             this::onEvent);
     subFuture.whenComplete((subscription, throwable) -> {
-        if (throwable != null) {
+        if (throwable == null) {
             // We have successfully subscribed.
             System.out.println("Subscribed to topic " + subscription.topic);
         } else {
