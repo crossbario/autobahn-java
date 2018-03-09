@@ -48,7 +48,7 @@ public class Call implements IMessage {
     }
 
     public static Call parse(List<Object> wmsg) {
-        MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "CALL", 4);
+        MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "CALL", 4, 6);
 
         long request = (long) wmsg.get(1);
         Map<String, Object> options = (Map<String, Object>) wmsg.get(2);
