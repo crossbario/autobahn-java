@@ -63,11 +63,10 @@ public class MessageUtil {
      * @param object the object to cast
      * @return long value of the object
      */
-    public static long parseRequestID(Object object) {
-        try {
-            return (int) object;
-        } catch (ClassCastException ignore) {
-            return (long) object;
-        }
+    public static long parseLong(Object object) {
+		if (object instanceof Integer) {
+			return (int) object;
+		}
+		return (long) object;
     }
 }

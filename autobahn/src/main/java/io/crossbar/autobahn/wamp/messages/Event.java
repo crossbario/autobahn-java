@@ -45,8 +45,8 @@ public class Event implements IMessage {
 
     public static Event parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "EVENT", 3, 6);
-        long subscription = (long) wmsg.get(1);
-        long publication = (long) wmsg.get(2);
+        long subscription = MessageUtil.parseLong(wmsg.get(1));
+        long publication = MessageUtil.parseLong(wmsg.get(2));
 
         Map<String, Object> details = (Map<String, Object>) wmsg.get(3);
         String topic = (String)details.get("topic");

@@ -30,7 +30,7 @@ public class Unregister implements IMessage {
 
     public static Unregister parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "UNREGISTER", 3);
-        return new Unregister(MessageUtil.parseRequestID(wmsg.get(1)), (long) wmsg.get(2));
+        return new Unregister(MessageUtil.parseLong(wmsg.get(1)), MessageUtil.parseLong(wmsg.get(2)));
     }
 
     @Override

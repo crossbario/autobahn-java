@@ -30,7 +30,7 @@ public class Subscribed implements IMessage {
 
     public static Subscribed parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "SUBSCRIBED", 3);
-        return new Subscribed(MessageUtil.parseRequestID(wmsg.get(1)), (long) wmsg.get(2));
+        return new Subscribed(MessageUtil.parseLong(wmsg.get(1)), MessageUtil.parseLong(wmsg.get(2)));
     }
 
     @Override

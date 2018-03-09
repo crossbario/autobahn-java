@@ -37,7 +37,7 @@ public class Result implements IMessage {
     public static Result parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "RESULT", 4, 6);
 
-        long request = MessageUtil.parseRequestID(wmsg.get(1));
+        long request = MessageUtil.parseLong(wmsg.get(1));
         List<Object> args = null;
         if (wmsg.size() > 3) {
             if (wmsg.get(3) instanceof byte[]) {

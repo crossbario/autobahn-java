@@ -42,7 +42,7 @@ public class Interrupt implements IMessage {
     public static Interrupt parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "INTERRUPT", 3);
 
-        long request = MessageUtil.parseRequestID(wmsg.get(1));
+        long request = MessageUtil.parseLong(wmsg.get(1));
         Map<String, Object> options = (Map<String, Object>) wmsg.get(2);
         String mode = getOrDefault(options, "mode", null);
         if (mode != null) {
