@@ -37,7 +37,7 @@ public class Unsubscribed implements IMessage {
     public static Unsubscribed parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "UNSUBSCRIBED", 2, 3);
 
-        long request = MessageUtil.parseRequestID(wmsg.get(1));
+        long request = (long) wmsg.get(1);
 
         long subscription = SUBSCRIPTION_NULL;
         String reason = null;

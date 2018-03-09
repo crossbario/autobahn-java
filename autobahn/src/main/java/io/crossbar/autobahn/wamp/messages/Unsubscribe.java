@@ -30,7 +30,7 @@ public class Unsubscribe implements IMessage {
 
     public static Unsubscribe parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "UNSUBSCRIBE", 3);
-        return new Unsubscribe(MessageUtil.parseRequestID(wmsg.get(1)), (long) wmsg.get(2));
+        return new Unsubscribe((long) wmsg.get(1), (long) wmsg.get(2));
     }
 
     @Override

@@ -30,7 +30,7 @@ public class Registered implements IMessage {
 
     public static Registered parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "REGISTERED", 3);
-        return new Registered(MessageUtil.parseRequestID(wmsg.get(1)), (long) wmsg.get(2));
+        return new Registered((long) wmsg.get(1), (long) wmsg.get(2));
     }
 
     @Override

@@ -208,7 +208,7 @@ public class Session implements ISession, ITransportHandler {
 
         // transform raw message to typed message:
         try {
-            int messageType = (int) rawMessage.get(0);
+            long messageType = (long) rawMessage.get(0);
             Class<? extends IMessage> messageKlass = MESSAGE_TYPE_MAP.get(messageType);
             IMessage message = (IMessage) messageKlass.getMethod(
                     "parse", List.class).invoke(null, rawMessage);

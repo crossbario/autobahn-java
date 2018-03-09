@@ -25,13 +25,13 @@ public class Error implements IMessage {
 
     public static final int MESSAGE_TYPE = 8;
 
-    public final int requestType;
+    public final long requestType;
     public final long request;
     public final String error;
     public final List<Object> args;
     public final Map<String, Object> kwargs;
 
-    public Error(int requestType, long request, String error, List<Object> args, Map<String, Object> kwargs) {
+    public Error(long requestType, long request, String error, List<Object> args, Map<String, Object> kwargs) {
         this.requestType = requestType;
         this.request = request;
         this.error = error;
@@ -42,10 +42,10 @@ public class Error implements IMessage {
     public static Error parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "ERROR", 5, 7);
 
-        int requestType = (int) wmsg.get(1);
+        long requestType = (long) wmsg.get(1);
         // FIXME: add validation here. see:
         // https://github.com/crossbario/autobahn-python/blob/886973ca139916176d5db707ffc7fa20f9529010/autobahn/wamp/message.py#L1291
-        long request = MessageUtil.parseRequestID(wmsg.get(2));
+        long request = (long) wmsg.get(2);
         Map<String, Object> details = (Map<String, Object>) wmsg.get(3);
         String error = (String) wmsg.get(4);
 
