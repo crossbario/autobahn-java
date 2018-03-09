@@ -46,7 +46,7 @@ public class Cancel implements IMessage {
 
     public static Cancel parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "CANCEL", 3);
-        long request = MessageUtil.parseRequestID(wmsg.get(1));
+        long request = (long) wmsg.get(1);
         Map<String, Object> options = (Map<String, Object>) wmsg.get(2);
         String mode = getOrDefault(options, "mode", null);
         return new Cancel(request, mode);

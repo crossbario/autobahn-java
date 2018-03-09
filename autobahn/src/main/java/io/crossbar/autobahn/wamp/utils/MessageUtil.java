@@ -31,7 +31,7 @@ public class MessageUtil {
                                        String messageVerboseName,
                                        int lengthMin,
                                        int lengthMax) {
-        if (wmsg.size() == 0 || !(wmsg.get(0) instanceof Integer) || (int) wmsg.get(0) != messageType) {
+        if (wmsg.size() == 0 || !(wmsg.get(0) instanceof Long) || (long) wmsg.get(0) != messageType) {
             throw new IllegalArgumentException("Invalid message.");
         }
 
@@ -56,18 +56,4 @@ public class MessageUtil {
         validateMessage(wmsg, messageType, messageVerboseName, length, length);
     }
 
-    /**
-     *
-     * Parse the supplied object as long.
-     *
-     * @param object the object to cast
-     * @return long value of the object
-     */
-    public static long parseRequestID(Object object) {
-        try {
-            return (int) object;
-        } catch (ClassCastException ignore) {
-            return (long) object;
-        }
-    }
 }

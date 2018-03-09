@@ -14,6 +14,7 @@ package io.crossbar.autobahn.wamp.interfaces;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -26,6 +27,7 @@ public abstract class ISerializer {
 
     public ISerializer(JsonFactory factor) {
         mapper = new ObjectMapper(factor);
+        mapper.enable(DeserializationFeature.USE_LONG_FOR_INTS);
     }
 
     public byte[] serialize(List<Object> message) {

@@ -58,7 +58,7 @@ public class Subscribe implements IMessage {
     public static Subscribe parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "SUBSCRIBE", 4);
 
-        long request = MessageUtil.parseRequestID(wmsg.get(1));
+        long request = (long) wmsg.get(1);
         Map<String, Object> options = (Map<String, Object>) wmsg.get(2);
         
         String match = null;
