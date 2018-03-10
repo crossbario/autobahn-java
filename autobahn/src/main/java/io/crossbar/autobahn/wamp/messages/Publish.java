@@ -50,7 +50,7 @@ public class Publish implements IMessage {
     public static Publish parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "PUBLISH", 4, 6);
 
-        long request = MessageUtil.parseRequestID(wmsg.get(1));
+        long request = MessageUtil.parseLong(wmsg.get(1));
         Map<String, Object> options = (Map<String, Object>) wmsg.get(2);
         String topic = (String) wmsg.get(3);
 

@@ -37,14 +37,14 @@ public class Unsubscribed implements IMessage {
     public static Unsubscribed parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "UNSUBSCRIBED", 2, 3);
 
-        long request = MessageUtil.parseRequestID(wmsg.get(1));
+        long request = MessageUtil.parseLong(wmsg.get(1));
 
         long subscription = SUBSCRIPTION_NULL;
         String reason = null;
         if (wmsg.size() > 2) {
             Map<String, Object> details = (Map<String, Object>) wmsg.get(2);
             if (details.containsKey("subscription")) {
-                subscription = (long) details.get("subscription");
+                subscription = MessageUtil.parseLong(details.get("subscription"));
             }
             if (details.containsKey("reason")) {
                 reason = (String) details.get("reason");

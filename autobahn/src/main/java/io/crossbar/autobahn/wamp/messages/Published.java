@@ -31,7 +31,7 @@ public class Published implements IMessage {
 
     public static Published parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "PUBLISHED", 3);
-        return new Published(MessageUtil.parseRequestID(wmsg.get(1)), (long) wmsg.get(2));
+        return new Published(MessageUtil.parseLong(wmsg.get(1)), MessageUtil.parseLong(wmsg.get(2)));
     }
 
     @Override

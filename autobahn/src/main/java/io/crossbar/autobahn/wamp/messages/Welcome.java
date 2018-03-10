@@ -34,7 +34,7 @@ public class Welcome implements IMessage {
     public static Welcome parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "WELCOME", 3);
 
-        long session = (long) wmsg.get(1);
+        long session = MessageUtil.parseLong(wmsg.get(1));
 
         Map<String, Object> details = (Map<String, Object>) wmsg.get(2);
         Map<String, Map> roles = (Map<String, Map>) details.get("roles");
