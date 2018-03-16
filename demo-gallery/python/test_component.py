@@ -87,7 +87,8 @@ class ClientSession(ApplicationSession):
 
         @inlineCallbacks
         def get_person_delayed(emp_no=None, delay=3):
-            self.log.info('PERSON API: get_person_delayed(emp_no={emp_no}, delay={delay}) called', emp_no=emp_no, delay=delay)
+            self.log.info('PERSON API: get_person_delayed(emp_no={emp_no}, delay={delay}) called', emp_no=emp_no,
+                          delay=delay)
             if delay:
                 yield sleep(delay)
             if emp_no:
@@ -179,7 +180,8 @@ class ClientSession(ApplicationSession):
                     raise e
 
             # PUBLISH
-            yield self.publish(u'com.example.oncounter', counter, self._ident, self._type, options=PublishOptions(acknowledge=True, exclude_me=False))
+            yield self.publish(u'com.example.oncounter', counter, self._ident, self._type,
+                               options=PublishOptions(acknowledge=True, exclude_me=False))
             print('----------------------------')
             self.log.info("published to 'oncounter' with counter {counter}",
                           counter=counter)
@@ -208,8 +210,10 @@ if __name__ == '__main__':
     # parse command line parameters
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--debug', action='store_true', help='Enable debug output.')
-    parser.add_argument('--url', dest='url', type=six.text_type, default=url, help='The router URL (default: "ws://localhost:8080/ws").')
-    parser.add_argument('--realm', dest='realm', type=six.text_type, default=realm, help='The realm to join (default: "realm1").')
+    parser.add_argument('--url', dest='url', type=six.text_type, default=url,
+                        help='The router URL (default: "ws://localhost:8080/ws").')
+    parser.add_argument('--realm', dest='realm', type=six.text_type, default=realm,
+                        help='The realm to join (default: "realm1").')
 
     args = parser.parse_args()
 
