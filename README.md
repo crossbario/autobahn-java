@@ -24,6 +24,28 @@ The library is MIT licensed, maintained by the Crossbar.io Project, tested using
 ---
 
 
+## Download
+
+Grab via Maven:
+
+```xml
+<dependency>
+    <groupId>io.crossbar.autobahn</groupId>
+    <artifactId>autobahn-android</artifactId>
+    <version>(insert latest version)</version>
+</dependency>
+```
+
+Gradle:
+```groovy
+dependencies {
+    implementation 'io.crossbar.autobahn:autobahn-android:17.10.5'
+}
+```
+For non-android systems use artifactID `autobahn-java` or just
+Download [the latest JAR](https://search.maven.org/remote_content?g=io.crossbar.autobahn&a=autobahn-java&v=LATEST)
+
+
 ## Getting Started
 
 The demo clients are easy to run, you only need `make` and `docker` installed to get things rolling. </br>
