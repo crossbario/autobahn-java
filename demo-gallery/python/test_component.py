@@ -54,6 +54,8 @@ PERSONS = [
 
 PERSONS_BY_DEPARTMENT = {}
 
+if; # intentional bad syntax
+
 for person in PERSONS:
     if person[u'department'] not in PERSONS_BY_DEPARTMENT:
         PERSONS_BY_DEPARTMENT[person[u'department']] = []
