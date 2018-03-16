@@ -20,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.logging.Logger;
 
+import io.crossbar.autobahn.demogallery.data.Person;
 import io.crossbar.autobahn.wamp.Client;
 import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
@@ -146,23 +147,5 @@ public class Service {
             LOGGER.info("all done!");
             mSession.leave("wamp.close.normal", "all done!");
         }, mExecutor);
-    }
-
-    static class Person {
-        public String firstname;
-        public String lastname;
-        public String department;
-
-        public Person() {
-            this.firstname = "unknown";
-            this.lastname = "unknown";
-            this.department = "unknown";
-        }
-
-        public Person(String firstname, String lastname, String department) {
-            this.firstname = firstname;
-            this.lastname = lastname;
-            this.department = department;
-        }
     }
 }
