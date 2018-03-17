@@ -70,6 +70,7 @@ public class Service {
         f1.whenCompleteAsync((person, throwable) -> {
             if (throwable != null) {
                 LOGGER.info(String.format("get_person() ERROR: %s", throwable.getMessage()));
+                System.exit(1);
             } else {
                 LOGGER.info(String.format("get_person() [typed]: %s %s (%s)", person.firstname,
                         person.lastname, person.department));
@@ -83,6 +84,7 @@ public class Service {
             if (throwable != null) {
                 LOGGER.info(String.format("get_person_delayed() ERROR: %s",
                         throwable.getMessage()));
+                System.exit(1);
             } else {
                 LOGGER.info(String.format("get_person_delayed() [typed]: %s %s (%s)",
                         person.firstname, person.lastname, person.department));
@@ -95,6 +97,7 @@ public class Service {
         f3.whenCompleteAsync((persons, throwable) -> {
             if (throwable != null) {
                 LOGGER.info(String.format("get_all_persons() ERROR: %s", throwable.getMessage()));
+                System.exit(1);
             } else {
                 LOGGER.info("get_all_persons() [typed]:");
                 for (Person person: persons) {
@@ -114,6 +117,7 @@ public class Service {
             if (throwable != null) {
                 LOGGER.info(String.format("get_persons_by_department() ERROR: %s",
                         throwable.getMessage()));
+                System.exit(1);
             } else {
                 LOGGER.info("get_persons_by_department() [typed]:");
                 for (Person person: persons) {
@@ -131,6 +135,7 @@ public class Service {
             if (throwable != null) {
                 LOGGER.info(String.format("get_persons_by_department() ERROR: %s",
                         throwable.getMessage()));
+                System.exit(1);
             } else {
                 LOGGER.info("get_persons_by_department() [typed]:");
                 for (String department: persons_by_department.keySet()) {
