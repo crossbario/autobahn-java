@@ -167,6 +167,54 @@ public void main() {
 }
 ```
 
+### Authentication
+
+Authentication is simple, we just need to create an object of the desired authenticator and
+pass that to the Client
+
+#### Ticket Auth
+```java
+public void main() {
+    ...
+    IAuthenticator authenticator = new TicketAuth(authid, ticket);
+    Client client = new Client(session, url, realm, authenticator);
+    CompletableFuture<ExitInfo> exitInfoCompletableFuture = client.connect();
+}
+```
+
+#### Challenge Response Auth
+```java
+public void main() {
+    ...
+    IAuthenticator authenticator = new ChallengeResponseAuth(authid, secret);
+    Client client = new Client(session, url, realm, authenticator);
+    CompletableFuture<ExitInfo> exitInfoCompletableFuture = client.connect();
+}
+```
+
+#### Cryptosign Auth
+```java
+public void main() {
+    ...
+    IAuthenticator authenticator = new CryptosignAuth(authid, privkey, pubkey);
+    Client client = new Client(session, url, realm, authenticator);
+    CompletableFuture<ExitInfo> exitInfoCompletableFuture = client.connect();
+}
+```
+
+You can also provide a list of Authenticators
+
+```java
+public void main() {
+    ...
+    List<IAuthenticator> authenticators = new ArrayList<>();
+    authenticators.add(new TicketAuth(authid, ticket));
+    authenticators.add(new CryptosignAuth(authid, privkey, pubkey));
+    Client client = new Client(session, url, realm, authenticators);
+    CompletableFuture<ExitInfo> exitInfoCompletableFuture = client.connect();
+}
+```
+
 ### WebSocket on Android
 
 TBD
