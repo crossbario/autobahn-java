@@ -49,7 +49,8 @@ public class Main {
             realm = args[1];
         }
 
-        Service service = new Service(executor);
+//        Service service = new Service(executor);
+        CIService service = new CIService(executor);
 
         LOGGER.info("Service.start()");
 
