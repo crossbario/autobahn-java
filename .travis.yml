@@ -10,7 +10,7 @@ install:
 
 before_script:
   - docker run -d -p 8080:8080 --name crossbar crossbario/crossbar
-  - docker run -d --link crossbar -v ${PWD}/demo-gallery/python:/test crossbario/autobahn-python python -u /test/test_component.py
+  - docker run -d --link crossbar -v ${PWD}/demo-gallery/python:/test crossbario/autobahn-python python -u /test/test_component2.py
 
 script:
   - docker run --rm -it --link crossbar -v ${PWD}:/workspace crossbario/autobahn-java:netty /bin/bash -c "gradle installDist -PbuildPlatform=netty && /workspace/demo-gallery/build/install/demo-gallery/bin/demo-gallery ws://crossbar:8080/ws"
