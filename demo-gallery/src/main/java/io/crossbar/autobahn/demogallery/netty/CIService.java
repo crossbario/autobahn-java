@@ -100,9 +100,9 @@ public class CIService {
         }
     }
 
-    private Object stopProducing(Object args) {
+    private Void stopProducing() {
         mProduce = false;
-        return 1;
+        return null;
     }
 
     private void producer(Session session) {

@@ -479,6 +479,8 @@ public class Session implements ISession, ITransportHandler {
                     send(new Yield(msg.request, (List) result, null));
                 } else if (result instanceof Map) {
                     send(new Yield(msg.request, null, (Map) result));
+                } else if (result instanceof Void) {
+                    send(new Yield(msg.request, null, null));
                 } else {
                     List<Object> item = new ArrayList<>();
                     item.add(result);
