@@ -18,9 +18,17 @@ class ClientSession(ApplicationSession):
         raise Exception("We haven't asked for authentication!")
 
     async def onJoin(self, details):
-        await self.test()
+        await self.producer()
 
-    async def test(self):
+    async def producer(self):
+        self.produce = True
+
+        def stop_producing():
+            self.produce = False
+
+        await self.register(stop_producing, u'io.crossbar.example.client1.stop_producing',
+                            options=RegisterOptions(invoke=u'roundrobin'))
+
         # REGISTER
         def add2(a, b):
             print('----------------------------')
@@ -31,18 +39,35 @@ class ClientSession(ApplicationSession):
         print('----------------------------')
         print('procedure registered: io.crossbar.example.client1.add2')
 
+        counter = 0
+        while self.produce:
+            # PUBLISH
+            await self.publish(u'io.crossbar.example.client1.oncounter', counter,
+                               options=PublishOptions(acknowledge=True, exclude_me=True))
+            print('----------------------------')
+            self.log.info("published to 'oncounter' with counter {counter}", counter=counter)
+            counter += 1
+            print('----------------------------')
+
+            await asyncio.sleep(1)
+
+        await self.consumer()
+
+    async def consumer(self):
+        self.incoming_counter = 0
+
         # SUBSCRIBE
         def oncounter(counter):
             print('----------------------------')
             self.log.info("'oncounter' event, counter value: {counter}", counter=counter)
+            self.incoming_counter += 1
 
         await self.subscribe(oncounter, u'io.crossbar.example.client2.oncounter')
         print('----------------------------')
-        self.log.info("subscribed to topic 'io.crossbar.example.client1.oncounter'")
+        self.log.info("subscribed to topic 'io.crossbar.example.client2.oncounter'")
 
         x = 0
-        counter = 0
-        while True:
+        while self.incoming_counter < 5 and x < 5:
 
             # CALL
             try:
@@ -56,15 +81,12 @@ class ClientSession(ApplicationSession):
                 if e.error != 'wamp.error.no_such_procedure':
                     raise e
 
-            # PUBLISH
-            await self.publish(u'io.crossbar.example.client1.oncounter', counter,
-                               options=PublishOptions(acknowledge=True, exclude_me=True))
-            print('----------------------------')
-            self.log.info("published to 'oncounter' with counter {counter}", counter=counter)
-            counter += 1
-            print('----------------------------')
-
             await asyncio.sleep(2)
+
+        res = await self.call("io.crossbar.example.client2.stop_producing")
+        print(res)
+
+        self.leave()
 
     def onLeave(self, details):
         self.log.info("Router session closed ({details})", details=details)

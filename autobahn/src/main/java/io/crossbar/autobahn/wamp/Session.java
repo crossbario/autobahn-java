@@ -340,8 +340,7 @@ public class Session implements ISession, ITransportHandler {
             request.onReply.complete(subscription);
         } else if (message instanceof Event) {
             Event msg = (Event) message;
-            List<Subscription> subscriptions = getOrDefault(
-                    mSubscriptions, msg.subscription, null);
+            List<Subscription> subscriptions = getOrDefault(mSubscriptions, msg.subscription, null);
             if (subscriptions == null) {
                 throw new ProtocolError(String.format(
                         "EVENT received for non-subscribed subscription ID %s", msg.subscription));

@@ -1,7 +1,7 @@
 package io.crossbar.autobahn.demogallery.netty;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -13,7 +13,6 @@ import io.crossbar.autobahn.wamp.Client;
 import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
-import io.crossbar.autobahn.wamp.types.InvocationDetails;
 import io.crossbar.autobahn.wamp.types.Publication;
 import io.crossbar.autobahn.wamp.types.PublishOptions;
 import io.crossbar.autobahn.wamp.types.RegisterOptions;
@@ -31,6 +30,8 @@ public class CIService {
     // and finally joins a realm.
     private final Session mSession;
 
+    private boolean mProduce = true;
+
     public CIService(Executor executor) {
         // everything should be run on the user supplied executor
         mExecutor = executor;
@@ -39,7 +40,7 @@ public class CIService {
         mSession = new Session(executor);
 
         // when the session joins a realm, run our code
-        mSession.addOnJoinListener(this::onJoinHandler);
+        mSession.addOnJoinListener(this::consumer);
     }
 
     public int start(String url, String realm) {
@@ -56,29 +57,15 @@ public class CIService {
         }
     }
 
-    private int add2(List<Integer> args, InvocationDetails details) {
-        return args.get(0) + args.get(1);
-    }
+    private void consumer(Session session, SessionDetails details) {
 
-    private void onCounter(Object counter) {
-        System.out.println(String.format("'oncounter' event, counter value: %s", counter));
-    }
-
-    private void onJoinHandler(Session session, SessionDetails details) {
-        LOGGER.i("onJoinHandler fired");
-
-        RegisterOptions options = new RegisterOptions(null, "roundrobin");
-        CompletableFuture<Registration> regFuture = session.register(
-                "io.crossbar.example.client2.add2", this::add2, options);
-        regFuture.whenComplete((registration, throwable) -> {
-            if (throwable == null) {
-                System.out.println("----------------------------");
-                System.out.println("procedure registered: io.crossbar.example.client2.add2");
-            }
-        });
-
+        final int[] counter = {0};
         CompletableFuture<Subscription> subFuture = session.subscribe(
-                "io.crossbar.example.client1.oncounter", this::onCounter);
+                "io.crossbar.example.client1.oncounter",
+                obj -> {
+                    System.out.println(String.format("'oncounter' event, counter value: %s", obj));
+                    counter[0] += 1;
+                });
         subFuture.whenComplete((subscription, throwable) -> {
             if (throwable == null) {
                 System.out.println("----------------------------");
@@ -87,10 +74,7 @@ public class CIService {
         });
 
         final int[] x = {0};
-        final int[] counter = {0};
-
-        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-        executorService.scheduleAtFixedRate(() -> {
+        while (x[0] < 5 && counter[0] < 5) {
             CompletableFuture<CallResult> callFuture = session.call(
                     "io.crossbar.example.client1.add2", x[0], 3);
             callFuture.whenComplete((callResult, throwable) -> {
@@ -101,10 +85,44 @@ public class CIService {
                     LOGGER.i(String.format("ERROR - call failed: %s", throwable.getMessage()));
                 }
             });
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
 
-            PublishOptions pubOptions = new PublishOptions(true, true);
+        try {
+            session.call("io.crossbar.example.client1.stop_producing").get();
+            producer(session);
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Object stopProducing(Object args) {
+        mProduce = false;
+        return 1;
+    }
+
+    private void producer(Session session) {
+        RegisterOptions options = new RegisterOptions(null, "roundrobin");
+        CompletableFuture<Registration> regFuture = session.register(
+                "io.crossbar.example.client2.stop_producing", this::stopProducing, options);
+        regFuture.whenComplete((registration, throwable) -> {
+            if (throwable == null) {
+                System.out.println("----------------------------");
+                System.out.println("procedure registered: io.crossbar.example.client2.add2");
+            }
+        });
+
+        final int[] counter = {0};
+        final PublishOptions publishOptions = new PublishOptions(true, true);
+
+        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+        executorService.scheduleAtFixedRate(() -> {
             CompletableFuture<Publication> pubFuture = session.publish(
-                    "io.crossbar.example.client2.oncounter", pubOptions, counter[0]);
+                    "io.crossbar.example.client2.oncounter", publishOptions, counter[0]);
             pubFuture.whenComplete((publication, throwable) -> {
                 if (throwable == null) {
                     LOGGER.i("published to 'oncounter' with counter " + counter[0]);
@@ -114,6 +132,10 @@ public class CIService {
                 }
             });
 
+            if (!mProduce) {
+                session.leave();
+                executorService.shutdown();
+            }
         }, 0, 2, TimeUnit.SECONDS);
     }
 }
