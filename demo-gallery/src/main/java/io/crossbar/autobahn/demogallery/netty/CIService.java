@@ -1,5 +1,10 @@
 package io.crossbar.autobahn.demogallery.netty;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -7,6 +12,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import io.crossbar.autobahn.demogallery.data.Person;
 import io.crossbar.autobahn.utils.ABLogger;
 import io.crossbar.autobahn.utils.IABLogger;
 import io.crossbar.autobahn.wamp.Client;
@@ -133,9 +139,107 @@ public class CIService {
             });
 
             if (!mProduce) {
-                session.leave();
                 executorService.shutdown();
+                try {
+                    POJOCalls();
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
             }
         }, 0, 2, TimeUnit.SECONDS);
+    }
+
+    private void POJOCalls() throws InterruptedException, ExecutionException {
+        LOGGER.i("POJOCalls fired");
+
+        // call a remote procedure that returns a Person
+        CompletableFuture<Person> f1 = mSession.call("com.example.get_person", Person.class);
+        f1.whenCompleteAsync((person, throwable) -> {
+            if (throwable != null) {
+                LOGGER.i(String.format("get_person() ERROR: %s", throwable.getMessage()));
+                System.exit(1);
+            } else {
+                LOGGER.i(String.format("get_person() [typed]: %s %s (%s)", person.firstname,
+                        person.lastname, person.department));
+            }
+        }, mExecutor);
+
+        // call a remote procedure that returns a Person .. slowly (3 secs delay)
+        CompletableFuture<Person> f2 = mSession.call("com.example.get_person_delayed",
+                Person.class);
+        f2.whenCompleteAsync((person, throwable) -> {
+            if (throwable != null) {
+                LOGGER.i(String.format("get_person_delayed() ERROR: %s",
+                        throwable.getMessage()));
+                System.exit(1);
+            } else {
+                LOGGER.i(String.format("get_person_delayed() [typed]: %s %s (%s)",
+                        person.firstname, person.lastname, person.department));
+            }
+        }, mExecutor);
+
+        // call a remote procedure that returns a List<Person>
+        CompletableFuture<List<Person>> f3 = mSession.call("com.example.get_all_persons",
+                new TypeReference<List<Person>>() {});
+        f3.whenCompleteAsync((persons, throwable) -> {
+            if (throwable != null) {
+                LOGGER.i(String.format("get_all_persons() ERROR: %s", throwable.getMessage()));
+                System.exit(1);
+            } else {
+                LOGGER.i("get_all_persons() [typed]:");
+                for (Person person: persons) {
+                    LOGGER.i(String.format("%s %s (%s)", person.firstname, person.lastname,
+                            person.department));
+                }
+            }
+        }, mExecutor);
+
+        // call a remote procedure that returns a List<Person>
+        List<Object> args = new ArrayList<>();
+        args.add("development");
+
+        CompletableFuture<List<Person>> f4 = mSession.call("com.example.get_persons_by_department",
+                args, new TypeReference<List<Person>>() {});
+        f4.whenCompleteAsync((persons, throwable) -> {
+            if (throwable != null) {
+                LOGGER.i(String.format("get_persons_by_department() ERROR: %s",
+                        throwable.getMessage()));
+                System.exit(1);
+            } else {
+                LOGGER.i("get_persons_by_department() [typed]:");
+                for (Person person: persons) {
+                    LOGGER.i(String.format("%s %s (%s)", person.firstname, person.lastname,
+                            person.department));
+                }
+            }
+        }, mExecutor);
+
+        // call a remote procedure that returns a Map<String, List<Person>>
+        CompletableFuture<Map<String, List<Person>>> f5 = mSession.call(
+                "com.example.get_persons_by_department",
+                new TypeReference<Map<String, List<Person>>>() {});
+        f5.whenCompleteAsync((persons_by_department, throwable) -> {
+            if (throwable != null) {
+                LOGGER.i(String.format("get_persons_by_department() ERROR: %s",
+                        throwable.getMessage()));
+                System.exit(1);
+            } else {
+                LOGGER.i("get_persons_by_department() [typed]:");
+                for (String department: persons_by_department.keySet()) {
+                    LOGGER.i(String.format("department '%s:'", department));
+                    List<Person> persons = persons_by_department.get(department);
+                    for (Person person: persons) {
+                        LOGGER.i(String.format("%s %s", person.firstname, person.lastname));
+                    }
+                }
+            }
+        }, mExecutor);
+
+        CompletableFuture.allOf(f1, f2, f3, f4, f5).thenRunAsync(() -> {
+            LOGGER.i("all done!");
+            mSession.publish("io.crossbar.example.client2.all_done").whenComplete(
+                    (publication, throwable) -> mSession.leave("wamp.close.normal", "all done!"));
+        }, mExecutor);
     }
 }

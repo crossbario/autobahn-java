@@ -8,6 +8,54 @@ from autobahn.asyncio.wamp import ApplicationSession, ApplicationRunner
 from autobahn.wamp.exception import ApplicationError
 
 
+DEPARTMENTS = [u'hr', u'sales', u'development']
+
+PERSONS = [
+    {
+        u'firstname': u'homer',
+        u'lastname': u'simpson',
+        u'department': u'hr',
+    },
+    {
+        u'firstname': u'joe',
+        u'lastname': u'doe',
+        u'department': u'development',
+    },
+    {
+        u'firstname': u'sammy',
+        u'lastname': u'davis',
+        u'department': u'development',
+    },
+    {
+        u'firstname': u'freddy',
+        u'lastname': u'krueger',
+        u'department': u'hr',
+    },
+    {
+        u'firstname': u'walter',
+        u'lastname': u'white',
+        u'department': u'sales',
+    },
+    {
+        u'firstname': u'jesse',
+        u'lastname': u'pinkman',
+        u'department': u'sales',
+    },
+    {
+        u'firstname': u'pablo',
+        u'lastname': u'escobar',
+        u'department': u'sales',
+    },
+]
+
+PERSONS_BY_DEPARTMENT = {}
+
+for person in PERSONS:
+    if person[u'department'] not in PERSONS_BY_DEPARTMENT:
+        PERSONS_BY_DEPARTMENT[person[u'department']] = []
+    PERSONS_BY_DEPARTMENT[person[u'department']].append(person)
+
+
 class ClientSession(ApplicationSession):
     def onConnect(self):
         self.log.info("Client connected: {klass}", klass=ApplicationSession)
@@ -18,6 +66,7 @@ class ClientSession(ApplicationSession):
         raise Exception("We haven't asked for authentication!")
 
     async def onJoin(self, details):
+        await self._init_person_api()
         await self.producer()
 
     async def producer(self):
@@ -83,10 +132,62 @@ class ClientSession(ApplicationSession):
 
             await asyncio.sleep(2)
 
-        res = await self.call("io.crossbar.example.client2.stop_producing")
-        print(res)
+        await self.call("io.crossbar.example.client2.stop_producing")
 
-        self.leave()
+        # self.leave()
+
+    async def _init_person_api(self):
+
+        async def get_person(emp_no=None):
+            self.log.info('PERSON API: get_person(emp_no={emp_no}) called', emp_no=emp_no)
+            if emp_no:
+                return PERSONS[emp_no]
+            else:
+                return PERSONS[0]
+
+        await self.register(get_person, u'com.example.get_person')
+
+        async def get_person_delayed(emp_no=None, delay=3):
+            self.log.info('PERSON API: get_person_delayed(emp_no={emp_no}, delay={delay}) called', emp_no=emp_no,
+                          delay=delay)
+            if delay:
+                await asyncio.sleep(delay)
+            if emp_no:
+                return PERSONS[emp_no]
+            else:
+                return PERSONS[0]
+
+        await self.register(get_person_delayed, u'com.example.get_person_delayed')
+
+        async def get_all_persons():
+            print('PERSON API: get_all_persons() called')
+            return PERSONS
+
+        await self.register(get_all_persons, u'com.example.get_all_persons')
+
+        async def get_persons_by_department(department=None):
+            self.log.info('PERSON API: get_persons_by_department({department}) called', department=department)
+            if department:
+                return PERSONS_BY_DEPARTMENT[department]
+            else:
+                return PERSONS_BY_DEPARTMENT
+
+        await self.register(get_persons_by_department, u'com.example.get_persons_by_department')
+
+        async def add_person(person):
+            self.log.info('PERSON API: add_person({person}) called', person=person)
+            department = person.get(u'department', None)
+            if department not in DEPARTMENTS:
+                raise Exception('no such department: {}'.format(department))
+
+            PERSONS.append(person)
+            PERSONS_BY_DEPARTMENT[department].append(person)
+
+        await self.register(add_person, u'com.example.add_person')
+
+        self.log.info('PERSON API registered!')
+
+        await self.subscribe(lambda: self.leave(), "io.crossbar.example.client2.all_done")
 
     def onLeave(self, details):
         self.log.info("Router session closed ({details})", details=details)
