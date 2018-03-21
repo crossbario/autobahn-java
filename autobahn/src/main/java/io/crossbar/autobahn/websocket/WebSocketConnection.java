@@ -28,6 +28,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 import io.crossbar.autobahn.utils.ABLogger;
@@ -122,6 +123,10 @@ public class WebSocketConnection implements IWebSocket {
                     mSocket = SSLSocketFactory.getDefault().createSocket();
                 } else {
                     mSocket = SocketFactory.getDefault().createSocket();
+                }
+
+                if (mOptions.getEnableTls()){
+                    enableTLSOnSocket(mSocket);
                 }
 
                 // the following will block until connection was established or
@@ -673,5 +678,15 @@ public class WebSocketConnection implements IWebSocket {
         mReader.start();
 
         LOGGER.d("WS reader created and started");
+    }
+
+    /**
+     * Enable TLS manually on socket. It's basically need for android api level < 20.
+     * @param socket
+     */
+    private void enableTLSOnSocket(Socket socket) {
+        if(socket != null && (socket instanceof SSLSocket)) {
+            ((SSLSocket)socket).setEnabledProtocols(new String[] {"TLSv1.1", "TLSv1.2"});
+        }
     }
 }

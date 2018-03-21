@@ -28,6 +28,7 @@ public class WebSocketOptions {
     private boolean mValidateIncomingUtf8;
     private boolean mMaskClientFrames;
     private int mReconnectInterval;
+    private boolean mEnableTls;
 
 
     /**
@@ -44,6 +45,7 @@ public class WebSocketOptions {
         mValidateIncomingUtf8 = true;
         mMaskClientFrames = true;
         mReconnectInterval = 0;  // no reconnection by default
+        mEnableTls = false;
     }
 
     /**
@@ -62,6 +64,7 @@ public class WebSocketOptions {
         mValidateIncomingUtf8 = other.mValidateIncomingUtf8;
         mMaskClientFrames = other.mMaskClientFrames;
         mReconnectInterval = other.mReconnectInterval;
+        mEnableTls = other.mEnableTls;
     }
 
     /**
@@ -261,5 +264,13 @@ public class WebSocketOptions {
 
     public int getReconnectInterval() {
         return mReconnectInterval;
+    }
+
+    public boolean getEnableTls() {
+        return mEnableTls;
+    }
+
+    public void setEnableTls(boolean enable) {
+        this.mEnableTls = enable;
     }
 }
