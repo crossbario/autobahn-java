@@ -28,6 +28,7 @@ public class WebSocketOptions {
     private boolean mValidateIncomingUtf8;
     private boolean mMaskClientFrames;
     private int mReconnectInterval;
+    private String[] mTlsProtocols;
 
 
     /**
@@ -44,6 +45,7 @@ public class WebSocketOptions {
         mValidateIncomingUtf8 = true;
         mMaskClientFrames = true;
         mReconnectInterval = 0;  // no reconnection by default
+        mTlsProtocols = null;
     }
 
     /**
@@ -62,6 +64,7 @@ public class WebSocketOptions {
         mValidateIncomingUtf8 = other.mValidateIncomingUtf8;
         mMaskClientFrames = other.mMaskClientFrames;
         mReconnectInterval = other.mReconnectInterval;
+        mTlsProtocols = other.mTlsProtocols;
     }
 
     /**
@@ -261,5 +264,21 @@ public class WebSocketOptions {
 
     public int getReconnectInterval() {
         return mReconnectInterval;
+    }
+
+    /**
+     * Get TLS enabled protocols.
+     * @return
+     */
+    public String[] getTLSEnabledProtocols() {
+        return mTlsProtocols;
+    }
+
+    /**
+     * Set TLS enabled protocols. Eg. protocols = new String[]{"TLSv1.1", "TLSv1.2"}
+     * @param protocols
+     */
+    public void setTLSEnabledProtocols(String[] protocols) {
+        this.mTlsProtocols = protocols;
     }
 }
