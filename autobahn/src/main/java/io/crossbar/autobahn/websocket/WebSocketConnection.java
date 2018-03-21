@@ -125,8 +125,8 @@ public class WebSocketConnection implements IWebSocket {
                     mSocket = SocketFactory.getDefault().createSocket();
                 }
 
-                if (mOptions.getEnableTls()){
-                    enableTLSOnSocket(mSocket);
+                if (mOptions.getTLSEnabledProtocols() != null){
+                    setEnabledProtocolsOnSSLSocket(mSocket, mOptions.getTLSEnabledProtocols());
                 }
 
                 // the following will block until connection was established or
@@ -681,12 +681,13 @@ public class WebSocketConnection implements IWebSocket {
     }
 
     /**
-     * Enable TLS manually on socket. It's basically need for android api level < 20.
+     * Enable protocols on SSLSocket.
      * @param socket
+     * @param protocols
      */
-    private void enableTLSOnSocket(Socket socket) {
+    private void setEnabledProtocolsOnSSLSocket(Socket socket, String[] protocols) {
         if(socket != null && (socket instanceof SSLSocket)) {
-            ((SSLSocket)socket).setEnabledProtocols(new String[] {"TLSv1.1", "TLSv1.2"});
+            ((SSLSocket)socket).setEnabledProtocols(protocols);
         }
     }
 }
