@@ -26,11 +26,11 @@ public class CryptosignAuth implements IAuthenticator {
     public CryptosignAuth(String authid, String privkey, Map<String, Object> authextra) {
         this.authid = authid;
         if (authextra == null || getOrDefault(authextra, "pubkey", null) == null) {
-            throw new RuntimeException("authextra must contain privkey");
+            throw new RuntimeException("authextra must contain pubkey");
         }
         this.authextra = authextra;
         try {
-            privateKeyRaw = AuthUtil.decodeString(privkey);
+            privateKeyRaw = AuthUtil.toBinary(privkey);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -42,7 +42,7 @@ public class CryptosignAuth implements IAuthenticator {
         this.authid = authid;
         this.authextra = authextra;
         try {
-            privateKeyRaw = AuthUtil.decodeString(privkey);
+            privateKeyRaw = AuthUtil.toBinary(privkey);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
