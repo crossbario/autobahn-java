@@ -279,6 +279,28 @@ private void main() {
 TBD
 
 ---
+--
+
+### Building from source
+
+Building Autobahn is pretty simple
+
+#### Android build
+
+For Android, we recommend to use Android Studio. Just import the project in
+Android Studio, it will tell you if there are any missing dependencies, install them
+and then just build the project from `Build > Rebuild Project` and you will have the
+aar artifact in `autobahn/build/outputs/aar/`
+
+#### Netty build
+
+To produce a build for non-android systems make sure you have docker and make
+installed then just use run below command on the root directory of the project
+```shell
+make build_autobahn
+```
+and that will output the jar file in `autobahn/build/libs/`.
+
 
 
 ## Get in touch
