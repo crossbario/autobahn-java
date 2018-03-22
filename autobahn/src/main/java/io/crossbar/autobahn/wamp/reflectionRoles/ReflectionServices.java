@@ -26,19 +26,30 @@ public class ReflectionServices {
 
         for (Method method : classType.getMethods()) {
             if (method.isAnnotationPresent(WampProcedure.class)) {
-                WampProcedure anotation = method.getAnnotation(WampProcedure.class);
-
-                MethodInvocationHandler currentMethodHandler =
-                        new MethodInvocationHandler(instance, method, this.mSerializer);
-
-                CompletableFuture<Registration> currentRegistration =
-                        mSession.register(anotation.value(), currentMethodHandler);
-
+                CompletableFuture<Registration> currentRegistration = RegisterSingleMethod(instance, method);
                 registrations.add(currentRegistration);
             }
         }
 
+        for (Class<?> interfaceType : classType.getInterfaces()) {
+            for (Method method : interfaceType.getMethods()) {
+                if (method.isAnnotationPresent(WampProcedure.class)) {
+                    CompletableFuture<Registration> currentRegistration = RegisterSingleMethod(instance, method);
+                    registrations.add(currentRegistration);
+                }
+            }
+        }
+
         return registrations;
+    }
+
+    private CompletableFuture<Registration> RegisterSingleMethod(Object instance, Method method) {
+        WampProcedure anotation = method.getAnnotation(WampProcedure.class);
+
+        MethodInvocationHandler currentMethodHandler =
+                new MethodInvocationHandler(instance, method, this.mSerializer);
+
+        return mSession.register(anotation.value(), currentMethodHandler);
     }
 
     public List<CompletableFuture<Subscription>> registerSubscriber(Object instance) {
@@ -47,19 +58,33 @@ public class ReflectionServices {
 
         for (Method method : classType.getMethods()) {
             if (method.isAnnotationPresent(WampTopic.class)) {
-                WampTopic anotation = method.getAnnotation(WampTopic.class);
+                CompletableFuture<Subscription> currentSubscription = singleSubscribe(instance, method);
 
-                MethodEventHandler currentMethodHandler =
-                        new MethodEventHandler(instance, method, this.mSerializer);
-
-                CompletableFuture<Subscription> currentRegistration =
-                        mSession.subscribe(anotation.value(), currentMethodHandler);
-
-                subscriptions.add(currentRegistration);
+                subscriptions.add(currentSubscription);
             }
         }
 
+        for (Class<?> interfaceType : classType.getInterfaces()) {
+            for (Method method : interfaceType.getMethods()) {
+                if (method.isAnnotationPresent(WampTopic.class)) {
+                    CompletableFuture<Subscription> currentSubscription = singleSubscribe(instance, method);
+
+                    subscriptions.add(currentSubscription);
+                }
+            }
+        }
+
+
         return subscriptions;
+    }
+
+    private CompletableFuture<Subscription> singleSubscribe(Object instance, Method method) {
+        WampTopic anotation = method.getAnnotation(WampTopic.class);
+
+        MethodEventHandler currentMethodHandler =
+                new MethodEventHandler(instance, method, this.mSerializer);
+
+        return mSession.subscribe(anotation.value(), currentMethodHandler);
     }
 
     public <TProxy> TProxy getCalleeProxy(Class<TProxy> proxyClass) {
