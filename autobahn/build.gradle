@@ -11,7 +11,7 @@ def gitUrl = 'https://github.com/crossbario/autobahn-java.git'
 def licenseName = 'MIT'
 def licenseUrl = 'https://opensource.org/licenses/MIT'
 def relVersion = System.getenv().containsKey('AUTOBAHN_BUILD_VERSION') ? System.getenv(
-        'AUTOBAHN_BUILD_VERSION'): '17.10.1'
+        'AUTOBAHN_BUILD_VERSION'): '18.3.1'
 def siteUrl = 'https://github.com/crossbario/autobahn-java'
 
 dependencies {

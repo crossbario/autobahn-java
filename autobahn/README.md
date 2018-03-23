@@ -1,3 +1,11 @@
+# Publishing a release
+
+To publish a new AutobahnJava release, follow these steps.
+
+- Bump library version in [../Makefile]
+- Bump library version in [./autobahn/build.gradle](./autobahn/build.gradle)
+
+
 # Building
 
 Clean build
