@@ -34,28 +34,36 @@ public class ArgumentUnpacker {
         }
     }
 
-    public Object[] unpackParameters(ISerializer serializer, List<Object> list, Map<String, Object> map){
+    public Object[] unpackParameters(ISerializer serializer, List<Object> list, Map<String, Object> map) {
         Object[] result = new Object[mParameters.length];
 
-        // Positional arguments have higher precedence.
-        for (int i = 0; i < list.size(); i++) {
-            // TODO: surround with a try-catch block and throw a WampException indicating that the
-            // TODO: parameter at position i wasn't of the expected type.
-            result[i] = serializer.convertValue(list.get(i), mParameters[i].getType());
+        int namedParametersStartPosition = 0;
+
+        if (list != null) {
+            namedParametersStartPosition = list.size();
+
+            // Positional arguments have higher precedence.
+            for (int i = 0; i < list.size(); i++) {
+                // TODO: surround with a try-catch block and throw a WampException indicating that the
+                // TODO: parameter at position i wasn't of the expected type.
+                result[i] = serializer.convertValue(list.get(i), mParameters[i].getType());
+            }
         }
 
-        for (int i = list.size(); i < mParameters.length; i++){
-            ParameterInfo currentParameter = mParameters[i];
+        if (map != null) {
+            for (int i = namedParametersStartPosition; i < mParameters.length; i++) {
+                ParameterInfo currentParameter = mParameters[i];
 
-            String parameterName = currentParameter.getName();
+                String parameterName = currentParameter.getName();
 
-            if (!map.containsKey(parameterName)) {
-                // TODO: throw a WampException indicating that a
-                // TODO: parameter with name parameterName or position i was not present.
-            } else {
-                // TODO: surround with a try-catch block and throw a WampException indicating that the
-                // TODO: parameter with name parameterName wasn't of the expected type.
-                result[i] = serializer.convertValue(map.get(parameterName), currentParameter.getType());
+                if (!map.containsKey(parameterName)) {
+                    // TODO: throw a WampException indicating that a
+                    // TODO: parameter with name parameterName or position i was not present.
+                } else {
+                    // TODO: surround with a try-catch block and throw a WampException indicating that the
+                    // TODO: parameter with name parameterName wasn't of the expected type.
+                    result[i] = serializer.convertValue(map.get(parameterName), currentParameter.getType());
+                }
             }
         }
 

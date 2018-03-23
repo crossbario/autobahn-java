@@ -1,13 +1,13 @@
 package io.crossbar.autobahn.wamp.reflectionRoles;
 
 import io.crossbar.autobahn.wamp.Session;
-import io.crossbar.autobahn.wamp.reflectionRoles.WampProcedure;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -53,21 +53,27 @@ public class CalleeProxyInvocationHandler implements InvocationHandler {
 
     public Object handleAsync(Method method, Object[] args) {
         Type taskType = method.getGenericReturnType();
-        Class<?> returnType = getTaskGenericParameterType(taskType);
+        Type returnType = getTaskGenericParameterType(taskType);
 
         return innerHandleAsync(method, args, returnType);
     }
 
-    private Class<?> getTaskGenericParameterType(Type taskType) {
-        Class<?> result = (Class<?>) ((ParameterizedType) taskType).getActualTypeArguments()[0];
+    private Type getTaskGenericParameterType(Type taskType) {
+        Type result = ((ParameterizedType) taskType).getActualTypeArguments()[0];
         return result;
     }
 
-    private CompletableFuture<?> innerHandleAsync(Method method, Object[] args, Class<?> returnType) {
+    private CompletableFuture<?> innerHandleAsync(Method method, Object[] args, Type returnType) {
         WampProcedure annotation = method.getAnnotation(WampProcedure.class);
         String procedureUri = annotation.value();
 
-        CompletableFuture<?> result = this.mSession.call(procedureUri, Arrays.asList(args), returnType);
+        List<Object> callArguments = null;
+
+        if (args != null){
+            callArguments = Arrays.asList(args);
+        }
+
+        CompletableFuture<?> result = this.mSession.call(procedureUri, callArguments, new ReflectionTypeReference(returnType));
 
         return result;
     }
