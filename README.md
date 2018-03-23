@@ -215,11 +215,92 @@ public void main() {
 }
 ```
 
+Autobahn also supports POJOs
+
+Here is how to call a remote procedure that returns a list of Person POJOs
+
+```java
+// Call a remote proedure that returns a Person with id 1
+CompletableFuture<Person> callFuture = mSession.call("com.example.get_person", 1);
+callFuture.whenCompleteAsync((person, throwable) -> {
+    if (throwable != null) {
+        // handle error
+    } else {
+        // success!
+        // do something with person
+    }
+}, mExecutor);
+```
+
+```java
+// call a remote procedure that returns a List<Person>
+CompletableFuture<List<Person>> callFuture = mSession.call(
+        // remote procedure to call
+        "com.example.get_persons_by_department",
+
+        // positional call arguments
+        new ArrayList<Object>() {List.of("department-7")},
+
+        // call return type
+        new TypeReference<List<Person>>() {}
+);
+
+callFuture.whenCompleteAsync((persons, throwable) -> {
+    if (throwable != null) {
+        // handle error
+    } else {
+        // success!
+        for (Person person: persons) {
+            // do something with person
+        }
+    }
+}, mExecutor);
+```
+
+Also register a procedure that returns a Person
+
+```java
+private Person get_person() {
+    return new Person("john", "doe", "hr");
+}
+
+private void main() {
+    CompletableFuture<Registration> regFuture = session.register(
+            "io.crossbar.example.get_person", this::get_person);
+    regFuture.whenComplete((registration, throwable) -> {
+        System.out.println(String.format(
+                "Registered procedure %s", registration.procedure));
+    });
+}
+```
+
 ### WebSocket on Android
 
 TBD
 
 ---
+--
+
+### Building from source
+
+Building Autobahn is pretty simple
+
+#### Android build
+
+For Android, we recommend to use Android Studio. Just import the project in
+Android Studio, it will tell you if there are any missing dependencies, install them
+and then just build the project from `Build > Rebuild Project` and you will have the
+aar artifact in `autobahn/build/outputs/aar/`
+
+#### Netty build
+
+To produce a build for non-android systems make sure you have docker and make
+installed then just use run below command on the root directory of the project
+```shell
+make build_autobahn
+```
+and that will output the jar file in `autobahn/build/libs/`.
+
 
 
 ## Get in touch
