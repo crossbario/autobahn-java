@@ -11,11 +11,15 @@
 
 package io.crossbar.autobahn.wamp.interfaces;
 
+import io.crossbar.autobahn.wamp.types.TransportOptions;
+
 public interface ITransport {
 
     void send(byte[] payload, boolean isBinary);
 
     void connect(ITransportHandler transportHandler) throws Exception;
+
+    void connect(ITransportHandler transportHandler, TransportOptions options) throws Exception;
 
     boolean isOpen();
 

@@ -20,9 +20,11 @@ import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.serializers.CBORSerializer;
 import io.crossbar.autobahn.wamp.serializers.JSONSerializer;
 import io.crossbar.autobahn.wamp.serializers.MessagePackSerializer;
+import io.crossbar.autobahn.wamp.types.TransportOptions;
 import io.crossbar.autobahn.websocket.WebSocketConnection;
 import io.crossbar.autobahn.websocket.WebSocketConnectionHandler;
 import io.crossbar.autobahn.websocket.types.ConnectionResponse;
+import io.crossbar.autobahn.websocket.types.WebSocketOptions;
 
 public class AndroidWebSocket implements ITransport {
 
@@ -60,6 +62,18 @@ public class AndroidWebSocket implements ITransport {
 
     @Override
     public void connect(ITransportHandler transportHandler) throws Exception {
+        connect(transportHandler, new TransportOptions());
+    }
+
+    @Override
+    public void connect(ITransportHandler transportHandler, TransportOptions options)
+            throws Exception {
+
+        WebSocketOptions webSocketOptions = new WebSocketOptions();
+        webSocketOptions.setAutoPingInterval(options.getAutoPingInterval());
+        webSocketOptions.setAutoPingTimeout(options.getAutoPingTimeout());
+        webSocketOptions.setMaxFramePayloadSize(options.getMaxFramePayloadSize());
+
         mConnection.connect(mUri, getSerializers(), new WebSocketConnectionHandler() {
 
             @Override
@@ -103,7 +117,7 @@ public class AndroidWebSocket implements ITransport {
                     e.printStackTrace();
                 }
             }
-        });
+        }, webSocketOptions, null);
     }
 
     @Override

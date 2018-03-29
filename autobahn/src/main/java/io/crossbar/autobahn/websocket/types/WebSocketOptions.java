@@ -29,7 +29,8 @@ public class WebSocketOptions {
     private boolean mMaskClientFrames;
     private int mReconnectInterval;
     private String[] mTlsProtocols;
-
+    private int mAutoPingInterval;
+    private int mAutoPingTimeout;
 
     /**
      * Construct default options.
@@ -46,6 +47,8 @@ public class WebSocketOptions {
         mMaskClientFrames = true;
         mReconnectInterval = 0;  // no reconnection by default
         mTlsProtocols = null;
+        mAutoPingInterval = 10;
+        mAutoPingTimeout = 5;
     }
 
     /**
@@ -65,6 +68,8 @@ public class WebSocketOptions {
         mMaskClientFrames = other.mMaskClientFrames;
         mReconnectInterval = other.mReconnectInterval;
         mTlsProtocols = other.mTlsProtocols;
+        mAutoPingInterval = other.mAutoPingInterval;
+        mAutoPingTimeout = other.mAutoPingTimeout;
     }
 
     /**
@@ -280,5 +285,21 @@ public class WebSocketOptions {
      */
     public void setTLSEnabledProtocols(String[] protocols) {
         this.mTlsProtocols = protocols;
+    }
+
+    public void setAutoPingInterval(int seconds) {
+        mAutoPingInterval = seconds;
+    }
+
+    public int getAutoPingInterval() {
+        return mAutoPingInterval;
+    }
+
+    public void setAutoPingTimeout(int seconds) {
+        mAutoPingTimeout = seconds;
+    }
+
+    public int getAutoPingTimeout() {
+        return mAutoPingTimeout;
     }
 }
