@@ -22,6 +22,7 @@ import io.crossbar.autobahn.utils.IABLogger;
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
+import io.crossbar.autobahn.wamp.types.TransportOptions;
 import io.crossbar.autobahn.wamp.utils.Platform;
 
 public class Client {
@@ -111,6 +112,10 @@ public class Client {
     }
 
     public CompletableFuture<ExitInfo> connect() {
+        return connect(new TransportOptions());
+    }
+
+    public CompletableFuture<ExitInfo> connect(TransportOptions options) {
         CompletableFuture<ExitInfo> exitFuture = new CompletableFuture<>();
         mSession.addOnConnectListener((session) ->
                 mSession.join(mRealm, mAuthenticators).thenAccept(details ->
@@ -120,7 +125,7 @@ public class Client {
                 exitFuture.complete(new ExitInfo(wasClean)));
         CompletableFuture.runAsync(() -> {
             try {
-                mTransports.get(0).connect(mSession);
+                mTransports.get(0).connect(mSession, options);
             } catch (Exception e) {
                 throw new CompletionException(e);
             }
