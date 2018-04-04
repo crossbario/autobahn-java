@@ -12,11 +12,15 @@
 package io.crossbar.autobahn.wamp.interfaces;
 
 
+import io.crossbar.autobahn.wamp.types.CloseDetails;
+
 public interface ITransportHandler {
 
     void onConnect(ITransport transport, ISerializer serializer) throws Exception;
 
     void onMessage(byte[] payload, boolean isBinary) throws Exception;
+
+    void onLeave(CloseDetails details);
 
     void onDisconnect(boolean wasClean);
 

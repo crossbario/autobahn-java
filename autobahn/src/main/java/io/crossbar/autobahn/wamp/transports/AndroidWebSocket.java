@@ -12,23 +12,26 @@
 package io.crossbar.autobahn.wamp.transports;
 
 import java.util.List;
-import java.util.logging.Logger;
 
+import io.crossbar.autobahn.utils.ABLogger;
+import io.crossbar.autobahn.utils.IABLogger;
 import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.serializers.CBORSerializer;
 import io.crossbar.autobahn.wamp.serializers.JSONSerializer;
 import io.crossbar.autobahn.wamp.serializers.MessagePackSerializer;
+import io.crossbar.autobahn.wamp.types.CloseDetails;
 import io.crossbar.autobahn.wamp.types.TransportOptions;
 import io.crossbar.autobahn.websocket.WebSocketConnection;
 import io.crossbar.autobahn.websocket.WebSocketConnectionHandler;
+import io.crossbar.autobahn.websocket.interfaces.IWebSocketConnectionHandler;
 import io.crossbar.autobahn.websocket.types.ConnectionResponse;
 import io.crossbar.autobahn.websocket.types.WebSocketOptions;
 
 public class AndroidWebSocket implements ITransport {
 
-    private static final Logger LOGGER = Logger.getLogger(AndroidWebSocket.class.getName());
+    public static final IABLogger LOGGER = ABLogger.getLogger(AndroidWebSocket.class.getName());
     private static final String[] SERIALIZERS_DEFAULT = new String[] {
             CBORSerializer.NAME, MessagePackSerializer.NAME, JSONSerializer.NAME};
 
@@ -78,7 +81,7 @@ public class AndroidWebSocket implements ITransport {
 
             @Override
             public void onConnect(ConnectionResponse response) {
-                LOGGER.info(String.format("Negotiated serializer=%s", response.protocol));
+                LOGGER.d(String.format("Negotiated serializer=%s", response.protocol));
                 try {
                     mSerializer = initializeSerializer(response.protocol);
                 } catch (Exception e) {
@@ -97,6 +100,16 @@ public class AndroidWebSocket implements ITransport {
 
             @Override
             public void onClose(int code, String reason) {
+                switch (code) {
+                    case IWebSocketConnectionHandler.CLOSE_CONNECTION_LOST:
+                        transportHandler.onLeave(
+                                new CloseDetails(CloseDetails.REASON_TRANSPORT_LOST, null));
+                        break;
+                    default:
+                        transportHandler.onLeave(
+                                new CloseDetails(CloseDetails.REASON_DEFAULT, null));
+                }
+                LOGGER.d(String.format("Disconnected, code=%s, reasons=%s", code, reason));
                 transportHandler.onDisconnect(code == 1000);
             }
 
