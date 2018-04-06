@@ -24,6 +24,7 @@ import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.serializers.CBORSerializer;
 import io.crossbar.autobahn.wamp.serializers.JSONSerializer;
 import io.crossbar.autobahn.wamp.serializers.MessagePackSerializer;
+import io.crossbar.autobahn.wamp.types.CloseDetails;
 import io.crossbar.autobahn.wamp.types.TransportOptions;
 import io.crossbar.autobahn.wamp.types.WebSocketOptions;
 import io.netty.bootstrap.Bootstrap;
@@ -202,7 +203,7 @@ public class NettyWebSocket implements ITransport {
     public void close() throws Exception {
         LOGGER.v("close()");
         if (mHandler != null && mChannel != null) {
-            mHandler.close(mChannel, true);
+            mHandler.close(mChannel, true, new CloseDetails(CloseDetails.REASON_DEFAULT, null));
         }
     }
 
