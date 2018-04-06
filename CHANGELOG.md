@@ -1,3 +1,11 @@
+# Release v18.3.2
+
+* FIX: Fire onLeave() when session is lost (#390)
+* NEW: extend Client class to (optionally) take TransportOptions (#386)
+* NEW: Extend WAMP transports to be configurable (#385)
+
+---
+
 # Release v18.3.1
 
 * FIX: Expand README with more installation instructions, build hints and code/usage idioms (#387, #377, #370)
