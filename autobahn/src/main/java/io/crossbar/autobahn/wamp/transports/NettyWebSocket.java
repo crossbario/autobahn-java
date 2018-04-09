@@ -213,6 +213,12 @@ public class NettyWebSocket implements ITransport {
         close();
     }
 
+    @Override
+    public void setOptions(TransportOptions options) {
+        throw new UnsupportedOperationException(
+                "Not implemented yet, provide options using connect() instead");
+    }
+
     private ByteBuf toByteBuf(byte[] bytes) {
         return Unpooled.copiedBuffer(bytes);
     }

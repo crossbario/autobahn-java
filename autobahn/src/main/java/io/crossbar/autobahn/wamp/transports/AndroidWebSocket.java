@@ -148,6 +148,14 @@ public class AndroidWebSocket implements ITransport {
         mConnection.sendClose();
     }
 
+    @Override
+    public void setOptions(TransportOptions options) {
+        WebSocketOptions webSocketOptions = new WebSocketOptions();
+        webSocketOptions.setAutoPingTimeout(options.getAutoPingTimeout());
+        webSocketOptions.setAutoPingInterval(options.getAutoPingInterval());
+        mConnection.setOptions(webSocketOptions);
+    }
+
     private ISerializer initializeSerializer(String negotiatedSerializer) throws Exception {
         switch (negotiatedSerializer) {
             case CBORSerializer.NAME:

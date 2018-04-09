@@ -25,6 +25,7 @@ import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.SocketFactory;
@@ -33,6 +34,7 @@ import javax.net.ssl.SSLSocketFactory;
 
 import io.crossbar.autobahn.utils.ABLogger;
 import io.crossbar.autobahn.utils.IABLogger;
+import io.crossbar.autobahn.wamp.types.TransportOptions;
 import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
 import io.crossbar.autobahn.websocket.interfaces.IWebSocket;
 import io.crossbar.autobahn.websocket.interfaces.IWebSocketConnectionHandler;
@@ -83,6 +85,7 @@ public class WebSocketConnection implements IWebSocket {
     private boolean onCloseCalled;
 
     private ScheduledExecutorService mExecutor;
+    private ScheduledFuture<?> mPingerTask;
 
     private final Runnable mAutoPinger = new Runnable() {
         @Override
@@ -295,7 +298,7 @@ public class WebSocketConnection implements IWebSocket {
     @Override
     public void connect(String wsUri, IWebSocketConnectionHandler wsHandler)
             throws WebSocketException {
-        connect(wsUri, null, wsHandler, new WebSocketOptions(), null);
+        connect(wsUri, null, wsHandler, null, null);
     }
 
     @Override
@@ -368,8 +371,18 @@ public class WebSocketConnection implements IWebSocket {
         mWsHeaders = headers;
         mWsHandler = wsHandler;
 
-        // make copy of options!
-        mOptions = new WebSocketOptions(options);
+        if (mOptions == null) {
+            if (options == null) {
+                mOptions = new WebSocketOptions();
+            } else {
+                // make copy of options!
+                mOptions = new WebSocketOptions(options);
+            }
+        // WebSocketOptions were already, replace them if an instance was provided
+        // with connect() as well.
+        } else if (options != null) {
+            mOptions = new WebSocketOptions(options);
+        }
 
         // set connection active
         mActive = true;
@@ -507,6 +520,25 @@ public class WebSocketConnection implements IWebSocket {
         return default_value;
     }
 
+    public void setOptions(WebSocketOptions options) {
+        if (mOptions == null) {
+            mOptions = new WebSocketOptions(options);
+        } else {
+            mOptions.setAutoPingInterval(options.getAutoPingInterval());
+            mOptions.setAutoPingTimeout(options.getAutoPingTimeout());
+            // Now do the magic here.
+            if (mPingerTask != null) {
+                mPingerTask.cancel(true);
+                if (mExecutor == null) {
+                    mExecutor = Executors.newSingleThreadScheduledExecutor();
+                }
+                mPingerTask = mExecutor.scheduleAtFixedRate(
+                        mAutoPinger, 0,
+                        mOptions.getAutoPingInterval(), TimeUnit.SECONDS);
+            }
+        }
+    }
+
 
     /**
      * Create master message handler.
@@ -604,7 +636,7 @@ public class WebSocketConnection implements IWebSocket {
 
                     if (serverHandshake.mSuccess) {
                         if (mWsHandler != null) {
-                            mExecutor.scheduleAtFixedRate(
+                            mPingerTask = mExecutor.scheduleAtFixedRate(
                                     mAutoPinger, 0,
                                     mOptions.getAutoPingInterval(), TimeUnit.SECONDS);
                             String protocol = getOrDefault(serverHandshake.headers,
