@@ -13,7 +13,6 @@ package io.crossbar.autobahn.wamp.transports;
 
 import java.net.URI;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLException;
@@ -25,6 +24,8 @@ import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.serializers.CBORSerializer;
 import io.crossbar.autobahn.wamp.serializers.JSONSerializer;
 import io.crossbar.autobahn.wamp.serializers.MessagePackSerializer;
+import io.crossbar.autobahn.wamp.types.CloseDetails;
+import io.crossbar.autobahn.wamp.types.TransportOptions;
 import io.crossbar.autobahn.wamp.types.WebSocketOptions;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
@@ -63,32 +64,41 @@ public class NettyWebSocket implements ITransport {
     private NettyWebSocketClientHandler mHandler;
     private final String mUri;
 
-    private Executor mExecutor;
     private WebSocketOptions mOptions;
-    private List<String> mSerializers;
+    private String mSerializers;
 
     public NettyWebSocket(String uri) {
-        mUri = uri;
+        this(uri, (WebSocketOptions) null);
     }
 
     public NettyWebSocket(String uri, List<String> serializers) {
-        mUri = uri;
-        mSerializers = serializers;
+        this(uri, serializers, null);
     }
 
+    @Deprecated
     public NettyWebSocket(String uri, WebSocketOptions options) {
-        this(uri);
-        mOptions = options;
+        this(uri, null, options);
     }
 
+    @Deprecated
     public NettyWebSocket(String uri, List<String> serializers, WebSocketOptions options) {
         mUri = uri;
-        mSerializers = serializers;
-        mOptions = options;
-    }
 
-    private WebSocketOptions getOptions() {
-        return mOptions == null ? new WebSocketOptions() : mOptions;
+        if (serializers == null) {
+            mSerializers = SERIALIZERS_DEFAULT;
+        } else {
+            StringBuilder result = new StringBuilder();
+            for (String serializer: serializers) {
+                result.append(serializer).append(",");
+            }
+            mSerializers = result.toString();
+        }
+
+        if (options == null) {
+            mOptions = new WebSocketOptions();
+        } else {
+            mOptions = options;
+        }
     }
 
     private int validateURIAndGetPort(URI uri) {
@@ -112,19 +122,26 @@ public class NettyWebSocket implements ITransport {
                 InsecureTrustManagerFactory.INSTANCE).build() : null;
     }
 
-    private String getSerializers() {
-        if (mSerializers != null) {
-            StringBuilder result = new StringBuilder();
-            for (String serializer: mSerializers) {
-                result.append(serializer).append(",");
-            }
-            return result.toString();
-        }
-        return SERIALIZERS_DEFAULT;
+    @Override
+    public void connect(ITransportHandler transportHandler) throws Exception {
+        connect(transportHandler, new TransportOptions());
     }
 
     @Override
-    public void connect(ITransportHandler transportHandler) throws Exception {
+    public void connect(ITransportHandler transportHandler, TransportOptions options)
+            throws Exception {
+
+        if (options == null) {
+            if (mOptions == null) {
+                options = new TransportOptions();
+            } else {
+                options = new TransportOptions();
+                options.setAutoPingInterval(mOptions.getAutoPingInterval());
+                options.setAutoPingTimeout(mOptions.getAutoPingTimeout());
+                options.setMaxFramePayloadSize(mOptions.getMaxFramePayloadSize());
+            }
+        }
+
         URI uri;
         uri = new URI(mUri);
         int port = validateURIAndGetPort(uri);
@@ -134,14 +151,16 @@ public class NettyWebSocket implements ITransport {
         final SslContext sslContext = getSSLContext(scheme);
 
         WebSocketClientHandshaker handshaker = WebSocketClientHandshakerFactory.newHandshaker(
-                uri, WebSocketVersion.V13, getSerializers(), true,
-                new DefaultHttpHeaders(), getOptions().getMaxFramePayloadSize());
-        mHandler = new NettyWebSocketClientHandler(handshaker,this, transportHandler);
+                uri, WebSocketVersion.V13, mSerializers, true,
+                new DefaultHttpHeaders(), options.getMaxFramePayloadSize());
+        mHandler = new NettyWebSocketClientHandler(handshaker, this, transportHandler);
 
         EventLoopGroup group = new NioEventLoopGroup();
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(group);
         bootstrap.channel(NioSocketChannel.class);
+
+        TransportOptions opt = options;
         bootstrap.handler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
@@ -153,7 +172,9 @@ public class NettyWebSocket implements ITransport {
                         new HttpClientCodec(),
                         new HttpObjectAggregator(8192),
                         WebSocketClientCompressionHandler.INSTANCE,
-                        new IdleStateHandler(15, 10, 20, TimeUnit.SECONDS),
+                        new IdleStateHandler(
+                                opt.getAutoPingInterval() + opt.getAutoPingTimeout(),
+                                opt.getAutoPingInterval(), 0, TimeUnit.SECONDS),
                         mHandler);
             }
         });
@@ -182,7 +203,7 @@ public class NettyWebSocket implements ITransport {
     public void close() throws Exception {
         LOGGER.v("close()");
         if (mHandler != null && mChannel != null) {
-            mHandler.close(mChannel, true);
+            mHandler.close(mChannel, true, new CloseDetails(CloseDetails.REASON_DEFAULT, null));
         }
     }
 

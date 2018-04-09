@@ -12,6 +12,7 @@
 package io.crossbar.autobahn.wamp.transports;
 
 import io.crossbar.autobahn.utils.ABLogger;
+import io.crossbar.autobahn.utils.Globals;
 import io.crossbar.autobahn.utils.IABLogger;
 import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
@@ -19,6 +20,7 @@ import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
 import io.crossbar.autobahn.wamp.serializers.CBORSerializer;
 import io.crossbar.autobahn.wamp.serializers.JSONSerializer;
 import io.crossbar.autobahn.wamp.serializers.MessagePackSerializer;
+import io.crossbar.autobahn.wamp.types.CloseDetails;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -37,7 +39,6 @@ import io.netty.util.CharsetUtil;
 
 
 public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
-
     private static final IABLogger LOGGER = ABLogger.getLogger(
             NettyWebSocketClientHandler.class.getName());
 
@@ -46,6 +47,8 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
     private ChannelPromise mHandshakeFuture;
     private ITransportHandler mTransportHandler;
     private boolean mWasCleanClose;
+
+    private CloseDetails mCloseDetails;
 
     NettyWebSocketClientHandler(WebSocketClientHandshaker handshaker, ITransport transport,
                                 ITransportHandler transportHandler) {
@@ -71,6 +74,7 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         LOGGER.i("WebSocket Client disconnected!");
+        mTransportHandler.onLeave(mCloseDetails);
         mTransportHandler.onDisconnect(mWasCleanClose);
     }
 
@@ -124,7 +128,8 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
             LOGGER.d(String.format(
                     "Received Close frame, code=%s, reason=%s",
                     closeWebSocketFrame.statusCode(), closeWebSocketFrame.reasonText()));
-            close(ctx, closeWebSocketFrame.statusCode() == 1000);
+            close(ctx, closeWebSocketFrame.statusCode() == 1000,
+                    new CloseDetails(CloseDetails.REASON_DEFAULT, null));
         }
     }
 
@@ -133,7 +138,7 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent event = (IdleStateEvent) evt;
             if (event.state() == IdleState.READER_IDLE) {
-                close(ctx, false);
+                close(ctx, false, new CloseDetails(CloseDetails.REASON_TRANSPORT_LOST, null));
             } else if (event.state() == IdleState.WRITER_IDLE) {
                 ctx.writeAndFlush(new PingWebSocketFrame());
             }
@@ -142,21 +147,25 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        cause.printStackTrace();
+        if (Globals.DEBUG) {
+            cause.printStackTrace();
+        }
         if (!mHandshakeFuture.isDone()) {
             mHandshakeFuture.setFailure(cause);
         }
-        close(ctx, false);
+        close(ctx, false, new CloseDetails(CloseDetails.REASON_TRANSPORT_LOST, null));
     }
 
-    private void close(ChannelHandlerContext context, boolean wasClean) {
+    private void close(ChannelHandlerContext context, boolean wasClean, CloseDetails details) {
         context.close();
         mWasCleanClose = wasClean;
+        mCloseDetails = details;
     }
 
-    void close(Channel channel, boolean wasClean) {
+    void close(Channel channel, boolean wasClean, CloseDetails details) {
         channel.close();
         mWasCleanClose = wasClean;
+        mCloseDetails = details;
     }
 
     private ISerializer initializeSerializer(String negotiatedSerializer) throws Exception {

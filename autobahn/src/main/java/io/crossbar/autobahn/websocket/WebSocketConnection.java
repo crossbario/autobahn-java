@@ -83,20 +83,19 @@ public class WebSocketConnection implements IWebSocket {
     private boolean onCloseCalled;
 
     private ScheduledExecutorService mExecutor;
-    // FIXME: make this configurable.
-    private final long mIdleTimeout = 10;
 
     private final Runnable mAutoPinger = new Runnable() {
         @Override
         public void run() {
-            if (mReader != null && mReader.getTimeSinceLastRead() >= mIdleTimeout - 1) {
+            if (mReader != null &&
+                    mReader.getTimeSinceLastRead() >= mOptions.getAutoPingInterval() - 1) {
                 sendPing();
                 mExecutor.schedule(() -> {
-                    if (mReader.getTimeSinceLastRead() < mIdleTimeout) {
+                    if (mReader.getTimeSinceLastRead() < mOptions.getAutoPingInterval()) {
                         return;
                     }
                     forward(new ConnectionLost("AutoPing timed out."));
-                }, 2, TimeUnit.SECONDS);
+                }, mOptions.getAutoPingTimeout(), TimeUnit.SECONDS);
             }
         }
     };
@@ -605,7 +604,9 @@ public class WebSocketConnection implements IWebSocket {
 
                     if (serverHandshake.mSuccess) {
                         if (mWsHandler != null) {
-                            mExecutor.scheduleAtFixedRate(mAutoPinger, mIdleTimeout, mIdleTimeout, TimeUnit.SECONDS);
+                            mExecutor.scheduleAtFixedRate(
+                                    mAutoPinger, 0,
+                                    mOptions.getAutoPingInterval(), TimeUnit.SECONDS);
                             String protocol = getOrDefault(serverHandshake.headers,
                                     "Sec-WebSocket-Protocol", null);
                             mWsHandler.setConnection(WebSocketConnection.this);

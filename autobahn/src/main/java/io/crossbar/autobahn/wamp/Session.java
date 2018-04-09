@@ -223,6 +223,20 @@ public class Session implements ISession, ITransportHandler {
         }
     }
 
+    @Override
+    public void onLeave(CloseDetails details) {
+        LOGGER.d("onLeave(), reason=" + details.reason);
+
+        List<CompletableFuture<?>> futures = new ArrayList<>();
+        for (OnLeaveListener listener: mOnLeaveListeners) {
+            futures.add(runAsync(() -> listener.onLeave(this, details), mExecutor));
+        }
+        CompletableFuture d = combineFutures(futures);
+        d.thenRunAsync(() -> {
+            LOGGER.d("Notified all Session.onLeave listeners.");
+        }, mExecutor);
+    }
+
     private void onPreSessionMessage(IMessage message) throws Exception {
         if (message instanceof Welcome) {
             Welcome msg = (Welcome) message;
