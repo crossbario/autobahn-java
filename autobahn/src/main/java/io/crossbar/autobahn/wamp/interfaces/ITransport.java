@@ -26,4 +26,6 @@ public interface ITransport {
     void close() throws Exception;
 
     void abort() throws Exception;
+
+    void setOptions(TransportOptions options);
 }

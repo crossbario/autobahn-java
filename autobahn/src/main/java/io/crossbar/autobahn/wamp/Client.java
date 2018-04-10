@@ -132,4 +132,8 @@ public class Client {
         }, getExecutor());
         return exitFuture;
     }
+
+    public void setOptions(TransportOptions options) {
+        mTransports.get(0).setOptions(options);
+    }
 }
