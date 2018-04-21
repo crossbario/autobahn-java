@@ -886,12 +886,7 @@ public class Session implements ISession, ITransportHandler {
         CompletableFuture<Publication> future = new CompletableFuture<>();
         long requestID = mIDGenerator.next();
         mPublishRequests.put(requestID, new PublishRequest(requestID, future));
-        if (options != null) {
-            send(new Publish(requestID, topic, args, kwargs, options.acknowledge, options.excludeMe,
-                    options.retain));
-        } else {
-            send(new Publish(requestID, topic, args, kwargs, true, true, false));
-        }
+        send(new Publish(requestID, topic, args, kwargs, options));
         return future;
     }
 
