@@ -19,6 +19,7 @@ import java.util.Map;
 
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
+import io.crossbar.autobahn.wamp.types.PublishOptions;
 import io.crossbar.autobahn.wamp.utils.MessageUtil;
 
 import static io.crossbar.autobahn.wamp.utils.Shortcuts.getOrDefault;
@@ -31,20 +32,19 @@ public class Publish implements IMessage {
     public final String topic;
     public final List<Object> args;
     public final Map<String, Object> kwargs;
-    public final boolean acknowledge;
-    public final boolean excludeMe;
-    public final boolean retain;
+    public final PublishOptions publishOptions;
 
     public Publish(long request, String topic, List<Object> args, Map<String, Object> kwargs,
-                   boolean acknowledge, boolean excludeMe, boolean retain) {
+                   PublishOptions publishOptions) {
 
         this.request = request;
         this.topic = topic;
         this.args = args;
         this.kwargs = kwargs;
-        this.acknowledge = acknowledge;
-        this.excludeMe = excludeMe;
-        this.retain = retain;
+        if(publishOptions == null){
+            publishOptions = new PublishOptions(true, true, false, null);
+        }
+        this.publishOptions = publishOptions;
     }
 
     public static Publish parse(List<Object> wmsg) {
@@ -70,8 +70,9 @@ public class Publish implements IMessage {
         boolean acknowledge = getOrDefault(options, "acknowledge", false);
         boolean excludeMe = getOrDefault(options, "exclude_me", true);
         boolean retain = getOrDefault(options, "retain", false);
-
-        return new Publish(request, topic, args, kwargs, acknowledge, excludeMe, retain);
+        List<String> eligibleAuthIds = getOrDefault(options, "retain", null);
+        PublishOptions publishOptions = new PublishOptions(acknowledge, excludeMe, retain, eligibleAuthIds);
+        return new Publish(request, topic, args, kwargs, publishOptions);
     }
 
     @Override
@@ -80,14 +81,17 @@ public class Publish implements IMessage {
         marshaled.add(MESSAGE_TYPE);
         marshaled.add(request);
         Map<String, Object> options = new HashMap<>();
-        if (acknowledge) {
-            options.put("acknowledge", acknowledge);
+        if (publishOptions.acknowledge) {
+            options.put("acknowledge", publishOptions.acknowledge);
         }
-        if (!excludeMe) {
-            options.put("exclude_me", excludeMe);
+        if (!publishOptions.excludeMe) {
+            options.put("exclude_me", publishOptions.excludeMe);
         }
-        if (retain) {
-            options.put("retain", retain);
+        if (publishOptions.retain) {
+            options.put("retain", publishOptions.retain);
+        }
+        if (publishOptions.eligibleAuthIds != null && publishOptions.eligibleAuthIds.size() > 0) {
+            options.put("eligible_authid", publishOptions.eligibleAuthIds);
         }
         marshaled.add(options);
         marshaled.add(topic);
