@@ -20,4 +20,8 @@ RUN    wget https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip
 RUN /usr/bin/expect -c \
     "spawn $ANDROID_HOME/tools/bin/sdkmanager \"platforms;android-27\" \"build-tools;27.0.3\"; set timeout -1; expect \"Accept? (y/N): \"; send \"y\r\n\"; expect done;"
 
+COPY ${PWD} /workspace
+
+RUN gradle installDist -PbuildPlatform=android -PbuildVersion=${AUTOBAHN_JAVA_VERSION}
+
 CMD ["gradle", "assemble"]
