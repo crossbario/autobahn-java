@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Base64;
+import android.util.Log;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -287,6 +288,7 @@ class WebSocketWriter extends Handler {
             throw new WebSocketException("pong payload exceeds 125 octets");
         }
         sendFrame(10, true, message.mPayload);
+        LOGGER.d("WebSockets Pong Sent");
     }
 
 
