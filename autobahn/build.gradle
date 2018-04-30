@@ -3,7 +3,7 @@ apply plugin: project.IS_ANDROID ? 'com.github.dcendents.android-maven': 'maven-
 apply plugin: 'com.jfrog.bintray'
 
 def ARTIFACT_ANDROID = 'autobahn-android'
-def ARTIFACT_ANDROID_STREAMSUPPORT = 'autobahn-android-streamsupport'
+def ARTIFACT_ANDROID_STREAMSUPPORT = 'autobahn-android-legacy'
 def ARTIFACT_JAVA = 'autobahn-java'
 
 def groupID = 'io.crossbar.autobahn'
