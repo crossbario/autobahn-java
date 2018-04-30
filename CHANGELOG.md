@@ -1,3 +1,11 @@
+# Release v18.5.1
+
+* NEW: log when pong is received (#400)
+* NEW: AndroidWebSocket: Allow to disable heartbeat (#399)
+* NEW: Allow to update auto ping variables on a connected session (#394)
+
+---
+
 # Release v18.3.2
 
 * FIX: Fire onLeave() when session is lost (#390)
