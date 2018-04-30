@@ -34,7 +34,6 @@ import javax.net.ssl.SSLSocketFactory;
 
 import io.crossbar.autobahn.utils.ABLogger;
 import io.crossbar.autobahn.utils.IABLogger;
-import io.crossbar.autobahn.wamp.types.TransportOptions;
 import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
 import io.crossbar.autobahn.websocket.interfaces.IWebSocket;
 import io.crossbar.autobahn.websocket.interfaces.IWebSocketConnectionHandler;
@@ -529,9 +528,11 @@ public class WebSocketConnection implements IWebSocket {
             // Now do the magic here.
             if (mPingerTask != null) {
                 mPingerTask.cancel(true);
-                if (mExecutor == null) {
-                    mExecutor = Executors.newSingleThreadScheduledExecutor();
-                }
+            }
+            if (mExecutor == null) {
+                mExecutor = Executors.newSingleThreadScheduledExecutor();
+            }
+            if (mOptions.getAutoPingInterval() > 0) {
                 mPingerTask = mExecutor.scheduleAtFixedRate(
                         mAutoPinger, 0,
                         mOptions.getAutoPingInterval(), TimeUnit.SECONDS);
@@ -636,9 +637,11 @@ public class WebSocketConnection implements IWebSocket {
 
                     if (serverHandshake.mSuccess) {
                         if (mWsHandler != null) {
-                            mPingerTask = mExecutor.scheduleAtFixedRate(
-                                    mAutoPinger, 0,
-                                    mOptions.getAutoPingInterval(), TimeUnit.SECONDS);
+                            if (mOptions.getAutoPingInterval() > 0) {
+                                mPingerTask = mExecutor.scheduleAtFixedRate(
+                                        mAutoPinger, 0,
+                                        mOptions.getAutoPingInterval(), TimeUnit.SECONDS);
+                            }
                             String protocol = getOrDefault(serverHandshake.headers,
                                     "Sec-WebSocket-Protocol", null);
                             mWsHandler.setConnection(WebSocketConnection.this);
