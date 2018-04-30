@@ -3,7 +3,7 @@ apply plugin: project.IS_ANDROID ? 'com.github.dcendents.android-maven': 'maven-
 apply plugin: 'com.jfrog.bintray'
 
 def ARTIFACT_ANDROID = 'autobahn-android'
-def ARTIFACT_ANDROID_STREAMSUPPORT = 'autobahn-android-legacy'
+def ARTIFACT_ANDROID_LEGACY = 'autobahn-android-legacy'
 def ARTIFACT_JAVA = 'autobahn-java'
 
 def groupID = 'io.crossbar.autobahn'
@@ -41,7 +41,7 @@ bintray {
     pkg {
         repo = 'autobahn'
         if (project.IS_ANDROID) {
-            name = project.BUILD_LEGACY ? ARTIFACT_ANDROID_STREAMSUPPORT: ARTIFACT_ANDROID
+            name = project.BUILD_LEGACY ? ARTIFACT_ANDROID_LEGACY: ARTIFACT_ANDROID
         } else {
             name = ARTIFACT_JAVA
         }
@@ -97,7 +97,7 @@ if (project.IS_ANDROID) {
         source = android.sourceSets.main.java.srcDirs
         classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     }
-    project.archivesBaseName = project.BUILD_LEGACY ? ARTIFACT_ANDROID_STREAMSUPPORT: ARTIFACT_ANDROID
+    project.archivesBaseName = project.BUILD_LEGACY ? ARTIFACT_ANDROID_LEGACY: ARTIFACT_ANDROID
     group = groupID
     version = relVersion
     install {
@@ -107,10 +107,10 @@ if (project.IS_ANDROID) {
                 project {
                     packaging 'aar'
                     groupId groupID
-                    artifactId project.BUILD_LEGACY ? ARTIFACT_ANDROID_STREAMSUPPORT: ARTIFACT_ANDROID
+                    artifactId project.BUILD_LEGACY ? ARTIFACT_ANDROID_LEGACY: ARTIFACT_ANDROID
 
                     // Add your description here
-                    name project.BUILD_LEGACY ? ARTIFACT_ANDROID_STREAMSUPPORT: ARTIFACT_ANDROID
+                    name project.BUILD_LEGACY ? ARTIFACT_ANDROID_LEGACY: ARTIFACT_ANDROID
                     description 'WebSocket & WAMP for Android'
                     url siteUrl
 
