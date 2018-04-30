@@ -15,17 +15,17 @@ def relVersion = System.getenv().containsKey('AUTOBAHN_BUILD_VERSION') ? System.
 def siteUrl = 'https://github.com/crossbario/autobahn-java'
 
 dependencies {
-    api 'com.fasterxml.jackson.core:jackson-core:2.8.8'
+    api 'com.fasterxml.jackson.core:jackson-core:2.9.5'
     //api 'net.sourceforge.streamsupport:streamsupport-cfuture:1.6.2'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.8.8'
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.8.8'
-    implementation 'org.msgpack:jackson-dataformat-msgpack:0.8.13'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.5'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.5'
+    implementation 'org.msgpack:jackson-dataformat-msgpack:0.8.16'
     if (project.IS_ANDROID) {
-        implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:1.0.7'
+        implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:1.0.8'
     } else {
-        implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni:1.0.7'
-        implementation 'io.netty:netty-codec-http:4.1.2.Final'
-        implementation 'io.netty:netty-handler:4.1.2.Final'
+        implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni:1.0.8'
+        implementation 'io.netty:netty-codec-http:4.1.24.Final'
+        implementation 'io.netty:netty-handler:4.1.24.Final'
     }
 }
 
