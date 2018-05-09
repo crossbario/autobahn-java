@@ -225,6 +225,9 @@ public class Session implements ISession, ITransportHandler {
 
     @Override
     public void onLeave(CloseDetails details) {
+        if (mState == STATE_DISCONNECTED) {
+            return;
+        }
         LOGGER.d("onLeave(), reason=" + details.reason);
 
         List<CompletableFuture<?>> futures = new ArrayList<>();

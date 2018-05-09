@@ -100,17 +100,16 @@ public class AndroidWebSocket implements ITransport {
 
             @Override
             public void onClose(int code, String reason) {
-                switch (code) {
-                    case IWebSocketConnectionHandler.CLOSE_CONNECTION_LOST:
-                        transportHandler.onLeave(
-                                new CloseDetails(CloseDetails.REASON_TRANSPORT_LOST, null));
-                        break;
-                    default:
-                        transportHandler.onLeave(
-                                new CloseDetails(CloseDetails.REASON_DEFAULT, null));
+                String closeReason;
+                if (code == IWebSocketConnectionHandler.CLOSE_CONNECTION_LOST) {
+                    closeReason = CloseDetails.REASON_TRANSPORT_LOST;
+                } else {
+                    closeReason = CloseDetails.REASON_DEFAULT;
                 }
+                transportHandler.onLeave(new CloseDetails(closeReason, null));
                 LOGGER.d(String.format("Disconnected, code=%s, reasons=%s", code, reason));
-                transportHandler.onDisconnect(code == 1000);
+                transportHandler.onDisconnect(code == IWebSocketConnectionHandler.CLOSE_NORMAL
+                        || code == 1000);
             }
 
             @Override
