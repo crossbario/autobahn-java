@@ -1,3 +1,9 @@
+# Release v18.5.2
+
+* FIX: Don't call onLeave listener twice in case of normal GoodBye (#405)
+
+---
+
 # Release v18.5.1
 
 * NEW: log when pong is received (#400)
