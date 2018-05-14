@@ -19,6 +19,7 @@ import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 public class MessagePackSerializer extends ISerializer {
 
     public static final String NAME = "wamp.2.msgpack";
+    public static final int RAWSOCKET_SERIALIZER_ID = 2;
 
     public MessagePackSerializer() {
         super(new MessagePackFactory());

@@ -19,6 +19,7 @@ import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 public class CBORSerializer extends ISerializer {
 
     public static final String NAME = "wamp.2.cbor";
+    public static final int RAWSOCKET_SERIALIZER_ID = 3;
 
     public CBORSerializer() {
         super(new CBORFactory());
