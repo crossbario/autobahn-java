@@ -23,12 +23,11 @@ before_script:
 
 script:
   - ./gradlew :autobahn:build connectedCheck
-  - find .
   - docker run --rm -it --link crossbar -v ${PWD}:/workspace crossbario/autobahn-java:netty /bin/bash -c "gradle installDist -PbuildPlatform=netty && /workspace/demo-gallery/build/install/demo-gallery/bin/demo-gallery ws://crossbar:8080/ws"
 
 deploy:
   provider: releases
-  file: autobahn/build/outputs/aar/autobahn-android-debug.aar
+  file: autobahn/build/outputs/aar/autobahn-android-release.aar
   skip_cleanup: true
   on:
     tags: true
