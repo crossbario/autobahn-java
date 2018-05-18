@@ -1,6 +1,15 @@
-language: python
-python:
-  - 3.5
+language: android
+android:
+  components:
+    - tools
+    - platform-tools
+    - tools
+    - build-tools-27.0.3
+    - android-27
+  licenses:
+    - 'android-sdk-preview-license-.+'
+    - 'android-sdk-license-.+'
+    - 'google-gdk-license-.+'
 
 services:
   - docker
