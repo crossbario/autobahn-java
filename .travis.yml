@@ -14,12 +14,13 @@ android:
 services:
   - docker
 
-#install:
-#  - if [[ $(git diff --name-only $TRAVIS_COMMIT_RANGE) =~ "docker/Dockerfile.netty" ]]; then docker build -t crossbario/autobahn-java:netty -f ./docker/Dockerfile.netty .; fi
+install:
+  - if [[ $(git diff --name-only $TRAVIS_COMMIT_RANGE) =~ "docker/Dockerfile.netty" ]]; then docker build -t crossbario/autobahn-java:netty -f ./docker/Dockerfile.netty .; fi
 
-#before_script:
-#  - docker run -d -p 8080:8080 --name crossbar crossbario/crossbar
-#  - docker run -d --link crossbar -v ${PWD}/demo-gallery/python:/test crossbario/autobahn-python python -u /test/test_component2.py
+before_script:
+  - docker run -d -p 8080:8080 --name crossbar crossbario/crossbar
+  - docker run -d --link crossbar -v ${PWD}/demo-gallery/python:/test crossbario/autobahn-python python -u /test/test_component2.py
 
-#after_script:
-#  - docker run --rm -it --link crossbar -v ${PWD}:/workspace crossbario/autobahn-java:netty /bin/bash -c "gradle installDist -PbuildPlatform=netty && /workspace/demo-gallery/build/install/demo-gallery/bin/demo-gallery ws://crossbar:8080/ws"
+script:
+  - docker run --rm -it --link crossbar -v ${PWD}:/workspace crossbario/autobahn-java:netty /bin/bash -c "gradle installDist -PbuildPlatform=netty && /workspace/demo-gallery/build/install/demo-gallery/bin/demo-gallery ws://crossbar:8080/ws"
+  - ./gradlew build connectedCheck
