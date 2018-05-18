@@ -22,5 +22,14 @@ before_script:
   - docker run -d --link crossbar -v ${PWD}/demo-gallery/python:/test crossbario/autobahn-python python -u /test/test_component2.py
 
 script:
+  - ./gradlew :autobahn:build connectedCheck
+  - find .
   - docker run --rm -it --link crossbar -v ${PWD}:/workspace crossbario/autobahn-java:netty /bin/bash -c "gradle installDist -PbuildPlatform=netty && /workspace/demo-gallery/build/install/demo-gallery/bin/demo-gallery ws://crossbar:8080/ws"
-  - ./gradlew build connectedCheck
+
+deploy:
+  provider: releases
+  file: autobahn/build/outputs/aar/autobahn-android-debug.aar
+  skip_cleanup: true
+  on:
+    tags: true
+  api_key: "$GITHUB_OAUTH_TOKEN"
