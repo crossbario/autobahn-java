@@ -1,6 +1,15 @@
-language: python
-python:
-  - 3.5
+language: android
+android:
+  components:
+    - tools
+    - platform-tools
+    - tools
+    - build-tools-27.0.3
+    - android-27
+  licenses:
+    - 'android-sdk-preview-license-.+'
+    - 'android-sdk-license-.+'
+    - 'google-gdk-license-.+'
 
 services:
   - docker
@@ -13,4 +22,13 @@ before_script:
   - docker run -d --link crossbar -v ${PWD}/demo-gallery/python:/test crossbario/autobahn-python python -u /test/test_component2.py
 
 script:
+  - ./gradlew :autobahn:build connectedCheck
   - docker run --rm -it --link crossbar -v ${PWD}:/workspace crossbario/autobahn-java:netty /bin/bash -c "gradle installDist -PbuildPlatform=netty && /workspace/demo-gallery/build/install/demo-gallery/bin/demo-gallery ws://crossbar:8080/ws"
+
+deploy:
+  provider: releases
+  file: autobahn/build/outputs/aar/autobahn-android-release.aar
+  skip_cleanup: true
+  on:
+    tags: true
+  api_key: "$GITHUB_OAUTH_TOKEN"
