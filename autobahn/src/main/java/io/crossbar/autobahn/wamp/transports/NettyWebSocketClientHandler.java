@@ -74,6 +74,9 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         LOGGER.i("WebSocket Client disconnected!");
+        if (mCloseDetails == null) {
+            mCloseDetails = new CloseDetails(CloseDetails.REASON_TRANSPORT_LOST, null);
+        }
         mTransportHandler.onLeave(mCloseDetails);
         mTransportHandler.onDisconnect(mWasCleanClose);
     }
