@@ -1322,7 +1322,12 @@ public class Session implements ISession, ITransportHandler {
         removeListener(mOnJoinListeners, listener);
     }
 
+    @Deprecated
     public OnReadyListener adOnReadyListener(OnReadyListener listener) {
+        return addOnReadyListener(listener);
+    }
+
+    public OnReadyListener addOnReadyListener(OnReadyListener listener) {
         return addListener(mOnReadyListeners, listener);
     }
 
