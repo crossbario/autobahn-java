@@ -85,6 +85,7 @@ publish_android_legacy: build_android
 
 build_netty:
 	docker run -it --rm \
+		-e AUTOBAHN_BUILD_VERSION=${AUTOBAHN_JAVA_VERSION} \
 		-v ${shell pwd}:/workspace \
 		crossbario/autobahn-java:netty \
 		gradle -PbuildPlatform=netty distZip
