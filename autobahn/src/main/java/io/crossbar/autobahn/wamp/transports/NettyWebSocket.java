@@ -31,6 +31,8 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
@@ -178,9 +180,15 @@ public class NettyWebSocket implements ITransport {
                         mHandler);
             }
         });
-
-        mChannel = bootstrap.connect(uri.getHost(), port).sync().channel();
-        mHandler.getHandshakeFuture().sync();
+        ChannelFuture f = bootstrap.connect(uri.getHost(), port);
+        f.addListener((ChannelFutureListener) connectFuture -> {
+            Throwable connectCause = connectFuture.cause();
+            if (connectCause != null) {
+                transportHandler.onDisconnect(false);
+            } else {
+                mChannel = f.channel();
+            }
+        });
     }
 
     @Override
