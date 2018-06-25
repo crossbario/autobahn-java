@@ -21,7 +21,6 @@ import io.crossbar.autobahn.utils.ABLogger;
 import io.crossbar.autobahn.utils.IABLogger;
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
-import io.crossbar.autobahn.wamp.transports.NettyWebSocket;
 import io.crossbar.autobahn.wamp.types.ExitInfo;
 import io.crossbar.autobahn.wamp.types.TransportOptions;
 import io.crossbar.autobahn.wamp.utils.Platform;
