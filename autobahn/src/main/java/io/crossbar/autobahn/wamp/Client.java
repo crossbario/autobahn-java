@@ -127,7 +127,7 @@ public class Client {
             try {
                 mTransports.get(0).connect(mSession, options);
             } catch (Exception e) {
-                throw new CompletionException(e);
+                exitFuture.completeExceptionally(e);
             }
         }, getExecutor());
         return exitFuture;
