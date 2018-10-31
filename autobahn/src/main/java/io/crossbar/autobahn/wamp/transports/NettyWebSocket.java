@@ -157,7 +157,11 @@ public class NettyWebSocket implements ITransport {
                 new DefaultHttpHeaders(), options.getMaxFramePayloadSize());
         mHandler = new NettyWebSocketClientHandler(handshaker, this, transportHandler);
 
-        EventLoopGroup group = new NioEventLoopGroup();
+        EventLoopGroup group = new NioEventLoopGroup(0, r -> {
+            Thread t = Executors.defaultThreadFactory().newThread(r);
+            t.setDaemon(true);
+            return t;
+        });
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(group);
         bootstrap.channel(NioSocketChannel.class);
