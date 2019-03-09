@@ -15,17 +15,17 @@ def relVersion = System.getenv().containsKey('AUTOBAHN_BUILD_VERSION') ? System.
 def siteUrl = 'https://github.com/crossbario/autobahn-java'
 
 dependencies {
-    api 'com.fasterxml.jackson.core:jackson-core:2.9.5'
+    api 'com.fasterxml.jackson.core:jackson-core:2.9.8'
     //api 'net.sourceforge.streamsupport:streamsupport-cfuture:1.6.2'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.5'
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.5'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.8'
     implementation 'org.msgpack:jackson-dataformat-msgpack:0.8.16'
     if (project.IS_ANDROID) {
-        implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:1.0.8'
+        implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.1'
     } else {
-        implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni:1.0.8'
-        implementation 'io.netty:netty-codec-http:4.1.24.Final'
-        implementation 'io.netty:netty-handler:4.1.24.Final'
+        implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni:2.0.1'
+        implementation 'io.netty:netty-codec-http:4.1.34.Final'
+        implementation 'io.netty:netty-handler:4.1.34.Final'
     }
 }
 
@@ -63,11 +63,11 @@ bintray {
 
 if (project.IS_ANDROID) {
     android {
-        compileSdkVersion 27
-        buildToolsVersion '27.0.3'
+        compileSdkVersion 28
+        buildToolsVersion '28.0.3'
         defaultConfig {
             minSdkVersion 24
-            targetSdkVersion 27
+            targetSdkVersion 28
         }
         buildTypes {
             release {
