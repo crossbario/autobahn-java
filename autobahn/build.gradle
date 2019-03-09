@@ -97,8 +97,14 @@ if (project.IS_ANDROID) {
     }
 
     task javadoc(type: Javadoc) {
+        failOnError false
         source = android.sourceSets.main.java.srcDirs
         classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    }
+    afterEvaluate {
+        javadoc.classpath += files(android.libraryVariants.collect { variant ->
+            variant.javaCompile.classpath.files
+        })
     }
     project.archivesBaseName = project.BUILD_LEGACY ? ARTIFACT_ANDROID_LEGACY: ARTIFACT_ANDROID
     group = groupID
@@ -138,6 +144,10 @@ if (project.IS_ANDROID) {
             }
         }
     }
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+    }
 } else {
     // Create the pom configuration:
     def pomConfig = {
@@ -159,6 +169,14 @@ if (project.IS_ANDROID) {
             url siteUrl
         }
     }
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+    }
     publishing {
         publications {
             mavenJava(MavenPublication) {
@@ -179,10 +197,6 @@ if (project.IS_ANDROID) {
             }
         }
     }
-    task sourcesJar(type: Jar, dependsOn: classes) {
-        classifier = 'sources'
-        from sourceSets.main.allSource
-    }
     sourceSets {
         main {
             java {
@@ -197,11 +211,6 @@ if (project.IS_ANDROID) {
     }
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
 }
 
 artifacts {
