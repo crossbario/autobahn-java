@@ -1,3 +1,15 @@
+# Release v19.3.1
+
+* MISC: Update dependency versions
+* FIX: Netty: call onDisconnect when crossbar not reachable (#418)
+* MISC: Remove legacy files (#416)
+* FIX: dont send null CloseDetails on transport lost in netty implementation (#414)
+* FIX: Fix typo in readStateListener adder (#413)
+* NEW: Build (and publish) Android aar as part of the CI (#409)
+* NEW: add preliminary WAMP-over-RawSocket implementation (#406)
+
+---
+
 # Release v18.5.2
 
 * FIX: Don't call onLeave listener twice in case of normal GoodBye (#405)
