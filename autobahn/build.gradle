@@ -66,7 +66,7 @@ if (project.IS_ANDROID) {
         compileSdkVersion 28
         buildToolsVersion '28.0.3'
         defaultConfig {
-            minSdkVersion 24
+            minSdkVersion 16
             targetSdkVersion 28
         }
         buildTypes {
