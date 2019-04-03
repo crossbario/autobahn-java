@@ -16,10 +16,13 @@ def siteUrl = 'https://github.com/crossbario/autobahn-java'
 
 dependencies {
     api 'com.fasterxml.jackson.core:jackson-core:2.9.8'
-    //api 'net.sourceforge.streamsupport:streamsupport-cfuture:1.6.2'
+    api 'net.sourceforge.streamsupport:streamsupport-cfuture:1.6.2'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.8'
     implementation 'org.msgpack:jackson-dataformat-msgpack:0.8.16'
+    implementation ('org.ethereum:ethereumj-core:1.11.0-RELEASE') {
+        exclude group: 'org.iq80.leveldb'
+    }
     if (project.IS_ANDROID) {
         implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.1'
     } else {
