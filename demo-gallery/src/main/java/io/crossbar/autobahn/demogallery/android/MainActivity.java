@@ -50,17 +50,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         session.addOnJoinListener((session1, details) -> {
             System.out.println("CONNECTED");
             SimpleBuyer buyer = new SimpleBuyer(
-                    "395df67f0c2d2d9fe1ad08d1bc8b6627011959b79c53d7dd6a3536a33ab8a4fd", 0);
+                    "395df67f0c2d2d9fe1ad08d1bc8b6627011959b79c53d7dd6a3536a33ab8a4fd", 2000000);
             buyer.start(session1, 900).whenComplete((integer, throwable) -> {
                 if (throwable != null) {
                     throwable.printStackTrace();
                 } else {
-                    System.out.println("GOT          + " + integer);
+                    System.out.println("GOT + " + integer);
+                    buyer.unwrap(null, null, null).whenComplete((s, throwable1) -> {
+                        if (throwable1 != null) {
+                            throwable1.printStackTrace();
+                        } else {
+                            System.out.println(s);
+                        }
+                    });
                 }
             });
-
         });
-        Client client = new Client(session, "ws://192.168.0.9:8080/ws", "realm1");
+        Client client = new Client(session, "ws://10.0.2.2:8080/ws", "realm1");
         client.connect().whenComplete((exitInfo, throwable) -> {
             System.out.println("EXIT");
         });

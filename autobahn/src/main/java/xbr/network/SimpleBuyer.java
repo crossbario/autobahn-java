@@ -4,6 +4,7 @@ package xbr.network;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import org.ethereum.crypto.ECKey;
+import org.ethereum.crypto.HashUtil;
 import org.libsodium.jni.SodiumConstants;
 import org.spongycastle.util.encoders.Hex;
 
@@ -56,13 +57,13 @@ public class SimpleBuyer {
         CompletableFuture<HashMap<String, Object>> callFuture = session.call(
                 "xbr.marketmaker.get_payment_channel",
                 new TypeReference<HashMap<String, Object>>() {},
-                null, mECKey.getAddress());
+                mECKey.getAddress());
         callFuture.whenComplete((result, throwable) -> {
             if (throwable != null) {
                 throwable.printStackTrace();
             } else {
                 mChannel = result;
-                mRemainingBalance = (long) result.get("remaining");
+                mRemainingBalance = (int) result.get("remaining");
                 future.complete(mRemainingBalance);
             }
         });
@@ -86,7 +87,7 @@ public class SimpleBuyer {
         CompletableFuture<HashMap<String, Object>> callFuture = mSession.call(
                 "xbr.marketmaker.get_payment_channel",
                 new TypeReference<HashMap<String, Object>>() {},
-                null, mECKey.getAddress());
+                mECKey.getAddress());
         callFuture.whenComplete((result, throwable) -> {
             if (throwable != null) {
                 throwable.printStackTrace();
@@ -112,7 +113,6 @@ public class SimpleBuyer {
         CompletableFuture<HashMap<String, Object>> callFuture = mSession.call(
                 "xbr.marketmaker.open_payment_channel",
                 new TypeReference<HashMap<String, Object>>() {},
-                null,
                 buyerAddr,
                 mECKey.getAddress(),
                 amount,
@@ -137,8 +137,31 @@ public class SimpleBuyer {
 
     }
 
-    public CompletableFuture<String> unwrap(long keyID, String encSerializer, String ciphertext) {
+    public CompletableFuture<String> unwrap(byte[] keyID, String encSerializer, String ciphertext) {
         CompletableFuture<String> future = new CompletableFuture<>();
+        if (!mKeys.containsKey(keyID)) {
+            int amount = mMaxPrice;
+            byte[] signature = new byte[64];
+            HashUtil.sha256(signature);
+            byte[] key = new byte[16];
+            sodium().randombytes(key, 16);
+
+            CompletableFuture<HashMap<String, Object>> callFuture = mSession.call(
+                    "xbr.marketmaker.buy_key",
+                    new TypeReference<HashMap<String, Object>>() {},
+                    mECKey.getAddress(),
+                    mPublicKey,
+                    key,
+                    amount,
+                    signature);
+            callFuture.whenComplete((stringObjectHashMap, throwable) -> {
+                if (throwable != null) {
+                    throwable.printStackTrace();
+                } else {
+                    System.out.println(stringObjectHashMap);
+                }
+            });
+        }
         return future;
     }
 }

@@ -1246,6 +1246,14 @@ public class Session implements ISession, ITransportHandler {
         return reallyCall(procedure, Arrays.asList(args), null, options, resultType, null);
     }
 
+    @Override
+    public <T> CompletableFuture<T> call(
+            String procedure,
+            TypeReference<T> resultType,
+            Object... args) {
+        return reallyCall(procedure, Arrays.asList(args), null, null, resultType, null);
+    }
+
     private CompletableFuture<SessionDetails> reallyJoin(
             String realm,
             List<IAuthenticator> authenticators) {
