@@ -93,6 +93,13 @@ if (project.IS_ANDROID) {
         lintOptions {
             abortOnError false
         }
+        packagingOptions {
+            exclude 'META-INF/spring.tooling'
+            exclude 'META-INF/spring.handlers'
+            exclude 'META-INF/spring.schemas'
+            exclude 'META-INF/license.txt'
+            exclude 'META-INF/notice.txt'
+        }
     }
     task sourcesJar(type: Jar) {
         classifier = 'sources'
