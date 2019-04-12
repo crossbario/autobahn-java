@@ -702,6 +702,10 @@ public interface ISession {
                                   CallOptions options,
                                   Object... args);
 
+    <T> CompletableFuture<T> call(String procedure,
+                                  TypeReference<T> resultType,
+                                  Object... args);
+
     /**
      * Joins a realm on the WAMP router
      * @param realm name of the realm to join
