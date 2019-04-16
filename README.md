@@ -330,7 +330,7 @@ and that will output the jar file in `autobahn/build/libs/`.
 
 ## Get in touch
 
-Get in touch on IRC #autobahn on chat.freenode.net or join the [mailing list](http://groups.google.com/group/autobahnws).
+Get in touch by joining our [forum](https://forum.crossbar.io).
 
 ---
 
