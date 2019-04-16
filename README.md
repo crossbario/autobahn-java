@@ -305,7 +305,6 @@ connection.connect("wss://echo.websocket.org", new WebSocketConnectionHandler() 
 ```
 
 ---
---
 
 ### Building from source
 
