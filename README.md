@@ -276,7 +276,33 @@ private void main() {
 
 ### WebSocket on Android
 
-TBD
+Echo example
+
+```java
+WebSocketConnection connection = new WebSocketConnection();
+connection.connect("wss://echo.websocket.org", new WebSocketConnectionHandler() {
+    @Override
+    public void onConnect(ConnectionResponse response) {
+        System.out.println("Connected to server");
+    }
+
+    @Override
+    public void onOpen() {
+        connection.sendMessage("Echo with Autobahn");
+    }
+
+    @Override
+    public void onClose(int code, String reason) {
+        System.out.println("Connection closed");
+    }
+
+    @Override
+    public void onMessage(String payload) {
+        System.out.println("Recieved message: " + payload);
+        connection.sendMessage(payload);
+    }
+});
+```
 
 ---
 --
