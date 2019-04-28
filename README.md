@@ -220,7 +220,7 @@ Autobahn also supports POJOs
 Here is how to call a remote procedure that returns a list of Person POJOs
 
 ```java
-// Call a remote proedure that returns a Person with id 1
+// Call a remote procedure that returns a Person with id 1
 CompletableFuture<Person> callFuture = mSession.call("com.example.get_person", 1);
 callFuture.whenCompleteAsync((person, throwable) -> {
     if (throwable != null) {
@@ -298,7 +298,7 @@ connection.connect("wss://echo.websocket.org", new WebSocketConnectionHandler() 
 
     @Override
     public void onMessage(String payload) {
-        System.out.println("Recieved message: " + payload);
+        System.out.println("Received message: " + payload);
         connection.sendMessage(payload);
     }
 });
