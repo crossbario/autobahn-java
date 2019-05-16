@@ -86,6 +86,8 @@ public class WebSocketConnection implements IWebSocket {
     private ScheduledExecutorService mExecutor;
     private ScheduledFuture<?> mPingerTask;
 
+    private SocketFactory mSocketFactory;
+
     private final Runnable mAutoPinger = new Runnable() {
         @Override
         public void run() {
@@ -120,7 +122,9 @@ public class WebSocketConnection implements IWebSocket {
              * connect TCP socket
 			 */
             try {
-                if (mWsScheme.equals("wss")) {
+                if (mSocketFactory != null) {
+                    mSocket = mSocketFactory.createSocket();
+                } else if (mWsScheme.equals("wss")) {
                     mSocket = SSLSocketFactory.getDefault().createSocket();
                 } else {
                     mSocket = SocketFactory.getDefault().createSocket();
@@ -416,6 +420,11 @@ public class WebSocketConnection implements IWebSocket {
         onCloseCalled = false;
         mActive = false;
         mPrevConnected = false;
+    }
+
+    @Override
+    public void setSocketFactory(SocketFactory factory) {
+        mSocketFactory = factory;
     }
 
     /**

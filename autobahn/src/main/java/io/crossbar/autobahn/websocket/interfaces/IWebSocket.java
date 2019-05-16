@@ -14,6 +14,8 @@ package io.crossbar.autobahn.websocket.interfaces;
 
 import java.util.Map;
 
+import javax.net.SocketFactory;
+
 import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
 import io.crossbar.autobahn.websocket.types.WebSocketOptions;
 
@@ -49,4 +51,6 @@ public interface IWebSocket {
     void sendPong();
 
     void sendPong(byte[] payload);
+
+    void setSocketFactory(SocketFactory factory);
 }
