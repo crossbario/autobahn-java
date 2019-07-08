@@ -64,6 +64,7 @@ public class NettyWebSocket implements ITransport {
 
     private Channel mChannel;
     private NettyWebSocketClientHandler mHandler;
+    private NioEventLoopGroup mGroup;
     private final String mUri;
 
     private WebSocketOptions mOptions;
@@ -157,9 +158,9 @@ public class NettyWebSocket implements ITransport {
                 new DefaultHttpHeaders(), options.getMaxFramePayloadSize());
         mHandler = new NettyWebSocketClientHandler(handshaker, this, transportHandler);
 
-        EventLoopGroup group = new NioEventLoopGroup();
+        mGroup = new NioEventLoopGroup();
         Bootstrap bootstrap = new Bootstrap();
-        bootstrap.group(group);
+        bootstrap.group(mGroup);
         bootstrap.channel(NioSocketChannel.class);
 
         TransportOptions opt = options;
@@ -210,6 +211,10 @@ public class NettyWebSocket implements ITransport {
     @Override
     public void close() throws Exception {
         LOGGER.v("close()");
+        if (mGroup != null) {
+            mGroup.shutdownGracefully().sync();
+            mGroup = null;
+        }
         if (mHandler != null && mChannel != null) {
             mHandler.close(mChannel, true, new CloseDetails(CloseDetails.REASON_DEFAULT, null));
         }
