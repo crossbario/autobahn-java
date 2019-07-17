@@ -211,12 +211,12 @@ public class NettyWebSocket implements ITransport {
     @Override
     public void close() throws Exception {
         LOGGER.v("close()");
+        if (mHandler != null && mChannel != null) {
+            mHandler.close(mChannel, true, new CloseDetails(CloseDetails.REASON_DEFAULT, null));
+        }
         if (mGroup != null) {
             mGroup.shutdownGracefully().sync();
             mGroup = null;
-        }
-        if (mHandler != null && mChannel != null) {
-            mHandler.close(mChannel, true, new CloseDetails(CloseDetails.REASON_DEFAULT, null));
         }
     }
 
