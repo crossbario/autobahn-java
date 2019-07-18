@@ -7,7 +7,6 @@ public class FrameProtocol {
 
     private static final int MAX_PAYLOAD_NORMAL = 125;
     private static final int MAX_PAYLOAD_TWO_BYTE = 0xffff; // 2^16 - 1;
-    private static final int PAYLOAD_LENGTH_EIGHT_BYTE = 127 & 0xff;
 
     private final Random mRng = new Random();
 
@@ -20,14 +19,14 @@ public class FrameProtocol {
     }
 
     private byte[] serializeFrame(int opcode, byte[] payload, boolean fin, boolean maskFrames) {
-        ByteArrayOutputStream result = new ByteArrayOutputStream();
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         // first octet
         byte b0 = 0;
         if (fin) {
             b0 |= (byte) (1 << 7);
         }
         b0 |= (byte) opcode;
-        result.write(b0);
+        buffer.write(b0);
 
         // second octet
         byte b1 = 0;
@@ -43,15 +42,15 @@ public class FrameProtocol {
         // extended payload length
         if (len <= MAX_PAYLOAD_NORMAL) {
             b1 |= (byte) len;
-            result.write(b1);
+            buffer.write(b1);
         } else if (len <= MAX_PAYLOAD_TWO_BYTE) {
             b1 |= (byte) (126 & 0xff);
-            result.write(b1);
+            buffer.write(b1);
             byte[] payloadLength = new byte[]{(byte) ((len >> 8) & 0xff), (byte) (len & 0xff)};
-            result.write(payloadLength, 0, payloadLength.length);
+            buffer.write(payloadLength, 0, payloadLength.length);
         } else {
             b1 |= (byte) (127 & 0xff);
-            result.write(b1);
+            buffer.write(b1);
             byte[] payloadLength = new byte[]{
                     (byte) ((len >> 56) & 0xff),
                     (byte) ((len >> 48) & 0xff),
@@ -61,17 +60,17 @@ public class FrameProtocol {
                     (byte) ((len >> 16) & 0xff),
                     (byte) ((len >> 8) & 0xff),
                     (byte) (len & 0xff)};
-            result.write(payloadLength, 0, payloadLength.length);
+            buffer.write(payloadLength, 0, payloadLength.length);
         }
 
         byte[] mask = null;
         if (maskFrames) {
             // a mask is always needed, even without payload
             mask = newFrameMask();
-            result.write(mask[0]);
-            result.write(mask[1]);
-            result.write(mask[2]);
-            result.write(mask[3]);
+            buffer.write(mask[0]);
+            buffer.write(mask[1]);
+            buffer.write(mask[2]);
+            buffer.write(mask[3]);
         }
 
         if (len > 0) {
@@ -82,9 +81,9 @@ public class FrameProtocol {
                     payload[i] ^= mask[i % 4];
                 }
             }
-            result.write(payload, 0, payload.length);
+            buffer.write(payload, 0, payload.length);
         }
-        return result.toByteArray();
+        return buffer.toByteArray();
     }
 
     private byte[] newFrameMask() {
