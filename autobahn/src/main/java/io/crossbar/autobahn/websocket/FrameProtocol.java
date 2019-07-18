@@ -1,4 +1,4 @@
-package io.crossbar.autobahn;
+package io.crossbar.autobahn.websocket;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Random;
@@ -17,10 +17,6 @@ public class FrameProtocol {
 
     public byte[] pong(byte[] payload) {
         return serializeFrame(10, payload, true, true);
-    }
-
-    public byte[] close() {
-        return null;
     }
 
     private byte[] serializeFrame(int opcode, byte[] payload, boolean fin, boolean maskFrames) {

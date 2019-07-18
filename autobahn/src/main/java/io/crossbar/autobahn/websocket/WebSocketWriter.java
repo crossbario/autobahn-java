@@ -22,7 +22,6 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.Random;
 
-import io.crossbar.autobahn.FrameProtocol;
 import io.crossbar.autobahn.utils.ABLogger;
 import io.crossbar.autobahn.utils.IABLogger;
 import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
@@ -276,11 +275,10 @@ class WebSocketWriter extends Handler {
      * Send WebSockets ping.
      */
     private void sendPing(Ping message) throws IOException, WebSocketException {
+        if (message.mPayload != null && message.mPayload.length > 125) {
+            throw new WebSocketException("ping payload exceeds 125 octets");
+        }
         mBufferedOutputStream.write(mProtocol.ping(message.mPayload));
-//        if (message.mPayload != null && message.mPayload.length > 125) {
-//            throw new WebSocketException("ping payload exceeds 125 octets");
-//        }
-//        sendFrame(9, true, message.mPayload);
     }
 
 
@@ -289,11 +287,10 @@ class WebSocketWriter extends Handler {
      * but Pongs are only send in response to a Ping from the peer.
      */
     private void sendPong(Pong message) throws IOException, WebSocketException {
+        if (message.mPayload != null && message.mPayload.length > 125) {
+            throw new WebSocketException("pong payload exceeds 125 octets");
+        }
         mBufferedOutputStream.write(mProtocol.pong(message.mPayload));
-//        if (message.mPayload != null && message.mPayload.length > 125) {
-//            throw new WebSocketException("pong payload exceeds 125 octets");
-//        }
-//        sendFrame(10, true, message.mPayload);
         LOGGER.d("WebSockets Pong Sent");
     }
 
