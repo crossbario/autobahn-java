@@ -24,6 +24,7 @@ import java.util.Random;
 
 import io.crossbar.autobahn.utils.ABLogger;
 import io.crossbar.autobahn.utils.IABLogger;
+import io.crossbar.autobahn.websocket.exceptions.ParseFailed;
 import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
 import io.crossbar.autobahn.websocket.messages.BinaryMessage;
 import io.crossbar.autobahn.websocket.messages.ClientHandshake;
@@ -240,33 +241,10 @@ class WebSocketWriter extends Handler {
      * Send WebSockets close.
      */
     private void sendClose(Close message) throws IOException, WebSocketException {
-
-        if (message.mCode > 0) {
-
-            byte[] payload;
-
-            if (message.mReason != null && !message.mReason.equals("")) {
-                byte[] pReason = message.mReason.getBytes("UTF-8");
-                payload = new byte[2 + pReason.length];
-                for (int i = 0; i < pReason.length; ++i) {
-                    payload[i + 2] = pReason[i];
-                }
-            } else {
-                payload = new byte[2];
-            }
-
-            if (payload != null && payload.length > 125) {
-                throw new WebSocketException("close payload exceeds 125 octets");
-            }
-
-            payload[0] = (byte) ((message.mCode >> 8) & 0xff);
-            payload[1] = (byte) (message.mCode & 0xff);
-
-            sendFrame(8, true, payload);
-
-        } else {
-
-            sendFrame(8, true, null);
+        try {
+            mBufferedOutputStream.write(mProtocol.close(message.mCode, message.mReason));
+        } catch (ParseFailed parseFailed) {
+            throw new WebSocketException(parseFailed.getMessage());
         }
     }
 
@@ -275,10 +253,11 @@ class WebSocketWriter extends Handler {
      * Send WebSockets ping.
      */
     private void sendPing(Ping message) throws IOException, WebSocketException {
-        if (message.mPayload != null && message.mPayload.length > 125) {
-            throw new WebSocketException("ping payload exceeds 125 octets");
+        try {
+            mBufferedOutputStream.write(mProtocol.ping(message.mPayload));
+        } catch (ParseFailed parseFailed) {
+            throw new WebSocketException(parseFailed.getMessage());
         }
-        mBufferedOutputStream.write(mProtocol.ping(message.mPayload));
     }
 
 
@@ -287,10 +266,11 @@ class WebSocketWriter extends Handler {
      * but Pongs are only send in response to a Ping from the peer.
      */
     private void sendPong(Pong message) throws IOException, WebSocketException {
-        if (message.mPayload != null && message.mPayload.length > 125) {
-            throw new WebSocketException("pong payload exceeds 125 octets");
+        try {
+            mBufferedOutputStream.write(mProtocol.pong(message.mPayload));
+        } catch (ParseFailed parseFailed) {
+            throw new WebSocketException(parseFailed.getMessage());
         }
-        mBufferedOutputStream.write(mProtocol.pong(message.mPayload));
         LOGGER.d("WebSockets Pong Sent");
     }
 

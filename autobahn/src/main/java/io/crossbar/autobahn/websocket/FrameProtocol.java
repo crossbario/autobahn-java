@@ -1,7 +1,12 @@
 package io.crossbar.autobahn.websocket;
 
 import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.Random;
+
+import io.crossbar.autobahn.websocket.exceptions.ParseFailed;
+import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
+import io.crossbar.autobahn.websocket.messages.Close;
 
 public class FrameProtocol {
 
@@ -10,12 +15,58 @@ public class FrameProtocol {
 
     private final Random mRng = new Random();
 
-    public byte[] ping(byte[] payload) {
+    public byte[] ping(byte[] payload) throws ParseFailed {
+        if (payload != null && payload.length > 125) {
+            throw new ParseFailed("ping payload exceeds 125 octets");
+        }
         return serializeFrame(9, payload, true, true);
     }
 
-    public byte[] pong(byte[] payload) {
+    public byte[] pong(byte[] payload) throws ParseFailed {
+        if (payload != null && payload.length > 125) {
+            throw new ParseFailed("ping payload exceeds 125 octets");
+        }
         return serializeFrame(10, payload, true, true);
+    }
+
+    public byte[] close(int code, String reason) throws ParseFailed {
+        if (code > 0) {
+            byte[] payload;
+
+            if (reason != null && !reason.equals("")) {
+                try {
+                    byte[] pReason = reason.getBytes("UTF-8");
+                    payload = new byte[2 + pReason.length];
+                    System.arraycopy(pReason, 0, payload, 2, pReason.length);
+                } catch (UnsupportedEncodingException e) {
+                    throw new ParseFailed("reason is an invalid utf-8 string");
+                }
+            } else {
+                payload = new byte[2];
+            }
+
+            payload[0] = (byte) ((code >> 8) & 0xff);
+            payload[1] = (byte) (code & 0xff);
+            return serializeFrame(8, payload, true, true);
+        } else {
+            return serializeFrame(8, null, true, true);
+        }
+    }
+
+    private byte[] sendData(int opcode, byte[] payload) {
+        return serializeFrame(opcode, payload, true, true);
+    }
+
+    public byte[] sendBinary(byte[] payload) {
+        return serializeFrame(2, payload, true, true);
+    }
+
+    public byte[] sendText(String payload) throws ParseFailed {
+        try {
+            return serializeFrame(1, payload.getBytes("UTF-8"), true, true);
+        } catch (UnsupportedEncodingException e) {
+            throw new ParseFailed(e.getMessage());
+        }
     }
 
     private byte[] serializeFrame(int opcode, byte[] payload, boolean fin, boolean maskFrames) {
