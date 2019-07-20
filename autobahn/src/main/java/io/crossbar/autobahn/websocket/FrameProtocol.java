@@ -5,8 +5,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.Random;
 
 import io.crossbar.autobahn.websocket.exceptions.ParseFailed;
-import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
-import io.crossbar.autobahn.websocket.messages.Close;
 
 public class FrameProtocol {
 
@@ -53,20 +51,12 @@ public class FrameProtocol {
         }
     }
 
-    private byte[] sendData(int opcode, byte[] payload) {
-        return serializeFrame(opcode, payload, true, true);
-    }
-
     public byte[] sendBinary(byte[] payload) {
         return serializeFrame(2, payload, true, true);
     }
 
-    public byte[] sendText(String payload) throws ParseFailed {
-        try {
-            return serializeFrame(1, payload.getBytes("UTF-8"), true, true);
-        } catch (UnsupportedEncodingException e) {
-            throw new ParseFailed(e.getMessage());
-        }
+    public byte[] sendText(byte[] payload) {
+        return serializeFrame(1, payload, true, true);
     }
 
     private byte[] serializeFrame(int opcode, byte[] payload, boolean fin, boolean maskFrames) {

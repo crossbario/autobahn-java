@@ -172,18 +172,6 @@ class WebSocketWriter extends Handler {
 
 
     /**
-     * Create new (random) frame mask.
-     *
-     * @return Frame mask (4 octets).
-     */
-    private byte[] newFrameMask() {
-        final byte[] ba = new byte[4];
-        mRng.nextBytes(ba);
-        return ba;
-    }
-
-
-    /**
      * Send WebSocket client handshake.
      */
     private void sendClientHandshake(ClientHandshake message) throws IOException {
@@ -282,7 +270,7 @@ class WebSocketWriter extends Handler {
         if (message.mPayload.length > mOptions.getMaxMessagePayloadSize()) {
             throw new WebSocketException("message payload exceeds payload limit");
         }
-        sendFrame(2, true, message.mPayload);
+        mBufferedOutputStream.write(mProtocol.sendBinary(message.mPayload));
     }
 
 
@@ -294,7 +282,7 @@ class WebSocketWriter extends Handler {
         if (payload.length > mOptions.getMaxMessagePayloadSize()) {
             throw new WebSocketException("message payload exceeds payload limit");
         }
-        sendFrame(1, true, payload);
+        mBufferedOutputStream.write(mProtocol.sendText(payload));
     }
 
 
@@ -305,97 +293,7 @@ class WebSocketWriter extends Handler {
         if (message.mPayload.length > mOptions.getMaxMessagePayloadSize()) {
             throw new WebSocketException("message payload exceeds payload limit");
         }
-        sendFrame(1, true, message.mPayload);
-    }
-
-
-    /**
-     * Sends a WebSockets frame. Only need to use this method in derived classes which implement
-     * more message types in processAppMessage(). You need to know what you are doing!
-     *
-     * @param opcode  The WebSocket frame opcode.
-     * @param fin     FIN flag for WebSocket frame.
-     * @param payload Frame payload or null.
-     */
-    protected void sendFrame(int opcode, boolean fin, byte[] payload) throws IOException {
-        if (payload != null) {
-            sendFrame(opcode, fin, payload, 0, payload.length);
-        } else {
-            sendFrame(opcode, fin, null, 0, 0);
-        }
-    }
-
-
-    /**
-     * Sends a WebSockets frame. Only need to use this method in derived classes which implement
-     * more message types in processAppMessage(). You need to know what you are doing!
-     *
-     * @param opcode  The WebSocket frame opcode.
-     * @param fin     FIN flag for WebSocket frame.
-     * @param payload Frame payload or null.
-     * @param offset  Offset within payload of the chunk to send.
-     * @param length  Length of the chunk within payload to send.
-     */
-    protected void sendFrame(int opcode, boolean fin, byte[] payload, int offset, int length) throws IOException {
-
-        // first octet
-        byte b0 = 0;
-        if (fin) {
-            b0 |= (byte) (1 << 7);
-        }
-        b0 |= (byte) opcode;
-        write(b0);
-
-        // second octet
-        byte b1 = 0;
-        if (mOptions.getMaskClientFrames()) {
-            b1 = (byte) (1 << 7);
-        }
-
-        long len = length;
-
-        // extended payload length
-        if (len <= 125) {
-            b1 |= (byte) len;
-            write(b1);
-        } else if (len <= 0xffff) {
-            b1 |= (byte) (126 & 0xff);
-            write(b1);
-            write(new byte[]{(byte) ((len >> 8) & 0xff),
-                    (byte) (len & 0xff)});
-        } else {
-            b1 |= (byte) (127 & 0xff);
-            write(b1);
-            write(new byte[]{(byte) ((len >> 56) & 0xff),
-                    (byte) ((len >> 48) & 0xff),
-                    (byte) ((len >> 40) & 0xff),
-                    (byte) ((len >> 32) & 0xff),
-                    (byte) ((len >> 24) & 0xff),
-                    (byte) ((len >> 16) & 0xff),
-                    (byte) ((len >> 8) & 0xff),
-                    (byte) (len & 0xff)});
-        }
-
-        byte mask[] = null;
-        if (mOptions.getMaskClientFrames()) {
-            // a mask is always needed, even without payload
-            mask = newFrameMask();
-            write(mask[0]);
-            write(mask[1]);
-            write(mask[2]);
-            write(mask[3]);
-        }
-
-        if (len > 0) {
-            if (mOptions.getMaskClientFrames()) {
-                /// \todo optimize masking
-                /// \todo masking within buffer of output stream
-                for (int i = 0; i < len; ++i) {
-                    payload[i + offset] ^= mask[i % 4];
-                }
-            }
-            mBufferedOutputStream.write(payload, offset, length);
-        }
+        mBufferedOutputStream.write(mProtocol.sendText(message.mPayload));
     }
 
 
