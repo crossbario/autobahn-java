@@ -14,13 +14,11 @@ package io.crossbar.autobahn.websocket;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Base64;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.Random;
 
 import io.crossbar.autobahn.utils.ABLogger;
 import io.crossbar.autobahn.utils.IABLogger;
@@ -50,10 +48,6 @@ import io.crossbar.autobahn.websocket.types.WebSocketOptions;
 class WebSocketWriter extends Handler {
 
     private static final IABLogger LOGGER = ABLogger.getLogger(WebSocketWriter.class.getName());
-    private final static String CRLF = "\r\n";
-
-    /// Random number generator for handshake key and frame mask generation.
-    private final Random mRng = new Random();
 
     /// Connection master.
     private final Handler mMaster;
@@ -101,30 +95,6 @@ class WebSocketWriter extends Handler {
         LOGGER.d("Created");
     }
 
-    private void write(String stringToWrite) {
-        try {
-            mBufferedOutputStream.write(stringToWrite.getBytes("UTF-8"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void write(byte byteToWrite) {
-        try {
-            mBufferedOutputStream.write(byteToWrite);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void write(byte[] bytesToWrite) {
-        try {
-            mBufferedOutputStream.write(bytesToWrite);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     /**
      * Call this from the foreground (UI) thread to make the writer
      * (running on background thread) send a WebSocket message on the
@@ -160,68 +130,14 @@ class WebSocketWriter extends Handler {
 
 
     /**
-     * Create new key for WebSockets handshake.
-     *
-     * @return WebSockets handshake key (Base64 encoded).
-     */
-    private String newHandshakeKey() {
-        final byte[] ba = new byte[16];
-        mRng.nextBytes(ba);
-        return Base64.encodeToString(ba, Base64.NO_WRAP);
-    }
-
-
-    /**
      * Send WebSocket client handshake.
      */
     private void sendClientHandshake(ClientHandshake message) throws IOException {
-
-        // write HTTP header with handshake
-        String path;
-        if (message.mQuery != null) {
-            path = message.mPath + "?" + message.mQuery;
-        } else {
-            path = message.mPath;
+        try {
+            mBufferedOutputStream.write(Handshake.handshake(message));
+        } catch (ParseFailed parseFailed) {
+            throw new IOException(parseFailed.getMessage());
         }
-        write("GET " + path + " HTTP/1.1");
-        write(CRLF);
-        write("Host: " + message.mHost);
-        write(CRLF);
-        write("Upgrade: WebSocket");
-        write(CRLF);
-        write("Connection: Upgrade");
-        write(CRLF);
-
-        write("Sec-WebSocket-Key: " + newHandshakeKey());
-        write(CRLF);
-
-        if (message.mOrigin != null && !message.mOrigin.equals("")) {
-            write("Origin: " + message.mOrigin);
-            write(CRLF);
-        }
-
-        if (message.mSubprotocols != null && message.mSubprotocols.length > 0) {
-            write("Sec-WebSocket-Protocol: ");
-            for (int i = 0; i < message.mSubprotocols.length; ++i) {
-                write(message.mSubprotocols[i]);
-                if (i != message.mSubprotocols.length - 1) {
-                    write(", ");
-                }
-            }
-            write(CRLF);
-        }
-
-        write("Sec-WebSocket-Version: 13");
-        write(CRLF);
-
-        // Header injection
-        if (message.mHeaderList != null) {
-            for (String key : message.mHeaderList.keySet()) {
-                write(key + ":" + message.mHeaderList.get(key));
-                write(CRLF);
-            }
-        }
-        write(CRLF);
     }
 
 
