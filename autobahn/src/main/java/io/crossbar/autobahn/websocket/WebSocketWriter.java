@@ -24,16 +24,10 @@ import io.crossbar.autobahn.utils.ABLogger;
 import io.crossbar.autobahn.utils.IABLogger;
 import io.crossbar.autobahn.websocket.exceptions.ParseFailed;
 import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
-import io.crossbar.autobahn.websocket.messages.BinaryMessage;
-import io.crossbar.autobahn.websocket.messages.ClientHandshake;
 import io.crossbar.autobahn.websocket.messages.Close;
 import io.crossbar.autobahn.websocket.messages.ConnectionLost;
 import io.crossbar.autobahn.websocket.messages.Error;
-import io.crossbar.autobahn.websocket.messages.Ping;
-import io.crossbar.autobahn.websocket.messages.Pong;
 import io.crossbar.autobahn.websocket.messages.Quit;
-import io.crossbar.autobahn.websocket.messages.RawTextMessage;
-import io.crossbar.autobahn.websocket.messages.TextMessage;
 import io.crossbar.autobahn.websocket.types.WebSocketOptions;
 
 
@@ -55,9 +49,6 @@ class WebSocketWriter extends Handler {
     /// Message looper this object is running on.
     private final Looper mLooper;
 
-    /// WebSockets options.
-    private final WebSocketOptions mOptions;
-
     /// The send buffer that holds data to send on socket.
     private BufferedOutputStream mBufferedOutputStream;
 
@@ -67,7 +58,7 @@ class WebSocketWriter extends Handler {
     /// Is Active.
     private boolean mActive;
 
-    private FrameProtocol mProtocol;
+    private Connection mConnection;
 
 
     /**
@@ -85,12 +76,11 @@ class WebSocketWriter extends Handler {
 
         mLooper = looper;
         mMaster = master;
-        mOptions = options;
         mSocket = socket;
         mBufferedOutputStream = new BufferedOutputStream(socket.getOutputStream(), options.getMaxFramePayloadSize() + 14);
         mActive = true;
 
-        mProtocol = new FrameProtocol();
+        mConnection = new Connection(options);
 
         LOGGER.d("Created");
     }
@@ -122,94 +112,9 @@ class WebSocketWriter extends Handler {
      * @param message Message to send to master.
      */
     private void notify(Object message) {
-
         Message msg = mMaster.obtainMessage();
         msg.obj = message;
         mMaster.sendMessage(msg);
-    }
-
-
-    /**
-     * Send WebSocket client handshake.
-     */
-    private void sendClientHandshake(ClientHandshake message) throws IOException {
-        try {
-            mBufferedOutputStream.write(Handshake.handshake(message));
-        } catch (ParseFailed parseFailed) {
-            throw new IOException(parseFailed.getMessage());
-        }
-    }
-
-
-    /**
-     * Send WebSockets close.
-     */
-    private void sendClose(Close message) throws IOException, WebSocketException {
-        try {
-            mBufferedOutputStream.write(mProtocol.close(message.mCode, message.mReason));
-        } catch (ParseFailed parseFailed) {
-            throw new WebSocketException(parseFailed.getMessage());
-        }
-    }
-
-
-    /**
-     * Send WebSockets ping.
-     */
-    private void sendPing(Ping message) throws IOException, WebSocketException {
-        try {
-            mBufferedOutputStream.write(mProtocol.ping(message.mPayload));
-        } catch (ParseFailed parseFailed) {
-            throw new WebSocketException(parseFailed.getMessage());
-        }
-    }
-
-
-    /**
-     * Send WebSockets pong. Normally, unsolicited Pongs are not used,
-     * but Pongs are only send in response to a Ping from the peer.
-     */
-    private void sendPong(Pong message) throws IOException, WebSocketException {
-        try {
-            mBufferedOutputStream.write(mProtocol.pong(message.mPayload));
-        } catch (ParseFailed parseFailed) {
-            throw new WebSocketException(parseFailed.getMessage());
-        }
-        LOGGER.d("WebSockets Pong Sent");
-    }
-
-
-    /**
-     * Send WebSockets binary message.
-     */
-    private void sendBinaryMessage(BinaryMessage message) throws IOException, WebSocketException {
-        if (message.mPayload.length > mOptions.getMaxMessagePayloadSize()) {
-            throw new WebSocketException("message payload exceeds payload limit");
-        }
-        mBufferedOutputStream.write(mProtocol.sendBinary(message.mPayload));
-    }
-
-
-    /**
-     * Send WebSockets text message.
-     */
-    private void sendTextMessage(TextMessage message) throws IOException, WebSocketException {
-        byte[] payload = message.mPayload.getBytes("UTF-8");
-        if (payload.length > mOptions.getMaxMessagePayloadSize()) {
-            throw new WebSocketException("message payload exceeds payload limit");
-        }
-        mBufferedOutputStream.write(mProtocol.sendText(payload));
-    }
-
-
-    /**
-     * Send WebSockets binary message.
-     */
-    private void sendRawTextMessage(RawTextMessage message) throws IOException, WebSocketException {
-        if (message.mPayload.length > mOptions.getMaxMessagePayloadSize()) {
-            throw new WebSocketException("message payload exceeds payload limit");
-        }
-        mBufferedOutputStream.write(mProtocol.sendText(message.mPayload));
     }
 
 
@@ -269,45 +174,18 @@ class WebSocketWriter extends Handler {
      */
     protected void processMessage(Object msg) throws IOException, WebSocketException {
 
-        if (msg instanceof TextMessage) {
-
-            sendTextMessage((TextMessage) msg);
-
-        } else if (msg instanceof RawTextMessage) {
-
-            sendRawTextMessage((RawTextMessage) msg);
-
-        } else if (msg instanceof BinaryMessage) {
-
-            sendBinaryMessage((BinaryMessage) msg);
-
-        } else if (msg instanceof Ping) {
-
-            sendPing((Ping) msg);
-
-        } else if (msg instanceof Pong) {
-
-            sendPong((Pong) msg);
-
-        } else if (msg instanceof Close) {
-
-            sendClose((Close) msg);
-
-        } else if (msg instanceof ClientHandshake) {
-            sendClientHandshake((ClientHandshake) msg);
-
-        } else if (msg instanceof Quit) {
-
+        if (msg instanceof Quit) {
             mLooper.quit();
             mActive = false;
-
             LOGGER.d("Ended");
-
-        } else {
-
-            // call hook which may be overridden in derived class to process
-            // messages we don't understand in this class
+        } else if (!(msg instanceof io.crossbar.autobahn.websocket.messages.Message)) {
             processAppMessage(msg);
+        } else {
+            try {
+                mConnection.send((io.crossbar.autobahn.websocket.messages.Message) msg);
+            } catch (ParseFailed parseFailed) {
+                throw new WebSocketException(parseFailed.getMessage());
+            }
         }
     }
 
