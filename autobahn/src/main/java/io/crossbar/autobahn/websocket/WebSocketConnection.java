@@ -13,7 +13,6 @@ package io.crossbar.autobahn.websocket;
 
 
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 
@@ -23,6 +22,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -63,7 +63,7 @@ public class WebSocketConnection implements IWebSocket {
 
     private WebSocketReader mReader;
     private WebSocketWriter mWriter;
-    private HandlerThread mWriterThread;
+    private ExecutorService mWriterThread;
 
     private Socket mSocket;
     private URI mWsUri;
@@ -165,7 +165,7 @@ public class WebSocketConnection implements IWebSocket {
                     hs.mQuery = mWsQuery;
                     hs.mSubprotocols = mWsSubprotocols;
                     hs.mHeaderList = mWsHeaders;
-                    mWriter.forward(hs);
+                    mWriter.write(hs);
                     mPrevConnected = true;
 
                 } catch (Exception e) {
@@ -190,36 +190,36 @@ public class WebSocketConnection implements IWebSocket {
 
     @Override
     public void sendMessage(String payload) {
-        mWriter.forward(new TextMessage(payload));
+        mWriter.write(new TextMessage(payload));
     }
 
     @Override
     public void sendMessage(byte[] payload, boolean isBinary) {
         if (isBinary) {
-            mWriter.forward(new BinaryMessage(payload));
+            mWriter.write(new BinaryMessage(payload));
         } else {
-            mWriter.forward(new RawTextMessage(payload));
+            mWriter.write(new RawTextMessage(payload));
         }
     }
 
     @Override
     public void sendPing() {
-        mWriter.forward(new Ping());
+        mWriter.write(new Ping());
     }
 
     @Override
     public void sendPing(byte[] payload) {
-        mWriter.forward(new Ping(payload));
+        mWriter.write(new Ping(payload));
     }
 
     @Override
     public void sendPong() {
-        mWriter.forward(new Pong());
+        mWriter.write(new Pong());
     }
 
     @Override
     public void sendPong(byte[] payload) {
-        mWriter.forward(new Pong(payload));
+        mWriter.write(new Pong(payload));
     }
 
     @Override
@@ -258,9 +258,9 @@ public class WebSocketConnection implements IWebSocket {
 
     private void closeWriterThread() {
         if (mWriter != null) {
-            mWriter.forward(new Quit());
+            mWriter.write(new Quit());
             try {
-                mWriterThread.join();
+                mWriterThread.awaitTermination(5, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 LOGGER.v(e.getMessage(), e);
             }
@@ -409,7 +409,7 @@ public class WebSocketConnection implements IWebSocket {
         // as we need to have active connection to be able to process the response
         // of this close request.
         if (mWriter != null) {
-            mWriter.forward(new Close(code, reason));
+            mWriter.write(new Close(code, reason));
         } else {
             LOGGER.d("could not send Close .. writer already NULL");
         }
@@ -620,7 +620,7 @@ public class WebSocketConnection implements IWebSocket {
                     } else if (mActive) {
                         // We have received a close frame, lets clean.
                         closeReaderThread(false);
-                        mWriter.forward(new Close(1000, true));
+                        mWriter.write(new Close(1000, true));
                         mActive = false;
                     } else {
                         LOGGER.d("WebSockets Close received (" + close.mCode + " - " + close.mReason + ")");
@@ -697,9 +697,14 @@ public class WebSocketConnection implements IWebSocket {
      */
     private void createWriter() throws IOException {
 
-        mWriterThread = new HandlerThread("WebSocketWriter");
-        mWriterThread.start();
-        mWriter = new WebSocketWriter(mWriterThread.getLooper(), mMasterHandler, mSocket, mOptions);
+        mWriterThread = Executors.newSingleThreadExecutor();
+        mWriter = new WebSocketWriter(mWriterThread, mSocket, mOptions);
+        mWriter.setOnEventListener(new WebSocketWriter.onEventListener() {
+            @Override
+            public void onEvent(io.crossbar.autobahn.websocket.messages.Message msg) {
+
+            }
+        });
 
         LOGGER.d("WS writer created and started");
     }
