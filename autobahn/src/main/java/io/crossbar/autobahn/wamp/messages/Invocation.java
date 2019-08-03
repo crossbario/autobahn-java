@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import io.crossbar.autobahn.wamp.exceptions.ProtocolError;
 import io.crossbar.autobahn.wamp.interfaces.IMessage;
@@ -27,12 +28,15 @@ public class Invocation implements IMessage {
 
     public final long request;
     public final long registration;
+    public final Map<String, Object> details;
     public final List<Object> args;
     public final Map<String, Object> kwargs;
 
-    public Invocation(long request, long registration, List<Object> args, Map<String, Object> kwargs) {
+    public Invocation(long request, long registration, Map<String, Object> details, List<Object> args,
+            Map<String, Object> kwargs) {
         this.request = request;
         this.registration = registration;
+        this.details = details;
         this.args = args;
         this.kwargs = kwargs;
     }
@@ -43,6 +47,7 @@ public class Invocation implements IMessage {
         long request = MessageUtil.parseLong(wmsg.get(1));
         long registration = MessageUtil.parseLong(wmsg.get(2));
         Map<String, Object> details = (Map<String, Object>) wmsg.get(3);
+
         List<Object> args = null;
         if (wmsg.size() > 4) {
             if (wmsg.get(4) instanceof byte[]) {
@@ -54,7 +59,7 @@ public class Invocation implements IMessage {
         if (wmsg.size() > 5) {
             kwargs = (Map<String, Object>) wmsg.get(5);
         }
-        return new Invocation(request, registration, args, kwargs);
+        return new Invocation(request, registration, details, args, kwargs);
     }
 
     @Override
@@ -63,8 +68,12 @@ public class Invocation implements IMessage {
         marshaled.add(MESSAGE_TYPE);
         marshaled.add(request);
         marshaled.add(registration);
-        // Empty options.
-        marshaled.add(Collections.emptyMap());
+        if (details == null) {
+            // Empty details.
+            marshaled.add(Collections.emptyMap());
+        } else {
+            marshaled.add(details);
+        }
         if (kwargs != null) {
             if (args == null) {
                 // Empty args.

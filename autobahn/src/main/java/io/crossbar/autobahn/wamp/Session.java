@@ -445,8 +445,18 @@ public class Session implements ISession, ITransportHandler {
                         msg.registration));
             }
 
+            long callerSessionID = msg.details != null && msg.details.get("caller") != null 
+            		? (long) msg.details.get("caller") 
+            		: -1L;
+            String callerAuthID = msg.details != null && msg.details.get("caller_authid") != null 
+            		? msg.details.get("caller_authid").toString() 
+            		: null;
+            String callerAuthRole = msg.details != null && msg.details.get("caller_authrole") != null 
+            		? msg.details.get("caller_authrole").toString() 
+            		: null;
+            
             InvocationDetails details = new InvocationDetails(
-                    registration, registration.procedure, -1, null, null, this);
+                    registration, registration.procedure, callerSessionID, callerAuthID, callerAuthRole, this);
 
             runAsync(() -> {
                 Object result;
