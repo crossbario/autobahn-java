@@ -13,16 +13,18 @@ package io.crossbar.autobahn.websocket;
 
 
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -34,6 +36,7 @@ import javax.net.ssl.SSLSocketFactory;
 
 import io.crossbar.autobahn.utils.ABLogger;
 import io.crossbar.autobahn.utils.IABLogger;
+import io.crossbar.autobahn.websocket.exceptions.ParseFailed;
 import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
 import io.crossbar.autobahn.websocket.interfaces.IWebSocket;
 import io.crossbar.autobahn.websocket.interfaces.IWebSocketConnectionHandler;
@@ -46,7 +49,6 @@ import io.crossbar.autobahn.websocket.messages.Error;
 import io.crossbar.autobahn.websocket.messages.Ping;
 import io.crossbar.autobahn.websocket.messages.Pong;
 import io.crossbar.autobahn.websocket.messages.ProtocolViolation;
-import io.crossbar.autobahn.websocket.messages.Quit;
 import io.crossbar.autobahn.websocket.messages.RawTextMessage;
 import io.crossbar.autobahn.websocket.messages.ServerError;
 import io.crossbar.autobahn.websocket.messages.ServerHandshake;
@@ -62,8 +64,9 @@ public class WebSocketConnection implements IWebSocket {
     private Handler mMasterHandler;
 
     private WebSocketReader mReader;
-    private WebSocketWriter mWriter;
-    private HandlerThread mWriterThread;
+    private ExecutorService mWriterThread;
+    private Connection mWebSocket;
+    private BufferedOutputStream mBufferedOutputStream;
 
     private Socket mSocket;
     private URI mWsUri;
@@ -165,7 +168,7 @@ public class WebSocketConnection implements IWebSocket {
                     hs.mQuery = mWsQuery;
                     hs.mSubprotocols = mWsSubprotocols;
                     hs.mHeaderList = mWsHeaders;
-                    mWriter.forward(hs);
+                    sendMessage(hs);
                     mPrevConnected = true;
 
                 } catch (Exception e) {
@@ -190,36 +193,36 @@ public class WebSocketConnection implements IWebSocket {
 
     @Override
     public void sendMessage(String payload) {
-        mWriter.forward(new TextMessage(payload));
+        sendMessage(new TextMessage(payload));
     }
 
     @Override
     public void sendMessage(byte[] payload, boolean isBinary) {
         if (isBinary) {
-            mWriter.forward(new BinaryMessage(payload));
+            sendMessage(new BinaryMessage(payload));
         } else {
-            mWriter.forward(new RawTextMessage(payload));
+            sendMessage(new RawTextMessage(payload));
         }
     }
 
     @Override
     public void sendPing() {
-        mWriter.forward(new Ping());
+        sendMessage(new Ping());
     }
 
     @Override
     public void sendPing(byte[] payload) {
-        mWriter.forward(new Ping(payload));
+        sendMessage(new Ping(payload));
     }
 
     @Override
     public void sendPong() {
-        mWriter.forward(new Pong());
+        sendMessage(new Pong());
     }
 
     @Override
     public void sendPong(byte[] payload) {
-        mWriter.forward(new Pong(payload));
+        sendMessage(new Pong(payload));
     }
 
     @Override
@@ -257,15 +260,11 @@ public class WebSocketConnection implements IWebSocket {
     }
 
     private void closeWriterThread() {
-        if (mWriter != null) {
-            mWriter.forward(new Quit());
-            try {
-                mWriterThread.join();
-            } catch (InterruptedException e) {
-                LOGGER.v(e.getMessage(), e);
-            }
-        } else {
-            LOGGER.d("mWriter already NULL");
+        try {
+            mWriterThread.shutdown();
+            mWriterThread.awaitTermination(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            LOGGER.v(e.getMessage(), e);
         }
     }
 
@@ -408,11 +407,7 @@ public class WebSocketConnection implements IWebSocket {
         // Close the writer thread here but delay the closing of reader thread
         // as we need to have active connection to be able to process the response
         // of this close request.
-        if (mWriter != null) {
-            mWriter.forward(new Close(code, reason));
-        } else {
-            LOGGER.d("could not send Close .. writer already NULL");
-        }
+        sendMessage(new Close(code, reason));
         onCloseCalled = false;
         mActive = false;
         mPrevConnected = false;
@@ -596,6 +591,7 @@ public class WebSocketConnection implements IWebSocket {
                     } else {
                         mWsHandler.onPing(ping.mPayload);
                     }
+                    LOGGER.d("WebSockets Pong sent");
 
                 } else if (msg.obj instanceof Pong) {
                     Pong pong = (Pong) msg.obj;
@@ -620,7 +616,7 @@ public class WebSocketConnection implements IWebSocket {
                     } else if (mActive) {
                         // We have received a close frame, lets clean.
                         closeReaderThread(false);
-                        mWriter.forward(new Close(1000, true));
+                        WebSocketConnection.this.sendMessage(new Close(1000, true));
                         mActive = false;
                     } else {
                         LOGGER.d("WebSockets Close received (" + close.mCode + " - " + close.mReason + ")");
@@ -655,28 +651,33 @@ public class WebSocketConnection implements IWebSocket {
                 } else if (msg.obj instanceof CannotConnect) {
 
                     CannotConnect cannotConnect = (CannotConnect) msg.obj;
-                    failConnection(IWebSocketConnectionHandler.CLOSE_CANNOT_CONNECT, cannotConnect.reason);
+                    failConnection(IWebSocketConnectionHandler.CLOSE_CANNOT_CONNECT,
+                            cannotConnect.reason);
 
                 } else if (msg.obj instanceof ConnectionLost) {
 
                     ConnectionLost connnectionLost = (ConnectionLost) msg.obj;
-                    failConnection(IWebSocketConnectionHandler.CLOSE_CONNECTION_LOST, connnectionLost.reason);
+                    failConnection(IWebSocketConnectionHandler.CLOSE_CONNECTION_LOST,
+                            connnectionLost.reason);
 
                 } else if (msg.obj instanceof ProtocolViolation) {
 
                     @SuppressWarnings("unused")
                     ProtocolViolation protocolViolation = (ProtocolViolation) msg.obj;
-                    failConnection(IWebSocketConnectionHandler.CLOSE_PROTOCOL_ERROR, "WebSockets protocol violation");
+                    failConnection(IWebSocketConnectionHandler.CLOSE_PROTOCOL_ERROR,
+                            "WebSockets protocol violation");
 
                 } else if (msg.obj instanceof Error) {
 
                     Error error = (Error) msg.obj;
-                    failConnection(IWebSocketConnectionHandler.CLOSE_INTERNAL_ERROR, "WebSockets internal error (" + error.mException.toString() + ")");
+                    failConnection(IWebSocketConnectionHandler.CLOSE_INTERNAL_ERROR,
+                            "WebSockets internal error (" + error.mException.toString() + ")");
 
                 } else if (msg.obj instanceof ServerError) {
 
                     ServerError error = (ServerError) msg.obj;
-                    failConnection(IWebSocketConnectionHandler.CLOSE_SERVER_ERROR, "Server error " + error.mStatusCode + " (" + error.mStatusMessage + ")");
+                    failConnection(IWebSocketConnectionHandler.CLOSE_SERVER_ERROR,
+                            "Server error " + error.mStatusCode + " (" + error.mStatusMessage + ")");
 
                 } else {
 
@@ -696,12 +697,38 @@ public class WebSocketConnection implements IWebSocket {
      * Create WebSockets background writer.
      */
     private void createWriter() throws IOException {
-
-        mWriterThread = new HandlerThread("WebSocketWriter");
-        mWriterThread.start();
-        mWriter = new WebSocketWriter(mWriterThread.getLooper(), mMasterHandler, mSocket, mOptions);
-
+        mWriterThread = Executors.newSingleThreadExecutor();
+        mBufferedOutputStream = new BufferedOutputStream(mSocket.getOutputStream(),
+                mOptions.getMaxFramePayloadSize() + 14);
+        mWebSocket = new Connection(mOptions);
         LOGGER.d("WS writer created and started");
+    }
+
+    private void sendMessage(io.crossbar.autobahn.websocket.messages.Message message) {
+        if (mWriterThread == null || mWriterThread.isShutdown()) {
+            return;
+        }
+        mWriterThread.submit(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    mBufferedOutputStream.write(mWebSocket.send(message));
+                    mBufferedOutputStream.flush();
+                    if (message instanceof Close) {
+                        Close msg = (Close) message;
+                        if (msg.mIsReply) {
+                            forward(message);
+                        }
+                    }
+                } catch (SocketException e) {
+                    LOGGER.d("run() : SocketException (" + e.toString() + ")");
+                    forward(new ConnectionLost(null));
+                } catch (ParseFailed | IOException e) {
+                    LOGGER.w(e.getMessage(), e);
+                    forward(new Error(e));
+                }
+            }
+        });
     }
 
 
