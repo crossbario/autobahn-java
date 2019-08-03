@@ -445,15 +445,9 @@ public class Session implements ISession, ITransportHandler {
                         msg.registration));
             }
 
-            long callerSessionID = msg.details != null 
-                    ? (long) msg.details.getOrDefault("caller", -1L) 
-                    : -1L; 
-            String callerAuthID = msg.details != null
-            		? (String) msg.details.getOrDefault("caller_authid", null) 
-            		: null;
-            String callerAuthRole = msg.details != null
-            		? (String) msg.details.getOrDefault("caller_authrole", null) 
-            		: null;
+            long callerSessionID = getOrDefault(msg.details, "caller", -1L);
+            String callerAuthID = getOrDefault(msg.details, "caller_authid", null);
+            String callerAuthRole = getOrDefault(msg.details, "caller_authrole", null);
             
             InvocationDetails details = new InvocationDetails(
                     registration, registration.procedure, callerSessionID, callerAuthID, callerAuthRole, this);
