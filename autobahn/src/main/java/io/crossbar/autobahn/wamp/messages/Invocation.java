@@ -40,7 +40,7 @@ public class Invocation implements IMessage {
     }
 
     public static Invocation parse(List<Object> wmsg) {
-        MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "INNVOCATION", 3, 6);
+        MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "INVOCATION", 4, 6);
 
         long request = MessageUtil.parseLong(wmsg.get(1));
         long registration = MessageUtil.parseLong(wmsg.get(2));
