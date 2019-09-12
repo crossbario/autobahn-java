@@ -121,8 +121,16 @@ public class Client {
                 mSession.join(mRealm, mAuthenticators).thenAccept(details ->
                         LOGGER.i(String.format("JOINED session=%s realm=%s", details.sessionID,
                                 details.realm))));
-        mSession.addOnDisconnectListener((session, wasClean) ->
-                exitFuture.complete(new ExitInfo(wasClean)));
+        mSession.addOnDisconnectListener((session, wasClean) -> {
+            for (ITransport transport: mTransports) {
+                try {
+                    transport.close();
+                } catch (Exception ignore) {
+
+                }
+            }
+            exitFuture.complete(new ExitInfo(wasClean));
+        });
         CompletableFuture.runAsync(() -> {
             try {
                 mTransports.get(0).connect(mSession, options);

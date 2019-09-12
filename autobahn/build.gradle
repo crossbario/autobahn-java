@@ -16,16 +16,20 @@ def siteUrl = 'https://github.com/crossbario/autobahn-java'
 
 dependencies {
     api 'com.fasterxml.jackson.core:jackson-core:2.9.8'
-    //api 'net.sourceforge.streamsupport:streamsupport-cfuture:1.6.2'
+    // api 'net.sourceforge.streamsupport:streamsupport-cfuture:1.6.2'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.8'
     implementation 'org.msgpack:jackson-dataformat-msgpack:0.8.16'
     if (project.IS_ANDROID) {
         implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.1'
+        implementation ('org.ethereum:ethereumj-core:1.11.0-RELEASE') {
+            exclude group: 'org.iq80.leveldb'
+        }
     } else {
         implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni:2.0.1'
         implementation 'io.netty:netty-codec-http:4.1.34.Final'
         implementation 'io.netty:netty-handler:4.1.34.Final'
+        implementation 'org.ethereum:ethereumj-core:1.11.0-RELEASE'
     }
 }
 
@@ -89,6 +93,13 @@ if (project.IS_ANDROID) {
         }
         lintOptions {
             abortOnError false
+        }
+        packagingOptions {
+            exclude 'META-INF/spring.tooling'
+            exclude 'META-INF/spring.handlers'
+            exclude 'META-INF/spring.schemas'
+            exclude 'META-INF/license.txt'
+            exclude 'META-INF/notice.txt'
         }
     }
     task sourcesJar(type: Jar) {

@@ -28,6 +28,13 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_APP)) {
                 }
             }
         }
+        packagingOptions {
+            exclude 'META-INF/spring.tooling'
+            exclude 'META-INF/spring.handlers'
+            exclude 'META-INF/spring.schemas'
+            exclude 'META-INF/license.txt'
+            exclude 'META-INF/notice.txt'
+        }
     }
 
     dependencies {
