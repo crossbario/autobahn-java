@@ -68,6 +68,7 @@ public class WebSocketConnection implements IWebSocket {
     private Connection mWebSocket;
     private BufferedOutputStream mBufferedOutputStream;
 
+    private SSLSocketFactory mSSLSocketFactory;//Add by zorouyang
     private Socket mSocket;
     private URI mWsUri;
     private String mWsScheme;
@@ -124,8 +125,10 @@ public class WebSocketConnection implements IWebSocket {
 			 */
             try {
                 if (mWsScheme.equals("wss")) {
-			//TODO Replace SSLSocketFactory to EasyTrustManager
-                    mSocket = SSLSocketFactory.getDefault().createSocket();
+                    if (mSSLSocketFactory == null)
+                        mSocket = SSLSocketFactory.getDefault().createSocket();
+                    else//Add by zorouyang, SSLSocketFactory to EasyX509TrustManager
+                        mSocket = mSSLSocketFactory.createSocket();
                 } else {
                     mSocket = SocketFactory.getDefault().createSocket();
                 }
@@ -294,6 +297,13 @@ public class WebSocketConnection implements IWebSocket {
         LOGGER.d("Worker threads stopped");
     }
 
+    //Add by zorouyang
+    @Override
+    public void connect(String wsUri, SSLSocketFactory sslSocketFactory, IWebSocketConnectionHandler wsHandler,
+                        WebSocketOptions options) throws WebSocketException {
+        connect(wsUri, null, sslSocketFactory, wsHandler, null, null);
+    }
+
     @Override
     public void connect(String wsUri, IWebSocketConnectionHandler wsHandler)
             throws WebSocketException {
@@ -314,6 +324,14 @@ public class WebSocketConnection implements IWebSocket {
 
     @Override
     public void connect(String wsUri, String[] wsSubprotocols,
+                        IWebSocketConnectionHandler wsHandler, WebSocketOptions options,
+                        Map<String, String> headers) throws WebSocketException {
+        connect(wsUri, wsSubprotocols, null, wsHandler, new WebSocketOptions(), headers);
+    }
+
+    //Add by zorouyang, SSLSocketFactory sslSocketFactory
+    @Override
+    public void connect(String wsUri, String[] wsSubprotocols, SSLSocketFactory sslSocketFactory,
                         IWebSocketConnectionHandler wsHandler, WebSocketOptions options,
                         Map<String, String> headers) throws WebSocketException {
 
@@ -366,6 +384,7 @@ public class WebSocketConnection implements IWebSocket {
             throw new WebSocketException("invalid WebSockets URI");
         }
 
+        mSSLSocketFactory = sslSocketFactory;//Add by zorouyang
         mWsSubprotocols = wsSubprotocols;
         mWsHeaders = headers;
         mWsHandler = wsHandler;

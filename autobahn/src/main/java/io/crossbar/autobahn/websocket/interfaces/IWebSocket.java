@@ -14,10 +14,16 @@ package io.crossbar.autobahn.websocket.interfaces;
 
 import java.util.Map;
 
+import javax.net.ssl.SSLSocketFactory;
+
 import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
 import io.crossbar.autobahn.websocket.types.WebSocketOptions;
 
 public interface IWebSocket {
+
+    //Add by zorouyang
+    void connect(String wsUri, SSLSocketFactory sslSocketFactory, IWebSocketConnectionHandler wsHandler,
+                 WebSocketOptions options) throws WebSocketException;
 
     void connect(String wsUri, IWebSocketConnectionHandler wsHandler) throws WebSocketException;
 
@@ -28,6 +34,10 @@ public interface IWebSocket {
             throws WebSocketException;
 
     void connect(String wsUri, String[] wsSubprotocols, IWebSocketConnectionHandler wsHandler,
+                 WebSocketOptions options, Map<String, String> headers) throws WebSocketException;
+
+    //Add by zorouyang
+    void connect(String wsUri, String[] wsSubprotocols, SSLSocketFactory sslSocketFactory, IWebSocketConnectionHandler wsHandler,
                  WebSocketOptions options, Map<String, String> headers) throws WebSocketException;
 
     void sendClose();
