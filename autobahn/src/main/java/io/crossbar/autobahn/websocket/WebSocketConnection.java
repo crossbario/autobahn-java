@@ -124,6 +124,7 @@ public class WebSocketConnection implements IWebSocket {
 			 */
             try {
                 if (mWsScheme.equals("wss")) {
+			//TODO Replace SSLSocketFactory to EasyTrustManager
                     mSocket = SSLSocketFactory.getDefault().createSocket();
                 } else {
                     mSocket = SocketFactory.getDefault().createSocket();
