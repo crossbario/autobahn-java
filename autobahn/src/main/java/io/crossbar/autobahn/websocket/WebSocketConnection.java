@@ -264,6 +264,8 @@ public class WebSocketConnection implements IWebSocket {
     }
 
     private void closeWriterThread() {
+        if (mWriterThread == null)
+            return;
         try {
             mWriterThread.shutdown();
             mWriterThread.awaitTermination(5, TimeUnit.SECONDS);
