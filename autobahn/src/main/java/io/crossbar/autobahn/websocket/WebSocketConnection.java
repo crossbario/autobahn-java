@@ -636,9 +636,10 @@ public class WebSocketConnection implements IWebSocket {
                         closeAndCleanup();
                         onClose(crossbarCloseCode, close.mReason);
                     } else if (mActive) {
+                        LOGGER.d("WebSockets Close received, sendMessage( Close(" + close.mCode + " - " + close.mReason + "), mIsReply=false, mActive=true)");
                         // We have received a close frame, lets clean.
                         closeReaderThread(false);
-                        WebSocketConnection.this.sendMessage(new Close(1000, true));
+                        WebSocketConnection.this.sendMessage(new Close(1000, close.mReason, true));
                         mActive = false;
                     } else {
                         LOGGER.d("WebSockets Close received (" + close.mCode + " - " + close.mReason + ")");
