@@ -25,6 +25,7 @@ dependencies {
         implementation ('org.ethereum:ethereumj-core:1.11.0-RELEASE') {
             exclude group: 'org.iq80.leveldb'
         }
+        implementation 'org.web3j:core:4.2.0-android'
     } else {
         implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni:2.0.1'
         implementation 'io.netty:netty-codec-http:4.1.34.Final'

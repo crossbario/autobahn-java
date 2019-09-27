@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class KeySeries {
 
@@ -26,12 +28,14 @@ public class KeySeries {
     private SecretBox mBox;
     private Map<byte[], Map<String, Object>> mArchive;
     private ObjectMapper mCBOR;
-    private Runnable mOnRotateCallback;
+    private BiConsumer<KeySeries, String> mOnRotateCallback;
     private Timer mTimer;
+    private String mPrefix;
 
     private boolean mRunning = false;
 
-    KeySeries(byte[] apiID, int price, int interval, Runnable onRotate) {
+    KeySeries(byte[] apiID, int price, int interval, String prefix,
+              BiConsumer<KeySeries, String> onRotate) {
         mAPIID = apiID;
         mPrice = price;
         mInterval = interval;
@@ -39,8 +43,8 @@ public class KeySeries {
         mRandom = new SecureRandom();
         mOnRotateCallback = onRotate;
         mArchive = new HashMap<>();
-
         mTimer = new Timer();
+        mPrefix = prefix;
     }
 
     void start() {
@@ -60,6 +64,18 @@ public class KeySeries {
 
     byte[] getID() {
         return mID;
+    }
+
+    byte[] getAPIID() {
+        return mAPIID;
+    }
+
+    String getPrefix() {
+        return mPrefix;
+    }
+
+    int getPrice() {
+        return mPrice;
     }
 
     Map<String, Object> encrypt(Object payload) throws JsonProcessingException {
@@ -92,6 +108,6 @@ public class KeySeries {
         data.put("box", mBox);
         mArchive.put(mID, data);
 
-        mOnRotateCallback.run();
+        mOnRotateCallback.accept(this, mPrefix);
     }
 }
