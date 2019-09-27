@@ -24,4 +24,10 @@ public class ApplicationError extends Error {
         this.args = args;
         this.kwargs = kwargs;
     }
+
+    public ApplicationError(String message) {
+        super(message);
+        this.args = null;
+        this.kwargs = null;
+    }
 }

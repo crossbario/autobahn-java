@@ -35,7 +35,7 @@ public class SimpleSeller {
 
     public String sell(byte[] keyID, byte[] buyerPubKey) {
         if (!mKeysMap.containsKey(keyID)) {
-            throw new ApplicationError("crossbar.error.no_such_object", null, null);
+            throw new ApplicationError("crossbar.error.no_such_object");
         }
         SealedBox box = new SealedBox(buyerPubKey);
         return HEX.encode(box.encrypt(mKeysMap.get(keyID)));
