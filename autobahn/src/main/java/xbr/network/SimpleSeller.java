@@ -1,6 +1,7 @@
 package xbr.network;
 
-import org.ethereum.crypto.ECKey;
+import org.web3j.crypto.ECKeyPair;
+import org.web3j.crypto.Sign;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,7 +23,7 @@ public class SimpleSeller {
 
     private final byte[] mEthPrivateKey;
     private final byte[] mEthPublicKey;
-    private final ECKey mECKey;
+    private final ECKeyPair mECKey;
     private final byte[] mMarketMakerAddr;
     private final byte[] mPrivateKeyRaw;
 
@@ -42,9 +43,9 @@ public class SimpleSeller {
         mMarketMakerAddr = marketMakerAddr;
 
         mPrivateKeyRaw = sellerKey;
-        mECKey = ECKey.fromPrivate(sellerKey);
-        mEthPrivateKey = mECKey.getPrivKeyBytes();
-        mEthPublicKey = ECKey.publicKeyFromPrivate(mECKey.getPrivKey(), false);
+        mECKey = ECKeyPair.create(sellerKey);
+        mEthPrivateKey = mECKey.getPrivateKey().toByteArray();
+        mEthPublicKey = Sign.publicKeyFromPrivate(mECKey.getPrivateKey()).toByteArray();
 
         mKeys = new HashMap<>();
         mKeysMap = new HashMap<>();
