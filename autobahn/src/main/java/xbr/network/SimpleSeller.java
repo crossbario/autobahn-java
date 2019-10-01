@@ -1,9 +1,6 @@
 package xbr.network;
 
 import org.ethereum.crypto.ECKey;
-import org.spongycastle.util.encoders.Hex;
-import org.web3j.abi.datatypes.generated.Uint256;
-import org.web3j.protocol.Web3j;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,10 +11,7 @@ import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
-import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
-
-import static org.libsodium.jni.encoders.Encoder.HEX;
 
 public class SimpleSeller {
     private static final int STATE_NONE = 0;
@@ -115,6 +109,7 @@ public class SimpleSeller {
             throw new ApplicationError("crossbar.error.no_such_object");
         }
         SealedBox box = new SealedBox(buyerPubKey);
-        return HEX.encode(box.encrypt(mKeysMap.get(keyID)));
+//        return HEX.encode(box.encrypt(mKeysMap.get(keyID)));
+        return null;
     }
 }
