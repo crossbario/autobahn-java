@@ -6,7 +6,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Sign;
-import org.web3j.crypto.StructuredDataEncoder;
 
 import java.io.IOException;
 import java.security.SignatureException;
