@@ -12,7 +12,7 @@ import java.security.SignatureException;
 
 public class Util {
 
-    private JSONObject createEIP712Data(String verifyingAddr, byte[] channelAddr,
+    private static JSONObject createEIP712Data(String verifyingAddr, byte[] channelAddr,
                                         int channelSeq, int balance, boolean isFinal)
             throws JSONException {
         JSONObject result = new JSONObject();
@@ -58,7 +58,7 @@ public class Util {
         return result;
     }
 
-    byte[] signEIP712Data(byte[] ethPrivKey, byte[] channelAddr, int channelSeq, int balance,
+    static byte[] signEIP712Data(byte[] ethPrivKey, byte[] channelAddr, int channelSeq, int balance,
                           boolean isFinal) throws IOException, JSONException, SignatureException {
         String verifyingAddr = "0x254dffcd3277C0b1660F6d42EFbB754edaBAbC2B";
         JSONObject data = createEIP712Data(verifyingAddr, channelAddr, channelSeq, balance,
@@ -67,7 +67,6 @@ public class Util {
         byte[] message = encoder.hashStructuredData();
         Sign.SignatureData signed = Sign.signMessage(message, ECKeyPair.create(ethPrivKey));
         return Sign.signedMessageToKey(message, signed).toByteArray();
-
     }
 
 //    byte[] recoveryEIP712Signer(byte[] channelAddr, int channelSeq, int balance, boolean isFinal,
