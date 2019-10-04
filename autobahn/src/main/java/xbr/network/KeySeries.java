@@ -51,12 +51,13 @@ public class KeySeries {
 
     void start() {
         mRunning = true;
+        onRotate();
         mTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 onRotate();
             }
-        }, 0, mInterval * 1000);
+        }, mInterval * 1000, mInterval * 1000);
     }
 
     void stop() {
@@ -105,6 +106,7 @@ public class KeySeries {
 
         mKey = new Random().randomBytes(SodiumConstants.XSALSA20_POLY1305_SECRETBOX_KEYBYTES);
         mBox = new SecretBox(mKey);
+
         Map<String, Object> data = new HashMap<>();
         data.put("key", mKey);
         data.put("box", mBox);

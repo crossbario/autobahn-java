@@ -1,7 +1,10 @@
 package xbr.network;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import org.libsodium.jni.SodiumConstants;
+import org.libsodium.jni.crypto.Random;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;
 import org.web3j.utils.Numeric;
@@ -13,7 +16,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.Session;
@@ -75,8 +77,7 @@ public class SimpleSeller {
     private void onRotate(KeySeries series) {
         mKeysMap.put(series.getID(), series);
         long validFrom = Math.round(System.nanoTime() - 10 * Math.pow(10, 9));
-        byte[] signature = new byte[65];
-        new Random().nextBytes(signature);
+        byte[] signature = new Random().randomBytes(65);
 
         List<Object> args = new ArrayList<>();
         args.add(series.getID());
@@ -99,6 +100,8 @@ public class SimpleSeller {
         future.whenComplete((callResult, throwable) -> {
             if (throwable != null) {
                 throwable.printStackTrace();
+            } else {
+                System.out.println("Offer placed...");
             }
         });
     }
@@ -153,8 +156,7 @@ public class SimpleSeller {
     }
 
     public String sell(List<Object> args, Map<String, Object> kwargs, InvocationDetails details) {
-        System.out.println(args);
-        System.out.println(kwargs);
+        System.out.println("I was called....");
 //        if (!mKeysMap.containsKey(keyID)) {
 //            throw new ApplicationError("crossbar.error.no_such_object");
 //        }
@@ -169,5 +171,11 @@ public class SimpleSeller {
         System.out.println(args);
         System.out.println(kwargs);
         return null;
+    }
+
+    public Map<String, Object> wrap(byte[] apiID, String uri, Map<String, Object> payload)
+            throws JsonProcessingException {
+        KeySeries series = mKeys.get(apiID);
+        return series.encrypt(payload);
     }
 }

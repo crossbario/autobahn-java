@@ -16,8 +16,12 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import io.crossbar.autobahn.demogallery.R;
@@ -66,13 +70,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 "0x3e5e9111ae8eb78fe1cc3bb8915d5d461f3ef9a9",
                 "0xadd53f9a7e588d003326d1cbf9e4a43c061aadd9bc938c843a79e7b4fd2ad743"
         );
+        byte[] apiID = asBytes(UUID.randomUUID());
+        String uri = "io.crossbar.example";
         seller.add(
-                asBytes(UUID.randomUUID()),
-                "io.crossbar.example",
-                new BigInteger("35").multiply(new BigInteger("10").pow(18)),
+                apiID,
+                uri,
+                new BigInteger("1").multiply(new BigInteger("10").pow(18)),
                 10
         );
         seller.start(session);
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("data", "java-seller");
+        payload.put("counter", 1);
+        try {
+            Map<String, Object> wrapped = seller.wrap(apiID, uri, payload);
+            session.publish(uri, wrapped.get("id"), wrapped.get("serializer"),
+                    wrapped.get("ciphertext")).whenComplete((publication, throwable) -> {
+                        if (throwable != null) {
+                            throwable.printStackTrace();
+                        }
+            });
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
 
 //        session.publish("io.crossbar.example", )
     }
