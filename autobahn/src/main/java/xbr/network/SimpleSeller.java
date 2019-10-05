@@ -44,7 +44,7 @@ public class SimpleSeller {
     private List<Registration> mSessionRegs;
     private boolean mRunning;
 
-    private byte[] mBalance;
+    private BigInteger mBalance;
     private int mSeq;
     private HashMap<String, Object> mChannel;
     private HashMap<String, Object> mPayingBalance;
@@ -140,9 +140,9 @@ public class SimpleSeller {
                     channel.get("channel"));
         }).thenAccept(payingBalance -> {
             mSeq = (int) payingBalance.get("seq");
-            mBalance = (byte[]) payingBalance.get("remaining");
+            mBalance = new BigInteger((byte[]) payingBalance.get("remaining"));
             BigInteger bi = new BigInteger("10").pow(18);
-            System.out.println(Numeric.toBigInt(mBalance).divide(bi));
+            System.out.println(mBalance.divide(bi));
             mState = STATE_STARTED;
         }).exceptionally(throwable -> {
             throwable.printStackTrace();
@@ -180,6 +180,9 @@ public class SimpleSeller {
             throw new ApplicationError("xbr.error.invalid_signature");
         }
 
+        mSeq += 1;
+        mBalance = mBalance.subtract(amount);
+
         KeySeries series = mKeysMap.get(keyID);
         byte[] sealedKey = series.encryptKey(keyIDRaw, buyerPubKey);
 
@@ -190,14 +193,14 @@ public class SimpleSeller {
         receipt.put("sealed_key", sealedKey);
         receipt.put("channel_seq", mSeq);
         receipt.put("amount", amountRaw);
-        receipt.put("balance", mBalance);
+        receipt.put("balance", mBalance.toByteArray());
 
         try {
             byte[] sellerSignature = Util.signEIP712Data(
                     mECKey,
                     (byte[]) mChannel.get("channel"),
                     mSeq,
-                    new BigInteger(mBalance),
+                    mBalance.subtract(amount),
                     false
             );
             receipt.put("signature", sellerSignature);
