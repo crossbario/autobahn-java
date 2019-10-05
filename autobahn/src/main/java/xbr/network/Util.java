@@ -70,31 +70,44 @@ public class Util {
                 isFinal);
         StructuredDataEncoder encoder = new StructuredDataEncoder(data.toString());
         byte[] message = encoder.hashStructuredData();
+        System.out.println("Got here");
         Sign.SignatureData signed = Sign.signMessage(message, ECKeyPair.create(ethPrivKey));
         return Sign.signedMessageToKey(message, signed).toByteArray();
     }
 
     static String recoverEIP712Signer(byte[] channelAddr, int channelSeq, BigInteger balance,
-                                      boolean isFinal, byte[] signature)
-            throws JSONException, IOException {
+                                      boolean isFinal, byte[] signature, String expected) {
         String verifyingAddr = "0x254dffcd3277C0b1660F6d42EFbB754edaBAbC2B";
-        JSONObject data = createEIP712Data(verifyingAddr, channelAddr, channelSeq, balance,
-                isFinal);
+
 
         try {
-            System.out.println(signature.length);
+            JSONObject data = createEIP712Data(verifyingAddr, channelAddr, channelSeq, balance,
+                    isFinal);
             StructuredDataEncoder encoder = new StructuredDataEncoder(data.toString());
-            ECDSASignature sig = new ECDSASignature(
-                    new BigInteger(Arrays.copyOfRange(signature, 0, 31)),
-                    new BigInteger(Arrays.copyOfRange(signature, 32, 63))
-            );
             byte[] message = encoder.hashStructuredData();
-            for (int recID = 0; recID <= 3; recID++) {
-                BigInteger recovered = Sign.recoverFromSignature(recID, sig, message);
-                if (recovered != null) {
-                    String rawAddress = Numeric.toHexStringWithPrefix(recovered);
-                    System.out.println(rawAddress);
-                    return Keys.toChecksumAddress(rawAddress.substring(rawAddress.length() - 40));
+            byte v = signature[64];
+            if (v < 27) {
+                v += 27;
+            }
+            byte[] r = Arrays.copyOfRange(signature, 0, 32);
+            byte[] s = Arrays.copyOfRange(signature, 32, 64);
+
+            Sign.SignatureData sd = new Sign.SignatureData(v, r, s);
+
+            for (int i = 0; i < 4; i++) {
+                BigInteger publicKey =
+                        Sign.recoverFromSignature(
+                                (byte) i,
+                                new ECDSASignature(
+                                        new BigInteger(1, sd.getR()), new BigInteger(1, sd.getS())),
+                                message);
+
+
+                if (publicKey != null) {
+                    String addressRecovered = "0x" + Keys.getAddress(publicKey);
+                    if (addressRecovered.equals(expected)) {
+                        return addressRecovered;
+                    }
                 }
             }
         } catch (Exception e) {

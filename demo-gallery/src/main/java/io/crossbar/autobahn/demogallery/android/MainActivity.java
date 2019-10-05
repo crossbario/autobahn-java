@@ -13,6 +13,7 @@ package io.crossbar.autobahn.demogallery.android;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
@@ -83,18 +84,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Map<String, Object> payload = new HashMap<>();
         payload.put("data", "java-seller");
         payload.put("counter", 1);
-        try {
-            Map<String, Object> wrapped = seller.wrap(apiID, uri, payload);
-            System.out.println("HI");
-            session.publish(uri, wrapped.get("id"), wrapped.get("serializer"),
-                    wrapped.get("ciphertext")).whenComplete((publication, throwable) -> {
-                        if (throwable != null) {
-                            throwable.printStackTrace();
-                        }
-            });
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+
+        new Handler().postDelayed(() -> {
+            try {
+                Map<String, Object> wrapped = seller.wrap(apiID, uri, payload);
+                session.publish(uri, wrapped.get("id"), wrapped.get("serializer"),
+                        wrapped.get("ciphertext")).whenComplete((publication, throwable) -> {
+                    if (throwable != null) {
+                        throwable.printStackTrace();
+                    }
+                });
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+        }, 1000);
     }
 
     public static byte[] asBytes(UUID uuid) {

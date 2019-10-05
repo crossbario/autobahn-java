@@ -11,6 +11,7 @@ import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,8 +44,9 @@ public class SimpleSeller {
     private List<Registration> mSessionRegs;
     private boolean mRunning;
 
-    private long mRemainingBalance;
+    private byte[] mBalance;
     private HashMap<String, Object> mChannel;
+    private HashMap<String, Object> mPayingBalance;
 
     private SimpleSeller(byte[] marketMakerAddr, byte[] sellerKey) {
         mState = STATE_NONE;
@@ -133,14 +135,17 @@ public class SimpleSeller {
                 "xbr.marketmaker.get_active_paying_channel",
                 new TypeReference<HashMap<String, Object>>() {},
                 mAddr
-        ).thenCompose(channel -> mSession.call(
-                "xbr.marketmaker.get_paying_channel_balance",
-                new TypeReference<HashMap<String, Object>>() {},
-                channel.get("channel"))
-        ).thenAccept(payingBalance -> {
-            byte[] remaining = (byte[]) payingBalance.get("remaining");
+        ).thenCompose(channel -> {
+            mChannel = channel;
+            return mSession.call(
+                    "xbr.marketmaker.get_paying_channel_balance",
+                    new TypeReference<HashMap<String, Object>>() {},
+                    channel.get("channel"));
+        }).thenAccept(payingBalance -> {
+            mPayingBalance = payingBalance;
+            mBalance = (byte[]) payingBalance.get("remaining");
             BigInteger bi = new BigInteger("10").pow(18);
-            System.out.println(Numeric.toBigInt(remaining).divide(bi));
+            System.out.println(Numeric.toBigInt(mBalance).divide(bi));
             mState = STATE_STARTED;
         }).exceptionally(throwable -> {
             throwable.printStackTrace();
@@ -148,14 +153,19 @@ public class SimpleSeller {
         });
     }
 
-    public String sell(List<Object> args, Map<String, Object> kwargs, InvocationDetails details) {
+    public Map<String, Object> sell(List<Object> args, Map<String, Object> kwargs,
+                                    InvocationDetails details) {
         String marketMakerAddr = Numeric.toHexString((byte[]) args.get(0));
-        String keyID = Numeric.toHexString((byte[]) args.get(2));
+        byte[] buyerPubKey = (byte[]) args.get(1);
+        byte[] keyIDRaw = (byte[]) args.get(2);
+        String keyID = Numeric.toHexString(keyIDRaw);
         byte[] channelAddrRaw = (byte[]) args.get(3);
         String channelAddr = Numeric.toHexString(channelAddrRaw);
         int channelSeq = (int) args.get(4);
-        BigInteger amount = new BigInteger((byte[]) args.get(5));
-        BigInteger balance = new BigInteger((byte[]) args.get(6));
+        byte[] amountRaw = (byte[]) args.get(5);
+        BigInteger amount = new BigInteger(amountRaw);
+        byte[] balanceRaw = (byte[]) args.get(6);
+        BigInteger balance = new BigInteger(balanceRaw);
         byte[] signature = (byte[]) args.get(7);
 
         if (!marketMakerAddr.equals(Numeric.toHexString(mMarketMakerAddr))) {
@@ -166,25 +176,40 @@ public class SimpleSeller {
             throw new ApplicationError("crossbar.error.no_such_object");
         }
 
-        try {
-            String signerAddr = Util.recoverEIP712Signer(channelAddrRaw, channelSeq,
-                    balance, false, signature);
-            System.out.println(signerAddr);
-            System.out.println(Numeric.toHexString(mMarketMakerAddr));
-        } catch (JSONException | IOException e) {
-            e.printStackTrace();
+        String signerAddr = Util.recoverEIP712Signer(channelAddrRaw, channelSeq,
+                balance, false, signature, marketMakerAddr);
+
+        if (!signerAddr.equals(marketMakerAddr)) {
+            throw new ApplicationError("xbr.error.invalid_signature");
         }
 
         KeySeries series = mKeysMap.get(keyID);
+        byte[] sealedKey = series.encryptKey(keyIDRaw, buyerPubKey);
+
+        Map<String, Object> receipt = new HashMap<>();
+        receipt.put("key_id", keyIDRaw);
+        receipt.put("delegate", mAddr);
+        receipt.put("buyer_pubkey", buyerPubKey);
+        receipt.put("sealed_key", sealedKey);
+        receipt.put("channel_seq", mPayingBalance.get("seq"));
+        receipt.put("amount", amountRaw);
+        receipt.put("balance", mBalance);
 
 
-//        if (!mKeysMap.containsKey(keyID)) {
-//            throw new ApplicationError("crossbar.error.no_such_object");
-//        }
-//        SealedBox box = new SealedBox(buyerPubKey);
-////        return HEX.encode(box.encrypt(mKeysMap.get(keyID)));
-//        return null;
-        return null;
+        try {
+            byte[] sellerSignature = Util.signEIP712Data(
+                    mECKey.getPrivateKey().toByteArray(),
+                    (byte[]) mChannel.get("channel"),
+                    (Integer) mPayingBalance.get("seq"),
+                    new BigInteger(mBalance),
+                    false
+            );
+            receipt.put("signature", sellerSignature);
+        } catch (IOException | JSONException | SignatureException e) {
+            e.printStackTrace();
+        }
+
+        return receipt;
     }
 
     public String closeChannel(List<Object> args, Map<String, Object> kwargs,

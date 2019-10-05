@@ -316,8 +316,6 @@ public class StructuredDataEncoder {
             }
         }
 
-        System.out.println(encTypes);
-
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         for (int i = 0; i < encTypes.size(); i++) {
             Class<Type> typeClazz = (Class<Type>) AbiTypes.getType(encTypes.get(i));
@@ -355,9 +353,7 @@ public class StructuredDataEncoder {
                                 typeClazz.getSimpleName()));
             }
         }
-        byte[] result = baos.toByteArray();
-
-        return result;
+        return baos.toByteArray();
     }
 
     public byte[] hashMessage(String primaryType, HashMap<String, Object> data)
