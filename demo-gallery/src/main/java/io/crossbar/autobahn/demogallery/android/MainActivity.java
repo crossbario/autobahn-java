@@ -85,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         payload.put("counter", 1);
         try {
             Map<String, Object> wrapped = seller.wrap(apiID, uri, payload);
+            System.out.println("HI");
             session.publish(uri, wrapped.get("id"), wrapped.get("serializer"),
                     wrapped.get("ciphertext")).whenComplete((publication, throwable) -> {
                         if (throwable != null) {
@@ -94,8 +95,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-
-//        session.publish("io.crossbar.example", )
     }
 
     public static byte[] asBytes(UUID uuid) {

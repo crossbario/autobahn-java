@@ -28,7 +28,7 @@ public class KeySeries {
     private byte[] mID;
     private byte[] mKey;
     private SecretBox mBox;
-    private Map<byte[], Map<String, Object>> mArchive;
+    private Map<String, Map<String, Object>> mArchive;
     private ObjectMapper mCBOR;
     private Consumer<KeySeries> mOnRotateCallback;
     private Timer mTimer;
@@ -94,7 +94,7 @@ public class KeySeries {
     }
 
     byte[] encryptKey(byte[] keyID, byte[] buyerPubKey) {
-        Map<String, Object> key = mArchive.get(keyID);
+        Map<String, Object> key = mArchive.get(Numeric.toHexString(keyID));
         SealedBox sendKeyBox = new SealedBox(buyerPubKey);
         return sendKeyBox.encrypt((byte[]) key.get("key"));
     }
@@ -110,7 +110,7 @@ public class KeySeries {
         Map<String, Object> data = new HashMap<>();
         data.put("key", mKey);
         data.put("box", mBox);
-        mArchive.put(mID, data);
+        mArchive.put(Numeric.toHexString(mID), data);
 
         mOnRotateCallback.accept(this);
     }

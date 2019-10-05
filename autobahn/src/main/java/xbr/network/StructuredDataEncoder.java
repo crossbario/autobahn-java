@@ -12,6 +12,13 @@
  */
 package xbr.network;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.web3j.abi.TypeEncoder;
+import org.web3j.abi.datatypes.Type;
+import org.web3j.abi.datatypes.generated.AbiTypes;
+import org.web3j.utils.Numeric;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -28,13 +35,6 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.web3j.abi.TypeEncoder;
-import org.web3j.abi.datatypes.Type;
-import org.web3j.abi.datatypes.generated.AbiTypes;
-import org.web3j.utils.Numeric;
 
 import static org.web3j.crypto.Hash.sha3;
 import static org.web3j.crypto.Hash.sha3String;
@@ -87,6 +87,9 @@ public class StructuredDataEncoder {
             Iterator itr = types.get(primaryType).iterator();
             while (itr.hasNext()) {
                 StructuredData.Entry entry = (StructuredData.Entry) itr.next();
+                if (entry == null) {
+                    continue;
+                }
                 if (!types.containsKey(entry.getType())) {
                     // Don't expand on non-user defined types
                     continue;
@@ -107,7 +110,10 @@ public class StructuredDataEncoder {
         HashMap<String, List<StructuredData.Entry>> types = jsonMessageObject.getTypes();
 
         String structRepresentation = structName + "(";
-        for (StructuredData.Entry entry : types.get(structName)) {
+        for (StructuredData.Entry entry: types.get(structName)) {
+            if (entry == null) {
+                continue;
+            }
             structRepresentation += String.format("%s %s,", entry.getType(), entry.getName());
         }
         structRepresentation = structRepresentation.substring(0, structRepresentation.length() - 1);
@@ -239,6 +245,9 @@ public class StructuredDataEncoder {
 
         // Add field contents
         for (StructuredData.Entry field : types.get(primaryType)) {
+            if (field == null) {
+                continue;
+            }
             Object value = data.get(field.getName());
 
             if (field.getType().equals("string")) {
@@ -306,6 +315,8 @@ public class StructuredDataEncoder {
                 encValues.add(value);
             }
         }
+
+        System.out.println(encTypes);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         for (int i = 0; i < encTypes.size(); i++) {
@@ -375,6 +386,9 @@ public class StructuredDataEncoder {
             Iterator<StructuredData.Entry> fieldsIterator = fields.iterator();
             while (fieldsIterator.hasNext()) {
                 StructuredData.Entry entry = fieldsIterator.next();
+                if (entry == null) {
+                    continue;
+                }
                 if (!identifierPattern.matcher(entry.getName()).find()) {
                     // raise Error
                     throw new RuntimeException(

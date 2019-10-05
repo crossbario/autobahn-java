@@ -3,15 +3,14 @@ package xbr.network;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 
-import org.libsodium.jni.SodiumConstants;
+import org.json.JSONException;
 import org.libsodium.jni.crypto.Random;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;
 import org.web3j.utils.Numeric;
 
-import java.math.BigDecimal;
+import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +18,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.Session;
+import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.InvocationDetails;
@@ -31,17 +31,14 @@ public class SimpleSeller {
     private static final int STATE_STOPPING = 3;
     private static final int STATE_STOPPED = 4;
 
-    private final byte[] mEthPrivateKey;
-    private final byte[] mEthPublicKey;
     private final ECKeyPair mECKey;
     private final byte[] mMarketMakerAddr;
-    private final byte[] mPrivateKeyRaw;
     private final byte[] mAddr;
 
     private int mState;
 
-    private HashMap<byte[], KeySeries> mKeys;
-    private HashMap<byte[], KeySeries> mKeysMap;
+    private HashMap<String, KeySeries> mKeys;
+    private HashMap<String, KeySeries> mKeysMap;
     private Session mSession;
     private List<Registration> mSessionRegs;
     private boolean mRunning;
@@ -49,15 +46,11 @@ public class SimpleSeller {
     private long mRemainingBalance;
     private HashMap<String, Object> mChannel;
 
-    public SimpleSeller(byte[] marketMakerAddr, byte[] sellerKey) {
+    private SimpleSeller(byte[] marketMakerAddr, byte[] sellerKey) {
         mState = STATE_NONE;
 
         mMarketMakerAddr = marketMakerAddr;
-
-        mPrivateKeyRaw = sellerKey;
         mECKey = ECKeyPair.create(sellerKey);
-        mEthPrivateKey = mECKey.getPrivateKey().toByteArray();
-        mEthPublicKey = mECKey.getPublicKey().toByteArray();
         mAddr = Numeric.hexStringToByteArray(Keys.getAddress(mECKey));
 
         mKeys = new HashMap<>();
@@ -71,11 +64,11 @@ public class SimpleSeller {
     }
 
     byte[] getPublicKey() {
-        return mEthPublicKey;
+        return mECKey.getPublicKey().toByteArray();
     }
 
     private void onRotate(KeySeries series) {
-        mKeysMap.put(series.getID(), series);
+        mKeysMap.put(Numeric.toHexString(series.getID()), series);
         long validFrom = Math.round(System.nanoTime() - 10 * Math.pow(10, 9));
         byte[] signature = new Random().randomBytes(65);
 
@@ -93,7 +86,7 @@ public class SimpleSeller {
         kwargs.put("categories", null);
         kwargs.put("expires", null);
         kwargs.put("copies", null);
-        kwargs.put("provider_id", mAddr);
+        kwargs.put("provider_id", Numeric.toHexString(mAddr));
 
         CompletableFuture<CallResult> future = mSession.call(
                 "xbr.marketmaker.place_offer", args, kwargs, new CallOptions(1000));
@@ -107,15 +100,15 @@ public class SimpleSeller {
     }
 
     public void add(byte[] apiID, String prefix, BigInteger price, int interval) {
-        mKeys.put(apiID, new KeySeries(apiID, price, interval, prefix, this::onRotate));
+        mKeys.put(Numeric.toHexString(apiID),
+                new KeySeries(apiID, price, interval, prefix, this::onRotate));
     }
 
     public void start(Session session) {
         mState = STATE_STARTING;
         mSession = session;
 
-        String provider = Keys.getAddress(mECKey);
-        System.out.println(provider);
+        String provider = Numeric.prependHexPrefix(Keys.getAddress(mECKey));
         String procedureSell = String.format("xbr.provider.%s.sell", provider);
         mSession.register(procedureSell, this::sell).thenAccept(registration -> {
             mSessionRegs.add(registration);
@@ -156,7 +149,35 @@ public class SimpleSeller {
     }
 
     public String sell(List<Object> args, Map<String, Object> kwargs, InvocationDetails details) {
-        System.out.println("I was called....");
+        String marketMakerAddr = Numeric.toHexString((byte[]) args.get(0));
+        String keyID = Numeric.toHexString((byte[]) args.get(2));
+        byte[] channelAddrRaw = (byte[]) args.get(3);
+        String channelAddr = Numeric.toHexString(channelAddrRaw);
+        int channelSeq = (int) args.get(4);
+        BigInteger amount = new BigInteger((byte[]) args.get(5));
+        BigInteger balance = new BigInteger((byte[]) args.get(6));
+        byte[] signature = (byte[]) args.get(7);
+
+        if (!marketMakerAddr.equals(Numeric.toHexString(mMarketMakerAddr))) {
+            throw new ApplicationError("xbr.error.unexpected_marketmaker_adr");
+        }
+
+        if (!mKeysMap.containsKey(keyID)) {
+            throw new ApplicationError("crossbar.error.no_such_object");
+        }
+
+        try {
+            String signerAddr = Util.recoverEIP712Signer(channelAddrRaw, channelSeq,
+                    balance, false, signature);
+            System.out.println(signerAddr);
+            System.out.println(Numeric.toHexString(mMarketMakerAddr));
+        } catch (JSONException | IOException e) {
+            e.printStackTrace();
+        }
+
+        KeySeries series = mKeysMap.get(keyID);
+
+
 //        if (!mKeysMap.containsKey(keyID)) {
 //            throw new ApplicationError("crossbar.error.no_such_object");
 //        }
@@ -175,7 +196,7 @@ public class SimpleSeller {
 
     public Map<String, Object> wrap(byte[] apiID, String uri, Map<String, Object> payload)
             throws JsonProcessingException {
-        KeySeries series = mKeys.get(apiID);
+        KeySeries series = mKeys.get(Numeric.toHexString(apiID));
         return series.encrypt(payload);
     }
 }
