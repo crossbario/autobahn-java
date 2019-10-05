@@ -51,7 +51,6 @@ public class Util {
         domain.put("verifyingContract", verifyingAddr);
         result.put("domain", domain);
 
-
         JSONObject message = new JSONObject();
         message.put("channel_adr", Numeric.toHexString(channelAddr));
         message.put("channel_seq", channelSeq);
@@ -62,17 +61,19 @@ public class Util {
         return result;
     }
 
-    static byte[] signEIP712Data(ECKeyPair keyPair, byte[] channelAddr, int channelSeq, BigInteger balance,
-                          boolean isFinal) throws IOException, JSONException {
+    static byte[] signEIP712Data(ECKeyPair keyPair, byte[] channelAddr, int channelSeq,
+                                 BigInteger balance, boolean isFinal)
+            throws IOException, JSONException {
+
         String verifyingAddr = "0x254dffcd3277C0b1660F6d42EFbB754edaBAbC2B";
         JSONObject data = createEIP712Data(verifyingAddr, channelAddr, channelSeq, balance,
                 isFinal);
         StructuredDataEncoder encoder = new StructuredDataEncoder(data.toString());
         byte[] message = encoder.hashStructuredData();
-        Sign.SignatureData signed = Sign.signMessage(message, keyPair);
+        Sign.SignatureData signed = Sign.signMessage(message, keyPair, false);
 
-        byte[] r = new BigInteger(signed.getR()).toByteArray();
-        byte[] s = new BigInteger(signed.getS()).toByteArray();
+        byte[] r = signed.getR();
+        byte[] s = signed.getS();
         byte[] result = new byte[65];
         System.arraycopy(r, 0, result, 0, r.length);
         System.arraycopy(s, 0, result, r.length, s.length);
@@ -82,9 +83,8 @@ public class Util {
     }
 
     static String recoverEIP712Signer(byte[] channelAddr, int channelSeq, BigInteger balance,
-                                      boolean isFinal, byte[] signature, String expected) {
+                                      boolean isFinal, byte[] signature) {
         String verifyingAddr = "0x254dffcd3277C0b1660F6d42EFbB754edaBAbC2B";
-
 
         try {
             JSONObject data = createEIP712Data(verifyingAddr, channelAddr, channelSeq, balance,
@@ -100,21 +100,16 @@ public class Util {
 
             Sign.SignatureData sd = new Sign.SignatureData(v, r, s);
 
-            for (int i = 0; i < 4; i++) {
-                BigInteger publicKey =
-                        Sign.recoverFromSignature(
-                                (byte) i,
-                                new ECDSASignature(
-                                        new BigInteger(1, sd.getR()), new BigInteger(1, sd.getS())),
-                                message);
+            int recID = v - 27;
+            BigInteger publicKey =
+                    Sign.recoverFromSignature(
+                            (byte) recID,
+                            new ECDSASignature(
+                                    new BigInteger(1, sd.getR()), new BigInteger(1, sd.getS())),
+                            message);
 
-
-                if (publicKey != null) {
-                    String addressRecovered = "0x" + Keys.getAddress(publicKey);
-                    if (addressRecovered.equals(expected)) {
-                        return addressRecovered;
-                    }
-                }
+            if (publicKey != null) {
+                return "0x" + Keys.getAddress(publicKey);
             }
         } catch (Exception e) {
             e.printStackTrace();

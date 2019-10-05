@@ -152,6 +152,7 @@ public class SimpleSeller {
 
     public InvocationResult sell(List<Object> args, Map<String, Object> kwargs,
                                     InvocationDetails details) {
+
         String marketMakerAddr = Numeric.toHexString((byte[]) args.get(0));
         byte[] buyerPubKey = (byte[]) args.get(1);
         byte[] keyIDRaw = (byte[]) args.get(2);
@@ -173,8 +174,8 @@ public class SimpleSeller {
             throw new ApplicationError("crossbar.error.no_such_object");
         }
 
-        String signerAddr = Util.recoverEIP712Signer(channelAddrRaw, channelSeq,
-                balance, false, signature, marketMakerAddr);
+        String signerAddr = Util.recoverEIP712Signer(channelAddrRaw, channelSeq, balance, false,
+                signature);
 
         if (!signerAddr.equals(marketMakerAddr)) {
             throw new ApplicationError("xbr.error.invalid_signature");
@@ -200,7 +201,7 @@ public class SimpleSeller {
                     mECKey,
                     (byte[]) mChannel.get("channel"),
                     mSeq,
-                    mBalance.subtract(amount),
+                    mBalance,
                     false
             );
             receipt.put("signature", sellerSignature);
@@ -221,6 +222,7 @@ public class SimpleSeller {
     public Map<String, Object> wrap(byte[] apiID, String uri, Map<String, Object> payload)
             throws JsonProcessingException {
         KeySeries series = mKeys.get(Numeric.toHexString(apiID));
-        return series.encrypt(payload);
+        Map<String, Object> encrypted = series.encrypt(payload);
+        return encrypted;
     }
 }
