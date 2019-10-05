@@ -100,10 +100,7 @@ public class KeySeries {
     }
 
     private void onRotate() {
-        byte[] randomData = new byte[16];
-        mRandom.nextBytes(randomData);
-        mID = randomData;
-
+        mID = new Random().randomBytes(16);
         mKey = new Random().randomBytes(SodiumConstants.XSALSA20_POLY1305_SECRETBOX_KEYBYTES);
         mBox = new SecretBox(mKey);
 

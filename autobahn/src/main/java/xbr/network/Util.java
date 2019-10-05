@@ -12,7 +12,6 @@ import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.SignatureException;
 import java.util.Arrays;
 
 public class Util {
@@ -63,16 +62,23 @@ public class Util {
         return result;
     }
 
-    static byte[] signEIP712Data(byte[] ethPrivKey, byte[] channelAddr, int channelSeq, BigInteger balance,
-                          boolean isFinal) throws IOException, JSONException, SignatureException {
+    static byte[] signEIP712Data(ECKeyPair keyPair, byte[] channelAddr, int channelSeq, BigInteger balance,
+                          boolean isFinal) throws IOException, JSONException {
         String verifyingAddr = "0x254dffcd3277C0b1660F6d42EFbB754edaBAbC2B";
         JSONObject data = createEIP712Data(verifyingAddr, channelAddr, channelSeq, balance,
                 isFinal);
         StructuredDataEncoder encoder = new StructuredDataEncoder(data.toString());
         byte[] message = encoder.hashStructuredData();
-        System.out.println("Got here");
-        Sign.SignatureData signed = Sign.signMessage(message, ECKeyPair.create(ethPrivKey));
-        return Sign.signedMessageToKey(message, signed).toByteArray();
+        Sign.SignatureData signed = Sign.signMessage(message, keyPair);
+
+        byte[] r = new BigInteger(signed.getR()).toByteArray();
+        byte[] s = new BigInteger(signed.getS()).toByteArray();
+        byte[] result = new byte[65];
+        System.arraycopy(r, 0, result, 0, r.length);
+        System.arraycopy(s, 0, result, r.length, s.length);
+        result[64] = signed.getV();
+
+        return result;
     }
 
     static String recoverEIP712Signer(byte[] channelAddr, int channelSeq, BigInteger balance,

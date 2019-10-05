@@ -11,7 +11,6 @@ import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +22,7 @@ import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import io.crossbar.autobahn.wamp.types.CallOptions;
 import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.InvocationDetails;
+import io.crossbar.autobahn.wamp.types.InvocationResult;
 import io.crossbar.autobahn.wamp.types.Registration;
 
 public class SimpleSeller {
@@ -45,6 +45,7 @@ public class SimpleSeller {
     private boolean mRunning;
 
     private byte[] mBalance;
+    private int mSeq;
     private HashMap<String, Object> mChannel;
     private HashMap<String, Object> mPayingBalance;
 
@@ -83,12 +84,8 @@ public class SimpleSeller {
         args.add(signature);
 
         Map<String, Object> kwargs = new HashMap<>();
-        kwargs.put("privkey", null);
         kwargs.put("price", series.getPrice());
-        kwargs.put("categories", null);
-        kwargs.put("expires", null);
-        kwargs.put("copies", null);
-        kwargs.put("provider_id", Numeric.toHexString(mAddr));
+        kwargs.put("provider_id", Numeric.toHexStringWithPrefix(mECKey.getPublicKey()));
 
         CompletableFuture<CallResult> future = mSession.call(
                 "xbr.marketmaker.place_offer", args, kwargs, new CallOptions(1000));
@@ -110,7 +107,7 @@ public class SimpleSeller {
         mState = STATE_STARTING;
         mSession = session;
 
-        String provider = Numeric.prependHexPrefix(Keys.getAddress(mECKey));
+        String provider = Numeric.toHexStringWithPrefix(mECKey.getPublicKey());
         String procedureSell = String.format("xbr.provider.%s.sell", provider);
         mSession.register(procedureSell, this::sell).thenAccept(registration -> {
             mSessionRegs.add(registration);
@@ -142,7 +139,7 @@ public class SimpleSeller {
                     new TypeReference<HashMap<String, Object>>() {},
                     channel.get("channel"));
         }).thenAccept(payingBalance -> {
-            mPayingBalance = payingBalance;
+            mSeq = (int) payingBalance.get("seq");
             mBalance = (byte[]) payingBalance.get("remaining");
             BigInteger bi = new BigInteger("10").pow(18);
             System.out.println(Numeric.toBigInt(mBalance).divide(bi));
@@ -153,7 +150,7 @@ public class SimpleSeller {
         });
     }
 
-    public Map<String, Object> sell(List<Object> args, Map<String, Object> kwargs,
+    public InvocationResult sell(List<Object> args, Map<String, Object> kwargs,
                                     InvocationDetails details) {
         String marketMakerAddr = Numeric.toHexString((byte[]) args.get(0));
         byte[] buyerPubKey = (byte[]) args.get(1);
@@ -191,25 +188,24 @@ public class SimpleSeller {
         receipt.put("delegate", mAddr);
         receipt.put("buyer_pubkey", buyerPubKey);
         receipt.put("sealed_key", sealedKey);
-        receipt.put("channel_seq", mPayingBalance.get("seq"));
+        receipt.put("channel_seq", mSeq);
         receipt.put("amount", amountRaw);
         receipt.put("balance", mBalance);
 
-
         try {
             byte[] sellerSignature = Util.signEIP712Data(
-                    mECKey.getPrivateKey().toByteArray(),
+                    mECKey,
                     (byte[]) mChannel.get("channel"),
-                    (Integer) mPayingBalance.get("seq"),
+                    mSeq,
                     new BigInteger(mBalance),
                     false
             );
             receipt.put("signature", sellerSignature);
-        } catch (IOException | JSONException | SignatureException e) {
+        } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
 
-        return receipt;
+        return new InvocationResult((Object) receipt);
     }
 
     public String closeChannel(List<Object> args, Map<String, Object> kwargs,
