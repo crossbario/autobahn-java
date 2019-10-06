@@ -6,7 +6,6 @@ import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 
 import org.libsodium.jni.SodiumConstants;
 import org.libsodium.jni.crypto.Random;
-import org.libsodium.jni.crypto.SecretBox;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;

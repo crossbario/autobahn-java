@@ -13,7 +13,6 @@ package io.crossbar.autobahn.demogallery.android;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
@@ -23,6 +22,8 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 
 import io.crossbar.autobahn.demogallery.R;
@@ -85,19 +86,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         payload.put("data", "java-seller");
         payload.put("counter", 1);
 
-        new Handler().postDelayed(() -> {
-            try {
-                Map<String, Object> wrapped = seller.wrap(apiID, uri, payload);
-                session.publish(uri, wrapped.get("id"), wrapped.get("serializer"),
-                        wrapped.get("ciphertext")).whenComplete((publication, throwable) -> {
-                    if (throwable != null) {
-                        throwable.printStackTrace();
-                    }
-                });
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    Map<String, Object> wrapped = seller.wrap(apiID, uri, payload);
+                    session.publish(uri, wrapped.get("id"), wrapped.get("serializer"),
+                            wrapped.get("ciphertext")).whenComplete((publication, throwable) -> {
+                        if (throwable != null) {
+                            throwable.printStackTrace();
+                        }
+                    });
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
             }
-        }, 1000);
+        }, 0, 3000);
     }
 
     public static byte[] asBytes(UUID uuid) {

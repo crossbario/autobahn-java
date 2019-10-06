@@ -21,12 +21,12 @@ dependencies {
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.8'
     implementation 'org.msgpack:jackson-dataformat-msgpack:0.8.16'
     if (project.IS_ANDROID) {
-        implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.1'
+        implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.2'
         implementation 'org.web3j:core:4.2.0-android'
         implementation 'org.web3j:abi:4.2.0-android'
         implementation 'org.web3j:utils:4.2.0-android'
     } else {
-        implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni:2.0.1'
+        implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni:2.0.2'
         implementation 'io.netty:netty-codec-http:4.1.34.Final'
         implementation 'io.netty:netty-handler:4.1.34.Final'
         implementation 'org.web3j:core:4.2.0'
