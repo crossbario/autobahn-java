@@ -32,6 +32,7 @@ dependencies {
         implementation 'org.web3j:core:4.2.0'
         implementation 'org.web3j:abi:4.2.0'
         implementation 'org.web3j:utils:4.2.0'
+        implementation 'org.json:json:20190722'
     }
 }
 
