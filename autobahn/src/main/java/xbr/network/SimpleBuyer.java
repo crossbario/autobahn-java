@@ -3,10 +3,11 @@ package xbr.network;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
-import org.ethereum.crypto.ECKey;
-import org.ethereum.crypto.HashUtil;
 import org.libsodium.jni.SodiumConstants;
-import org.spongycastle.util.encoders.Hex;
+import org.web3j.crypto.ECKeyPair;
+import org.web3j.crypto.Hash;
+import org.web3j.crypto.Keys;
+import org.web3j.utils.Numeric;
 
 import java.security.SecureRandom;
 import java.util.HashMap;
@@ -23,7 +24,7 @@ public class SimpleBuyer {
     private final int mMaxPrice;
     private final byte[] mPrivateKey;
     private final byte[] mPublicKey;
-    private final ECKey mECKey;
+    private final ECKeyPair mECKey;
 
     private HashMap<String, String> mKeys;
     private Session mSession;
@@ -33,10 +34,9 @@ public class SimpleBuyer {
     private HashMap<String, Object> mChannel;
 
     public SimpleBuyer(String buyerKey, int maxPrice) {
-        byte[] privatekey = Hex.decode(buyerKey);
-        mECKey = ECKey.fromPrivate(privatekey);
-        mEthPrivateKey = Hex.toHexString(mECKey.getPrivKeyBytes());
-        mEthPublicKey = Hex.toHexString(ECKey.publicKeyFromPrivate(mECKey.getPrivKey(), false));
+        mECKey = ECKeyPair.create(Numeric.hexStringToByteArray(buyerKey));
+        mEthPrivateKey = Numeric.toHexString(mECKey.getPrivateKey().toByteArray());
+        mEthPublicKey = Numeric.toHexString(mECKey.getPublicKey().toByteArray());
         mMaxPrice = maxPrice;
         mKeys = new HashMap<>();
 
@@ -57,7 +57,7 @@ public class SimpleBuyer {
         CompletableFuture<HashMap<String, Object>> callFuture = session.call(
                 "xbr.marketmaker.get_payment_channel",
                 new TypeReference<HashMap<String, Object>>() {},
-                mECKey.getAddress());
+                Keys.getAddress(mPublicKey));
         callFuture.whenComplete((result, throwable) -> {
             if (throwable != null) {
                 throwable.printStackTrace();
@@ -87,7 +87,7 @@ public class SimpleBuyer {
         CompletableFuture<HashMap<String, Object>> callFuture = mSession.call(
                 "xbr.marketmaker.get_payment_channel",
                 new TypeReference<HashMap<String, Object>>() {},
-                mECKey.getAddress());
+                Keys.getAddress(mPublicKey));
         callFuture.whenComplete((result, throwable) -> {
             if (throwable != null) {
                 throwable.printStackTrace();
@@ -114,7 +114,7 @@ public class SimpleBuyer {
                 "xbr.marketmaker.open_payment_channel",
                 new TypeReference<HashMap<String, Object>>() {},
                 buyerAddr,
-                mECKey.getAddress(),
+                Keys.getAddress(mPublicKey),
                 amount,
                 new SecureRandom(new byte[64]));
         callFuture.whenComplete((result, throwable) -> {
@@ -141,15 +141,14 @@ public class SimpleBuyer {
         CompletableFuture<String> future = new CompletableFuture<>();
         if (!mKeys.containsKey(keyID)) {
             int amount = mMaxPrice;
-            byte[] signature = new byte[64];
-            HashUtil.sha256(signature);
+            byte[] signature = Hash.sha256(new byte[64]);
             byte[] key = new byte[16];
             sodium().randombytes(key, 16);
 
             CompletableFuture<HashMap<String, Object>> callFuture = mSession.call(
                     "xbr.marketmaker.buy_key",
                     new TypeReference<HashMap<String, Object>>() {},
-                    mECKey.getAddress(),
+                    Keys.getAddress(mPublicKey),
                     mPublicKey,
                     key,
                     amount,
