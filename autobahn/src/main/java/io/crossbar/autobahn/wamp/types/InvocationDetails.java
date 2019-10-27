@@ -27,7 +27,7 @@ public class InvocationDetails {
     // The WAMP authid of the caller.
     public final String callerAuthID;
 
-    // The WAMP authrole of the caller.
+    // The WAMP authRole of the caller.
     public final String callerAuthRole;
 
     // The WAMP session on which this event is delivered.

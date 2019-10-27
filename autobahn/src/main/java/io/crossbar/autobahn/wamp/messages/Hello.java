@@ -29,6 +29,7 @@ public class Hello implements IMessage {
     public final Map<String, Map> roles;
     public final List<String> authMethods;
     public final String authID;
+    public final String authRole;
     public final Map<String, Object> authextra;
 
     @Override
@@ -43,6 +44,9 @@ public class Hello implements IMessage {
         }
         if (authID != null) {
             details.put("authid", authID);
+        }
+        if (authRole != null) {
+            details.put("authrole", authRole);
         }
         if (authextra != null) {
             details.put("authextra", authextra);
@@ -60,21 +64,29 @@ public class Hello implements IMessage {
         Map<String, Map> roles = (Map<String, Map>) details.get("roles");
         List<String> authMethods = getOrDefault(details, "authmethods", null);
         String authID = getOrDefault(details, "authid", null);
+        String authRole = getOrDefault(details, "authrole", null);
         Map<String, Object> authextra = getOrDefault(details, "authextra", null);
 
-        return new Hello(realm, roles, authMethods, authID, authextra);
+        return new Hello(realm, roles, authMethods, authID, authRole, authextra);
     }
 
     public Hello(String realm, Map<String, Map> roles) {
-        this(realm, roles, null, null, null);
+        this(realm, roles, null, null, null, null);
+    }
+
+    @Deprecated
+    public Hello(String realm, Map<String, Map> roles, List<String> authMethods, String authID,
+                 Map<String, Object> authextra) {
+        this(realm, roles, authMethods, authID, null, authextra);
     }
 
     public Hello(String realm, Map<String, Map> roles, List<String> authMethods, String authID,
-                 Map<String, Object> authextra) {
+                 String authRole, Map<String, Object> authextra) {
         this.realm = realm;
         this.roles = roles;
         this.authMethods = authMethods;
         this.authID = authID;
+        this.authRole = authRole;
         this.authextra = authextra;
     }
 }

@@ -1275,6 +1275,7 @@ public class Session implements ISession, ITransportHandler {
         } else {
             List<String> authMethods = new ArrayList<>();
             String authID = null;
+            String authrole = null;
             Map<String, Object> authextra = null;
             for (IAuthenticator authenticator: mAuthenticators) {
                 authMethods.add(authenticator.getAuthMethod());
@@ -1284,13 +1285,15 @@ public class Session implements ISession, ITransportHandler {
                 } else if (authenticator.getAuthMethod().equals(ChallengeResponseAuth.authmethod)) {
                     ChallengeResponseAuth auth = (ChallengeResponseAuth) authenticator;
                     authID = auth.authid;
+                    authrole = auth.authrole;
                 } else if (authenticator.getAuthMethod().equals(CryptosignAuth.authmethod)) {
                     CryptosignAuth auth = (CryptosignAuth) authenticator;
                     authID = auth.authid;
+                    authrole = auth.authrole;
                     authextra = auth.authextra;
                 }
             }
-            send(new Hello(realm, roles, authMethods, authID, authextra));
+            send(new Hello(realm, roles, authMethods, authID, authrole, authextra));
         }
         mJoinFuture = new CompletableFuture<>();
         mState = STATE_HELLO_SENT;

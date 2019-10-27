@@ -34,7 +34,7 @@ public class EventDetails {
     // The WAMP authid of the publisher.
     public final String publisherAuthID;
 
-    // The WAMP authrole of the publisher.
+    // The WAMP authRole of the publisher.
     public final String publisherAuthRole;
 
     // The WAMP session on which this event is delivered.
