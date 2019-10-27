@@ -19,17 +19,24 @@ public class ChallengeResponseAuth implements IAuthenticator {
     public static final String authmethod = "wampcra";
 
     public final String authid;
+    public final String authrole;
     public final Map<String, Object> authextra;
     public final String secret;
 
     private Mac sha256HMAC;
 
     public ChallengeResponseAuth(String authid, String secret) {
-        this(authid, secret, null);
+        this(authid, secret, null, null);
     }
 
     public ChallengeResponseAuth(String authid, String secret, Map<String, Object> authextra) {
+        this(authid, secret, null, authextra);
+    }
+
+    public ChallengeResponseAuth(String authid, String secret, String authrole,
+                                 Map<String, Object> authextra) {
         this.authid = authid;
+        this.authrole = authrole;
         this.secret = secret;
         this.authextra = authextra;
         try {

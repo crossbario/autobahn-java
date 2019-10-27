@@ -19,33 +19,17 @@ public class CryptosignAuth implements IAuthenticator {
     public static final String authmethod = "cryptosign";
 
     public final String authid;
+    public final String authrole;
     public final Map<String, Object> authextra;
 
     private final byte[] privateKeyRaw;
 
     public CryptosignAuth(String authid, String privkey, Map<String, Object> authextra) {
-        this.authid = authid;
-        if (authextra == null || getOrDefault(authextra, "pubkey", null) == null) {
-            throw new RuntimeException("authextra must contain pubkey");
-        }
-        this.authextra = authextra;
-        try {
-            privateKeyRaw = AuthUtil.toBinary(privkey);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        this(authid, null, privkey, authextra);
     }
 
     public CryptosignAuth(String authid, String privkey, String pubkey) {
-        Map<String, Object> authextra = new HashMap<>();
-        authextra.put("pubkey", pubkey);
-        this.authid = authid;
-        this.authextra = authextra;
-        try {
-            privateKeyRaw = AuthUtil.toBinary(privkey);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        this(authid, null, privkey, new HashMap<String, Object>() {{ put("pubkey", pubkey); }});
     }
 
     public CryptosignAuth(String authid, File privateKeyFile) {
@@ -56,6 +40,22 @@ public class CryptosignAuth implements IAuthenticator {
             authextra.put("pubkey", AuthUtil.toHexString(keydata.get("pubkey")));
             this.authextra = authextra;
             privateKeyRaw = keydata.get("privkey");
+            this.authrole = null;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public CryptosignAuth(String authid, String authrole, String privkey,
+                          Map<String, Object> authextra) {
+        this.authid = authid;
+        this.authrole = authrole;
+        if (authextra == null || getOrDefault(authextra, "pubkey", null) == null) {
+            throw new RuntimeException("authextra must contain pubkey");
+        }
+        this.authextra = authextra;
+        try {
+            privateKeyRaw = AuthUtil.toBinary(privkey);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
