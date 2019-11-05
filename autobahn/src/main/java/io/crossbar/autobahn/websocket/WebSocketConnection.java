@@ -327,12 +327,10 @@ public class WebSocketConnection implements IWebSocket {
         try {
             mWsUri = new URI(wsUri);
 
-            if (mWsUri == null && !mWsUri.getScheme().equals("ws") &&
-                    !mWsUri.getScheme().equals("wss")) {
+            mWsScheme = mWsUri.getScheme();
+            if (mWsScheme == null || (!mWsScheme.equals("ws") && !mWsScheme.equals("wss"))) {
                 throw new WebSocketException("unsupported scheme for WebSockets URI");
             }
-
-            mWsScheme = mWsUri.getScheme();
 
             if (mWsUri.getPort() == -1) {
                 if (mWsScheme.equals("ws")) {
