@@ -327,7 +327,8 @@ public class WebSocketConnection implements IWebSocket {
         try {
             mWsUri = new URI(wsUri);
 
-            if (!mWsUri.getScheme().equals("ws") && !mWsUri.getScheme().equals("wss")) {
+            if (mWsUri == null && !mWsUri.getScheme().equals("ws") &&
+                    !mWsUri.getScheme().equals("wss")) {
                 throw new WebSocketException("unsupported scheme for WebSockets URI");
             }
 
