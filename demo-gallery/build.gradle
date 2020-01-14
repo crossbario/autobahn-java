@@ -2,12 +2,13 @@ apply plugin: project.PLATFORM == project.PLATFORM_NETTY ? project.PLUGIN_JAVA_A
 
 if (plugins.hasPlugin(project.PLUGIN_ANDROID_APP)) {
     android {
-        compileSdkVersion 28
-        buildToolsVersion '28.0.3'
+        compileSdkVersion 29
+        buildToolsVersion '29.0.2'
 
         defaultConfig {
             minSdkVersion 24
-            targetSdkVersion 28
+            targetSdkVersion 29
+            multiDexEnabled true
         }
         buildTypes {
             release {
@@ -39,7 +40,8 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_APP)) {
 
     dependencies {
         implementation project(path: ':autobahn')
-        implementation 'com.android.support:appcompat-v7:28.0.0'
+        implementation 'androidx.appcompat:appcompat:1.1.0'
+        implementation 'com.android.support:multidex:1.0.3'
     }
 } else {
     mainClassName = 'io.crossbar.autobahn.demogallery.netty.Main'

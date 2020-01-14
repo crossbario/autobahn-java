@@ -16,7 +16,7 @@ def siteUrl = 'https://github.com/crossbario/autobahn-java'
 
 dependencies {
     api 'com.fasterxml.jackson.core:jackson-core:2.9.8'
-    // api 'net.sourceforge.streamsupport:streamsupport-cfuture:1.6.2'
+    //api 'net.sourceforge.streamsupport:streamsupport-cfuture:1.6.2'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.8'
     implementation 'org.msgpack:jackson-dataformat-msgpack:0.8.16'
@@ -70,11 +70,11 @@ bintray {
 
 if (project.IS_ANDROID) {
     android {
-        compileSdkVersion 28
-        buildToolsVersion '28.0.3'
+        compileSdkVersion 29
+        buildToolsVersion '29.0.2'
         defaultConfig {
             minSdkVersion 24
-            targetSdkVersion 28
+            targetSdkVersion 29
         }
         buildTypes {
             release {
