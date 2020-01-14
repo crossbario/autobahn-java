@@ -1,3 +1,19 @@
+# Release v20.1.1
+
+* MISC: manifest cleanup
+* MISC: update all android deps
+* FIX: ensure a valid URI is provided for connection (#460)
+* FIX: make cryptosign and CRA support authrole parameter (#458)
+* NEW: Implement EIP712 Signing (#454)
+* FIX: Set callerSessionID, callerAuthID and callerAuthRole (#446)
+* NEW: AndroidWebSocket: Change writer to sans-io architecture (#445)
+* FIX: ensure to close nio loop on netty (#442)
+* DOC: Add Android websocket example (#436)
+* NEW: XBR Buyer/Seller Part 1 (#434)
+* MISC: add deploy script (currently unused)
+
+---
+
 # Release v19.3.1
 
 * MISC: Update dependency versions
