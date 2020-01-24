@@ -149,6 +149,24 @@ public void demonstrateCall(Session session, SessionDetails details) {
 }
 ```
 
+Calling procedure with variable data type parameters
+
+```java
+public void demonstrateCall(Session session, SessionDetails details) {
+    // Call a remote procedure.
+    byte[] var1 = new byte[20];
+    String var2 = "A sample text";
+    int var3 = 99;
+    List<Object> args = new ArrayList<>();
+    args.add(var1);
+    args.add(var2);
+    args.add(var3);
+    CompletableFuture<CallResult> callFuture = session.call("com.myapp.myproc", args);
+    callFuture.thenAccept(callResult ->
+            System.out.println(String.format("Call result: %s", callResult.results.get(0))));
+}
+```
+
 ### Connecting the dots
 
 ```java
