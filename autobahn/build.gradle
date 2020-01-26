@@ -112,8 +112,9 @@ if (project.IS_ANDROID) {
 
     task javadoc(type: Javadoc) {
         failOnError false
-        source = android.sourceSets.main.java.srcDirs
+        source = android.sourceSets.main.java.sourceFiles
         classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+        classpath += configurations.compile
     }
     afterEvaluate {
         javadoc.classpath += files(android.libraryVariants.collect { variant ->
