@@ -1,3 +1,10 @@
+# Release v20.1.2
+
+* FIX: make SimpleSeller.start() async. Add seller example (#467)
+* MISC: example: call procedure with args of different data types (#466)
+
+---
+
 # Release v20.1.1
 
 * MISC: manifest cleanup
