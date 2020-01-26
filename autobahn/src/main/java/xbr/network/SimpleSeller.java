@@ -66,7 +66,7 @@ public class SimpleSeller {
                 Numeric.hexStringToByteArray(sellerKey));
     }
 
-    byte[] getPublicKey() {
+    public byte[] getPublicKey() {
         return mECKey.getPublicKey().toByteArray();
     }
 
@@ -103,7 +103,9 @@ public class SimpleSeller {
                 new KeySeries(apiID, price, interval, prefix, this::onRotate));
     }
 
-    public void start(Session session) {
+    public CompletableFuture<BigInteger> start(Session session) {
+        CompletableFuture<BigInteger> future = new CompletableFuture<>();
+
         mState = STATE_STARTING;
         mSession = session;
 
@@ -112,7 +114,7 @@ public class SimpleSeller {
         mSession.register(procedureSell, this::sell).thenAccept(registration -> {
             mSessionRegs.add(registration);
         }).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            future.completeExceptionally(throwable);
             return null;
         });
 
@@ -120,7 +122,7 @@ public class SimpleSeller {
         mSession.register(procedureCloseChannel, this::closeChannel).thenAccept(registration -> {
             mSessionRegs.add(registration);
         }).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            future.completeExceptionally(throwable);
             return null;
         });
 
@@ -144,14 +146,17 @@ public class SimpleSeller {
             BigInteger bi = new BigInteger("10").pow(18);
             System.out.println(mBalance.divide(bi));
             mState = STATE_STARTED;
+            future.complete(mBalance);
         }).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            future.completeExceptionally(throwable);
             return null;
         });
+
+        return future;
     }
 
     public InvocationResult sell(List<Object> args, Map<String, Object> kwargs,
-                                    InvocationDetails details) {
+                                 InvocationDetails details) {
 
         String marketMakerAddr = Numeric.toHexString((byte[]) args.get(0));
         byte[] buyerPubKey = (byte[]) args.get(1);
@@ -222,7 +227,6 @@ public class SimpleSeller {
     public Map<String, Object> wrap(byte[] apiID, String uri, Map<String, Object> payload)
             throws JsonProcessingException {
         KeySeries series = mKeys.get(Numeric.toHexString(apiID));
-        Map<String, Object> encrypted = series.encrypt(payload);
-        return encrypted;
+        return series.encrypt(payload);
     }
 }
