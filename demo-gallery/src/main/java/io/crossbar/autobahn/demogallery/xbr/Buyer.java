@@ -1,19 +1,23 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+//   AutobahnJava - http://crossbar.io/autobahn
+//
+//   Copyright (c) Crossbar.io Technologies GmbH and contributors
+//
+//   Licensed under the MIT License.
+//   http://www.opensource.org/licenses/mit-license.php
+//
+///////////////////////////////////////////////////////////////////////////////
+
 package io.crossbar.autobahn.demogallery.xbr;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import io.crossbar.autobahn.wamp.Client;
 import io.crossbar.autobahn.wamp.Session;
-import io.crossbar.autobahn.wamp.types.PublishOptions;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
 import xbr.network.SimpleBuyer;
-import xbr.network.SimpleSeller;
 import xbr.network.Util;
 
 public class Buyer {
@@ -40,7 +44,7 @@ public class Buyer {
         mBuyer = new SimpleBuyer(
                 "0x3e5e9111ae8eb78fe1cc3bb8915d5d461f3ef9a9",
                 "395df67f0c2d2d9fe1ad08d1bc8b6627011959b79c53d7dd6a3536a33ab8a4fd",
-                Util.toXBR(100)
+                Util.toXBR(50)
         );
         mBuyer.start(session, details.authid).whenComplete((balance, throwable) -> {
             mRemainingBalance = balance;

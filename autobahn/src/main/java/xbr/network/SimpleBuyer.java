@@ -1,37 +1,36 @@
-package xbr.network;
+///////////////////////////////////////////////////////////////////////////////
+//
+//   AutobahnJava - http://crossbar.io/autobahn
+//
+//   Copyright (c) Crossbar.io Technologies GmbH and contributors
+//
+//   Licensed under the MIT License.
+//   http://www.opensource.org/licenses/mit-license.php
+//
+///////////////////////////////////////////////////////////////////////////////
 
+package xbr.network;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 
-import org.bouncycastle.jcajce.provider.asymmetric.ec.KeyFactorySpi;
-import org.bouncycastle.jce.ECKeyUtil;
-import org.bouncycastle.jce.interfaces.ECKey;
 import org.json.JSONException;
 import org.libsodium.jni.SodiumConstants;
-import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
-import org.web3j.crypto.Hash;
-import org.web3j.crypto.Keys;
 import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.file.FileAlreadyExistsException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
-import io.crossbar.autobahn.wamp.messages.Hello;
-import io.crossbar.autobahn.wamp.serializers.CBORSerializer;
-import io.reactivex.internal.util.HashMapSupplier;
 
 import static org.libsodium.jni.NaCl.sodium;
 
@@ -134,14 +133,12 @@ public class SimpleBuyer {
             if (throwable != null) {
                 future.completeExceptionally(throwable);
             } else {
-                System.out.println(paymentBalance);
                 mRemainingBalance = new BigInteger((byte[]) paymentBalance.get("remaining"));
                 HashMap<String, Object> res = new HashMap<>();
                 res.put("amount", paymentBalance.get("amount"));
                 res.put("remaining", mRemainingBalance);
                 res.put("inflight", paymentBalance.get("inflight"));
                 mSeq = (int) paymentBalance.get("seq");
-                System.out.println(mRemainingBalance);
                 future.complete(res);
             }
         });
@@ -202,7 +199,6 @@ public class SimpleBuyer {
                     int channelSeq = mSeq + 1;
                     boolean isFinal = false;
                     try {
-                        System.out.println(quote);
                         byte[] signature = Util.signEIP712Data(mECKey, channelAddr, channelSeq,
                                 mRemainingBalance.subtract(price), isFinal);
                         BigInteger remainingPost = mRemainingBalance.subtract(price);
