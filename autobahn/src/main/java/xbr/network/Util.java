@@ -16,6 +16,10 @@ import java.util.Arrays;
 
 public class Util {
 
+    public static BigInteger toXBR(int xbr) {
+        return BigInteger.valueOf(xbr).multiply(BigInteger.valueOf(10).pow(18));
+    }
+
     private static JSONObject createEIP712Data(String verifyingAddr, byte[] channelAddr,
                                         int channelSeq, BigInteger balance, boolean isFinal)
             throws JSONException {
