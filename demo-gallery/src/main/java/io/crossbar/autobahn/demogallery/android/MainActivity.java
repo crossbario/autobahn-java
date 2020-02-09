@@ -17,6 +17,12 @@ import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+
 import io.crossbar.autobahn.demogallery.R;
 import io.crossbar.autobahn.wamp.Client;
 import io.crossbar.autobahn.wamp.Session;
@@ -26,6 +32,8 @@ import xbr.network.Util;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+
+    private BigInteger mRemainingBalance;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,12 +68,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 "0x3e5e9111ae8eb78fe1cc3bb8915d5d461f3ef9a9",
                 "395df67f0c2d2d9fe1ad08d1bc8b6627011959b79c53d7dd6a3536a33ab8a4fd",
                 Util.toXBR(100));
-        buyer.start(session, details.authid).whenComplete((aLong, throwable) -> {
-            System.out.println("Balance is: " + aLong);
-            buyer.balance().whenComplete((stringObjectHashMap, throwable1) -> {
-                System.out.println(stringObjectHashMap);
+        buyer.start(session, details.authid).whenComplete((balance, throwable) -> {
+            mRemainingBalance = balance;
+            session.subscribe("io.crossbar.example", eventData -> {
+                System.out.println("UNNNN");
+                buyer.unwrap((byte[])eventData.get(0), (String) eventData.get(1), (byte[]) eventData.get(2)).whenComplete((s, throwable1) -> {
+                    System.out.println(s);
+                });
             });
         });
         System.out.println("read...");
+    }
+
+    private void onEvent(List<Object> event) {
+        System.out.println(event);
     }
 }
