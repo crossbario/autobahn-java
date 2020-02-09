@@ -18,6 +18,7 @@ import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 
 import io.crossbar.autobahn.demogallery.R;
+import io.crossbar.autobahn.demogallery.xbr.Buyer;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
