@@ -18,7 +18,6 @@ import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 
 import io.crossbar.autobahn.demogallery.R;
-import io.crossbar.autobahn.demogallery.xbr.Buyer;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -27,8 +26,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Buyer buyer = new Buyer();
-        buyer.buy();
     }
 
     @Override
