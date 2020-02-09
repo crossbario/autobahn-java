@@ -16,7 +16,7 @@ import xbr.network.SimpleSeller;
 
 public class Seller {
 
-    public void sellBasic() {
+    public void sell() {
         Session session = new Session();
         session.addOnJoinListener(this::onJoin);
         Client client = new Client(session, "ws://10.0.2.2:8080/ws", "realm1");
@@ -55,6 +55,7 @@ public class Seller {
                 args.add(enc.get("serializer"));
                 args.add(enc.get("ciphertext"));
                 session.publish(topic, args, null, new PublishOptions(true, true));
+                System.out.println(topic);
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
