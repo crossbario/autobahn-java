@@ -36,7 +36,6 @@ public class KeySeries {
     private final byte[] mAPIID;
     private final BigInteger mPrice;
     private final int mInterval;
-    private final SecureRandom mRandom;
 
     private byte[] mID;
     private byte[] mKey;
@@ -55,7 +54,6 @@ public class KeySeries {
         mPrice = price;
         mInterval = interval;
         mCBOR = new ObjectMapper(new CBORFactory());
-        mRandom = new SecureRandom();
         mOnRotateCallback = onRotate;
         mArchive = new HashMap<>();
         mTimer = new Timer();
@@ -74,8 +72,10 @@ public class KeySeries {
     }
 
     void stop() {
-        mTimer.cancel();
-        mRunning = false;
+        if (mRunning) {
+            mTimer.cancel();
+            mRunning = false;
+        }
     }
 
     byte[] getID() {
