@@ -27,6 +27,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Consumer;
 
+import xbr.network.crypto.SealedBox;
+import xbr.network.crypto.SecretBox;
+
 
 public class KeySeries {
 
@@ -44,7 +47,7 @@ public class KeySeries {
     private Timer mTimer;
     private String mPrefix;
 
-    private boolean mRunning = false;
+    private boolean mRunning;
 
     KeySeries(byte[] apiID, BigInteger price, int interval, String prefix,
               Consumer<KeySeries> onRotate) {

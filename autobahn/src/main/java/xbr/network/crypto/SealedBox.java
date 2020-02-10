@@ -1,4 +1,4 @@
-package xbr.network;
+package xbr.network.crypto;
 
 import org.libsodium.jni.encoders.Encoder;
 
