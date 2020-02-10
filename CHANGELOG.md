@@ -1,3 +1,11 @@
+# Release v20.2.1
+
+* MISC: XBR Code cleaning (#473)
+* MISC: Add missing license headers, other cleanups (#471)
+* NEW: XBR SimpleBuyer with EIP712 signing (#470)
+
+---
+
 # Release v20.1.2
 
 * FIX: make SimpleSeller.start() async. Add seller example (#467)
