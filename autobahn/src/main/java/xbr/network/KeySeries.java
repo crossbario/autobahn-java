@@ -27,13 +27,15 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Consumer;
 
+import xbr.network.crypto.SealedBox;
+import xbr.network.crypto.SecretBox;
+
 
 public class KeySeries {
 
     private final byte[] mAPIID;
     private final BigInteger mPrice;
     private final int mInterval;
-    private final SecureRandom mRandom;
 
     private byte[] mID;
     private byte[] mKey;
@@ -44,7 +46,7 @@ public class KeySeries {
     private Timer mTimer;
     private String mPrefix;
 
-    private boolean mRunning = false;
+    private boolean mRunning;
 
     KeySeries(byte[] apiID, BigInteger price, int interval, String prefix,
               Consumer<KeySeries> onRotate) {
@@ -52,7 +54,6 @@ public class KeySeries {
         mPrice = price;
         mInterval = interval;
         mCBOR = new ObjectMapper(new CBORFactory());
-        mRandom = new SecureRandom();
         mOnRotateCallback = onRotate;
         mArchive = new HashMap<>();
         mTimer = new Timer();
@@ -71,8 +72,10 @@ public class KeySeries {
     }
 
     void stop() {
-        mTimer.cancel();
-        mRunning = false;
+        if (mRunning) {
+            mTimer.cancel();
+            mRunning = false;
+        }
     }
 
     byte[] getID() {

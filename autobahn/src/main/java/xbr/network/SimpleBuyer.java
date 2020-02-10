@@ -31,6 +31,8 @@ import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
+import xbr.network.crypto.SealedBox;
+import xbr.network.crypto.SecretBox;
 
 import static org.libsodium.jni.NaCl.sodium;
 

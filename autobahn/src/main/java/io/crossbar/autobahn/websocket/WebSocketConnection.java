@@ -245,7 +245,7 @@ public class WebSocketConnection implements IWebSocket {
         }
     }
 
-    private void closeUnderlyingSocket() throws IOException, InterruptedException {
+    private void closeUnderlyingSocket() throws InterruptedException {
         Thread cleaner = new Thread(() -> {
             if (isConnected()) {
                 try {
@@ -260,14 +260,15 @@ public class WebSocketConnection implements IWebSocket {
     }
 
     private void closeWriterThread() {
-        try {
-            mWriterThread.shutdown();
-            mWriterThread.awaitTermination(5, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            LOGGER.v(e.getMessage(), e);
+        if (mWriterThread != null) {
+            try {
+                mWriterThread.shutdown();
+                mWriterThread.awaitTermination(5, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                LOGGER.v(e.getMessage(), e);
+            }
         }
     }
-
 
     private void failConnection(int code, String reason) {
         LOGGER.d("fail connection [code = " + code + ", reason = " + reason);
@@ -279,7 +280,7 @@ public class WebSocketConnection implements IWebSocket {
         if (isConnected()) {
             try {
                 closeUnderlyingSocket();
-            } catch (IOException | InterruptedException e) {
+            } catch (InterruptedException e) {
                 LOGGER.v(e.getMessage(), e);
             }
         } else {
@@ -498,7 +499,7 @@ public class WebSocketConnection implements IWebSocket {
         if (isConnected()) {
             try {
                 closeUnderlyingSocket();
-            } catch (IOException | InterruptedException e) {
+            } catch (InterruptedException e) {
                 LOGGER.v(e.getMessage(), e);
             }
         }
@@ -729,7 +730,6 @@ public class WebSocketConnection implements IWebSocket {
             }
         });
     }
-
 
     /**
      * Create WebSockets background reader.

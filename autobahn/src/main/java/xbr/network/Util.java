@@ -24,7 +24,11 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 
+import xbr.network.web3.StructuredDataEncoder;
+
 public class Util {
+
+    private static final String VERIFYING_ADDR = "0x254dffcd3277C0b1660F6d42EFbB754edaBAbC2B";
 
     public static BigInteger toXBR(int xbr) {
         return BigInteger.valueOf(xbr).multiply(BigInteger.valueOf(10).pow(18));
@@ -87,8 +91,7 @@ public class Util {
                                  BigInteger balance, boolean isFinal)
             throws IOException, JSONException {
 
-        String verifyingAddr = "0x254dffcd3277C0b1660F6d42EFbB754edaBAbC2B";
-        JSONObject data = createEIP712Data(verifyingAddr, channelAddr, channelSeq, balance,
+        JSONObject data = createEIP712Data(VERIFYING_ADDR, channelAddr, channelSeq, balance,
                 isFinal);
         StructuredDataEncoder encoder = new StructuredDataEncoder(data.toString());
         byte[] message = encoder.hashStructuredData();
@@ -106,10 +109,8 @@ public class Util {
 
     static String recoverEIP712Signer(byte[] channelAddr, int channelSeq, BigInteger balance,
                                       boolean isFinal, byte[] signature) {
-        String verifyingAddr = "0x254dffcd3277C0b1660F6d42EFbB754edaBAbC2B";
-
         try {
-            JSONObject data = createEIP712Data(verifyingAddr, channelAddr, channelSeq, balance,
+            JSONObject data = createEIP712Data(VERIFYING_ADDR, channelAddr, channelSeq, balance,
                     isFinal);
             StructuredDataEncoder encoder = new StructuredDataEncoder(data.toString());
             byte[] message = encoder.hashStructuredData();
