@@ -43,7 +43,7 @@ public class Subscribe implements IMessage {
         if (options != null) {
             if (options.match != null) {
                 if (!options.match.equals(MATCH_EXACT) && !options.match.equals(MATCH_PREFIX) &&
-                        !options.match.equals(MATCH_EXACT)) {
+                        !options.match.equals(MATCH_WILDCARD)) {
                     throw new IllegalArgumentException("match must be one of exact, prefix or wildcard.");
                 }
             }
@@ -65,7 +65,7 @@ public class Subscribe implements IMessage {
         if (options.containsKey("match")) {
             match = (String) options.get("match");
             if (!match.equals(MATCH_EXACT) && !match.equals(MATCH_PREFIX) &&
-                    !match.equals(MATCH_EXACT)) {
+                    !match.equals(MATCH_WILDCARD)) {
                 throw new ProtocolError("match must be one of exact, prefix or wildcard.");
             }
         }
