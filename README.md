@@ -32,14 +32,14 @@ Grab via Maven:
 <dependency>
     <groupId>io.crossbar.autobahn</groupId>
     <artifactId>autobahn-android</artifactId>
-    <version>20.1.1</version>
+    <version>20.2.1</version>
 </dependency>
 ```
 
 Gradle:
 ```groovy
 dependencies {
-    implementation 'io.crossbar.autobahn:autobahn-android:20.1.1'
+    implementation 'io.crossbar.autobahn:autobahn-android:20.2.1'
 }
 ```
 For non-android systems use artifactID `autobahn-java` or just
