@@ -13,7 +13,7 @@ public class ArgumentUnpacker {
 
     public ArgumentUnpacker(Method method) {
 
-        if (!Platform.isAndroid() || Platform.getAndroidAPIVersion() >= 26) {
+        if (!io.crossbar.autobahn.utils.Platform.isAndroid() || Platform.getAndroidAPIVersion() >= 26) {
             Parameter[] parameters = method.getParameters();
             mParameters = new ParameterInfo[parameters.length];
             for (int i = 0; i < parameters.length; i++) {

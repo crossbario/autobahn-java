@@ -11,10 +11,6 @@
 
 package io.crossbar.autobahn.websocket;
 
-import android.os.Handler;
-import android.os.Message;
-import android.util.Pair;
-
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -40,6 +36,8 @@ import io.crossbar.autobahn.websocket.messages.ServerError;
 import io.crossbar.autobahn.websocket.messages.ServerHandshake;
 import io.crossbar.autobahn.websocket.messages.TextMessage;
 import io.crossbar.autobahn.websocket.types.WebSocketOptions;
+import io.crossbar.autobahn.websocket.interfaces.IThreadMessenger;
+import io.crossbar.autobahn.websocket.utils.Pair;
 import io.crossbar.autobahn.websocket.utils.Utf8Validator;
 
 
@@ -54,7 +52,7 @@ class WebSocketReader extends Thread {
 
     private static final IABLogger LOGGER = ABLogger.getLogger(WebSocketReader.class.getName());
 
-    private final Handler mMaster;
+    private final IThreadMessenger mMessenger;
     private final WebSocketOptions mOptions;
 
     private BufferedInputStream mBufferedStream;
@@ -98,15 +96,15 @@ class WebSocketReader extends Thread {
     /**
      * Create new WebSockets background reader.
      *
-     * @param master The message handler of master (foreground thread).
+     * @param messenger The message handler of master (foreground thread).
      * @param socket The socket channel created on foreground thread.
      */
-    public WebSocketReader(Handler master, Socket socket, WebSocketOptions options, String threadName)
+    public WebSocketReader(IThreadMessenger messenger, Socket socket, WebSocketOptions options, String threadName)
             throws IOException {
 
         super(threadName);
 
-        mMaster = master;
+        mMessenger = messenger;
         mOptions = options;
         mSocket = socket;
 
@@ -130,20 +128,6 @@ class WebSocketReader extends Thread {
     public void quit() {
         mState = STATE_CLOSED;
         LOGGER.d("Quit");
-    }
-
-
-    /**
-     * Notify the master (foreground thread) of WebSockets message received
-     * and unwrapped.
-     *
-     * @param message Message to send to master.
-     */
-    protected void notify(Object message) {
-
-        Message msg = mMaster.obtainMessage();
-        msg.obj = message;
-        mMaster.sendMessage(msg);
     }
 
     /**
@@ -451,7 +435,7 @@ class WebSocketReader extends Thread {
      */
     protected void onHandshake(Map<String, String> handshakeParams, boolean success) {
 
-        notify(new ServerHandshake(handshakeParams, success));
+        mMessenger.notify(new ServerHandshake(handshakeParams, success));
     }
 
 
@@ -460,7 +444,7 @@ class WebSocketReader extends Thread {
      */
     protected void onClose(int code, String reason) {
 
-        notify(new Close(code, reason));
+        mMessenger.notify(new Close(code, reason));
     }
 
 
@@ -471,7 +455,7 @@ class WebSocketReader extends Thread {
      */
     protected void onPing(byte[] payload) {
 
-        notify(new Ping(payload));
+        mMessenger.notify(new Ping(payload));
     }
 
 
@@ -482,7 +466,7 @@ class WebSocketReader extends Thread {
      */
     protected void onPong(byte[] payload) {
 
-        notify(new Pong(payload));
+        mMessenger.notify(new Pong(payload));
     }
 
 
@@ -496,7 +480,7 @@ class WebSocketReader extends Thread {
      */
     protected void onTextMessage(String payload) {
 
-        notify(new TextMessage(payload));
+        mMessenger.notify(new TextMessage(payload));
     }
 
 
@@ -510,7 +494,7 @@ class WebSocketReader extends Thread {
      */
     protected void onRawTextMessage(byte[] payload) {
 
-        notify(new RawTextMessage(payload));
+        mMessenger.notify(new RawTextMessage(payload));
     }
 
 
@@ -521,7 +505,7 @@ class WebSocketReader extends Thread {
      */
     protected void onBinaryMessage(byte[] payload) {
 
-        notify(new BinaryMessage(payload));
+        mMessenger.notify(new BinaryMessage(payload));
     }
 
     /**
@@ -542,7 +526,7 @@ class WebSocketReader extends Thread {
                     Pair<Integer, String> status = parseHttpStatus(headers[0]);
                     if (status.first >= 300) {
                         // Invalid status code for success connection
-                        notify(new ServerError(status.first, status.second));
+                        mMessenger.notify(new ServerError(status.first, status.second));
                         serverError = true;
                     }
                 }
@@ -655,7 +639,7 @@ class WebSocketReader extends Thread {
 
                     LOGGER.d("run() : ConnectionLost");
 
-                    notify(new ConnectionLost(null));
+                    mMessenger.notify(new ConnectionLost(null));
 
                     mStopped = true;
                 }
@@ -666,7 +650,7 @@ class WebSocketReader extends Thread {
             LOGGER.d("run() : WebSocketException (" + e.toString() + ")");
 
             // wrap the exception and notify master
-            notify(new ProtocolViolation(e));
+            mMessenger.notify(new ProtocolViolation(e));
 
         } catch (SocketException e) {
 
@@ -676,7 +660,7 @@ class WebSocketReader extends Thread {
                 LOGGER.d("run() : SocketException (" + e.toString() + ")");
 
                 // wrap the exception and notify master
-                notify(new ConnectionLost(null));
+                mMessenger.notify(new ConnectionLost(null));
             }
 
         } catch (Exception e) {
@@ -684,7 +668,7 @@ class WebSocketReader extends Thread {
             LOGGER.d("run() : Exception (" + e.toString() + ")");
 
             // wrap the exception and notify master
-            notify(new Error(e));
+            mMessenger.notify(new Error(e));
 
         } finally {
 

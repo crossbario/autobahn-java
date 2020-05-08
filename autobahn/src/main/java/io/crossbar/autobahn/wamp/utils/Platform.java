@@ -18,23 +18,6 @@ import io.crossbar.autobahn.wamp.interfaces.ITransport;
 
 public class Platform {
 
-    private static boolean IS_PLATFORM_CHECKED = false;
-    private static boolean IS_ANDROID = false;
-
-    /**
-     * Checks if code is running on Android.
-     *
-     * @return boolean representing whether the underlying platform
-     *     is Android based
-     */
-    public static boolean isAndroid() {
-        if (!IS_PLATFORM_CHECKED) {
-            IS_ANDROID = System.getProperty("java.vendor").equals("The Android Project");
-            IS_PLATFORM_CHECKED = true;
-        }
-        return IS_ANDROID;
-    }
-
     /**
      * Checks if the underlying platform is Android and if the
      * API level is greater than equal to the requested value.
@@ -42,7 +25,7 @@ public class Platform {
      * Returns 0 if the platform is not Android.
      */
     public static int getAndroidAPIVersion() {
-        if (isAndroid()) {
+        if (io.crossbar.autobahn.utils.Platform.isAndroid()) {
             try {
                 Class<?> klass = Class.forName("android.os.Build$VERSION");
                 return klass.getField("SDK_INT").getInt(null);
@@ -66,7 +49,7 @@ public class Platform {
         Class<?> transportClass;
 
         try {
-            if (isAndroid()) {
+            if (io.crossbar.autobahn.utils.Platform.isAndroid()) {
                 transportClass = Class.forName("io.crossbar.autobahn.wamp.transports.AndroidWebSocket");
             } else {
                 transportClass = Class.forName("io.crossbar.autobahn.wamp.transports.NettyWebSocket");
@@ -86,7 +69,7 @@ public class Platform {
      * @return Executor instance suitable for current platform
      */
     public static Executor autoSelectExecutor() {
-        if (isAndroid()) {
+        if (io.crossbar.autobahn.utils.Platform.isAndroid()) {
             return new CurrentThreadExecutor();
         } else {
             return ForkJoinPool.commonPool();

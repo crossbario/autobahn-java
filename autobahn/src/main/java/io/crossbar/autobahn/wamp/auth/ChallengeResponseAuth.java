@@ -13,7 +13,7 @@ import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
 import io.crossbar.autobahn.wamp.types.Challenge;
 import io.crossbar.autobahn.wamp.types.ChallengeResponse;
-import io.crossbar.autobahn.wamp.utils.AuthUtil;
+import io.crossbar.autobahn.utils.AuthUtil;
 
 public class ChallengeResponseAuth implements IAuthenticator {
     public static final String authmethod = "wampcra";
