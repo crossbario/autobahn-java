@@ -3,11 +3,14 @@ project.ext {
     PLATFORM = project.properties.get('buildPlatform', 'android')
     PLATFORM_ANDROID = 'android'
     PLATFORM_NETTY = 'netty'
+    PLATFORM_NEXT = 'next'
     PLUGIN_ANDROID_APP = 'com.android.application'
     PLUGIN_ANDROID_LIB = 'com.android.library'
     PLUGIN_JAVA_APP = 'application'
     PLUGIN_JAVA_LIB = 'java-library'
     IS_ANDROID = PLATFORM == PLATFORM_ANDROID
+    IS_NETTY = PLATFORM == PLATFORM_NETTY
+    IS_NEXT = PLATFORM == PLATFORM_NEXT
     BUILD_LEGACY = project.properties.get('buildLegacy', false)
 }
 

@@ -1,4 +1,4 @@
-apply plugin: project.PLATFORM == project.PLATFORM_NETTY ? project.PLUGIN_JAVA_APP : project.PLUGIN_ANDROID_APP
+apply plugin: project.IS_ANDROID ? project.PLUGIN_ANDROID_APP: project.PLUGIN_JAVA_APP
 
 if (plugins.hasPlugin(project.PLUGIN_ANDROID_APP)) {
     android {
@@ -42,6 +42,17 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_APP)) {
         implementation project(path: ':autobahn')
         implementation 'androidx.appcompat:appcompat:1.1.0'
         implementation 'com.android.support:multidex:1.0.3'
+    }
+} else if (project.IS_NEXT) {
+    // Nothing useful is produced here, however this avoids
+    // build failure, until we come with a better solution.
+    mainClassName = 'dummy'
+    sourceSets {
+        main {
+            java {
+                exclude 'io/crossbar/autobahn/demogallery'
+            }
+        }
     }
 } else {
     mainClassName = 'io.crossbar.autobahn.demogallery.netty.Main'
