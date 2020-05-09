@@ -11,7 +11,7 @@ import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
 import io.crossbar.autobahn.wamp.types.Challenge;
 import io.crossbar.autobahn.wamp.types.ChallengeResponse;
-import io.crossbar.autobahn.wamp.utils.AuthUtil;
+import io.crossbar.autobahn.utils.AuthUtil;
 
 import static io.crossbar.autobahn.wamp.utils.Shortcuts.getOrDefault;
 

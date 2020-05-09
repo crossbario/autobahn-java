@@ -14,7 +14,6 @@ package io.crossbar.autobahn.wamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 
 import io.crossbar.autobahn.utils.ABLogger;

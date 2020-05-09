@@ -9,9 +9,14 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-package io.crossbar.autobahn.utils;
+package io.crossbar.autobahn.websocket.utils;
 
-public class Globals {
-    // Default set to true, this is set to false by the release script.
-    public static final boolean DEBUG = false;
+public class Pair<F, S> {
+    public final F first;
+    public final S second;
+
+    public Pair(F first, S second) {
+        this.first = first;
+        this.second = second;
+    }
 }

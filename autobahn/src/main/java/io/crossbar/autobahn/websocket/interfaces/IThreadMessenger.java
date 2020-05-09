@@ -9,9 +9,13 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-package io.crossbar.autobahn.utils;
+package io.crossbar.autobahn.websocket.interfaces;
 
-public class Globals {
-    // Default set to true, this is set to false by the release script.
-    public static final boolean DEBUG = false;
+public interface IThreadMessenger {
+    void notify(Object message);
+    void postDelayed(Runnable runnable, long delayMillis);
+    void setOnMessageListener(OnMessageListener listener);
+    interface OnMessageListener {
+        void onMessage(Object message);
+    }
 }

@@ -1,4 +1,15 @@
-package io.crossbar.autobahn.wamp.utils;
+///////////////////////////////////////////////////////////////////////////////
+//
+//   AutobahnJava - http://crossbar.io/autobahn
+//
+//   Copyright (c) Crossbar.io Technologies GmbH and contributors
+//
+//   Licensed under the MIT License.
+//   http://www.opensource.org/licenses/mit-license.php
+//
+///////////////////////////////////////////////////////////////////////////////
+
+package io.crossbar.autobahn.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -52,7 +63,7 @@ public class AuthUtil {
     }
 
     public static byte[] decodeString(String privateKey) throws Exception {
-        if (Platform.isAndroid()) {
+        if (io.crossbar.autobahn.utils.Platform.isAndroid()) {
             Class base64Class = getBase64ClassAndroid();
             Method method = base64Class.getMethod("decode", String.class, int.class);
             Field field = base64Class.getField("DEFAULT");

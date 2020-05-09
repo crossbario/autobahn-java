@@ -1,11 +1,21 @@
-package io.crossbar.autobahn.websocket;
+///////////////////////////////////////////////////////////////////////////////
+//
+//   AutobahnJava - http://crossbar.io/autobahn
+//
+//   Copyright (c) Crossbar.io Technologies GmbH and contributors
+//
+//   Licensed under the MIT License.
+//   http://www.opensource.org/licenses/mit-license.php
+//
+///////////////////////////////////////////////////////////////////////////////
 
-import android.util.Base64;
+package io.crossbar.autobahn.websocket;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Random;
 
+import io.crossbar.autobahn.utils.AuthUtil;
 import io.crossbar.autobahn.websocket.exceptions.ParseFailed;
 import io.crossbar.autobahn.websocket.messages.ClientHandshake;
 
@@ -17,10 +27,10 @@ public class Handshake {
         return text.getBytes("UTF-8");
     }
 
-    private static String newHandshakeKey() {
+    private static String newHandshakeKey() throws Exception {
         final byte[] ba = new byte[16];
         new Random().nextBytes(ba);
-        return Base64.encodeToString(ba, Base64.NO_WRAP);
+        return AuthUtil.encodeToString(ba);
     }
 
     public static byte[] handshake(ClientHandshake message) throws ParseFailed {
@@ -70,7 +80,7 @@ public class Handshake {
                 }
             }
             buffer.write(bytes(CRLF));
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             throw new ParseFailed(e.getMessage());
         }
