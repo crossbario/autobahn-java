@@ -50,7 +50,7 @@ public class Platform {
 
         try {
             if (io.crossbar.autobahn.utils.Platform.isAndroid()) {
-                transportClass = Class.forName("io.crossbar.autobahn.wamp.transports.AndroidWebSocket");
+                transportClass = Class.forName("io.crossbar.autobahn.wamp.transports.WebSocket");
             } else {
                 transportClass = Class.forName("io.crossbar.autobahn.wamp.transports.NettyWebSocket");
             }
