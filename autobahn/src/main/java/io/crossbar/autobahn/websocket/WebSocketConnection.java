@@ -51,8 +51,6 @@ import io.crossbar.autobahn.websocket.messages.TextMessage;
 import io.crossbar.autobahn.websocket.types.ConnectionResponse;
 import io.crossbar.autobahn.websocket.types.WebSocketOptions;
 import io.crossbar.autobahn.websocket.interfaces.IThreadMessenger;
-import io.crossbar.autobahn.websocket.utils.AndroidThreadMessenger;
-import io.crossbar.autobahn.websocket.utils.ThreadMessenger;
 
 import static io.crossbar.autobahn.websocket.utils.Platform.selectThreadMessenger;
 
