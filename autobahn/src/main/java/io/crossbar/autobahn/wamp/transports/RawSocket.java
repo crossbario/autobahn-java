@@ -6,8 +6,11 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
+
 import javax.net.SocketFactory;
 
+import io.crossbar.autobahn.utils.ABLogger;
+import io.crossbar.autobahn.utils.IABLogger;
 import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
 import io.crossbar.autobahn.wamp.interfaces.ITransportHandler;
@@ -17,6 +20,8 @@ import io.crossbar.autobahn.wamp.types.TransportOptions;
 
 // FIXME: NOT READY, IS WORK-IN-PROGRESS
 public class RawSocket implements ITransport {
+
+    public static final IABLogger LOGGER = ABLogger.getLogger(RawSocket.class.getName());
 
     private static final int ZERO = 0x00;
 
@@ -38,7 +43,7 @@ public class RawSocket implements ITransport {
             mOStream.write(payload);
             mOStream.flush();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.v(e.getMessage(), e);
         }
     }
 
