@@ -11,38 +11,44 @@
 
 package io.crossbar.autobahn.websocket.utils;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import io.crossbar.autobahn.websocket.interfaces.IThreadMessenger;
 
 public class ThreadMessenger implements IThreadMessenger {
 
-    private Timer mTimer;
     private OnMessageListener mListener;
+    private ScheduledExecutorService mExecutor;
 
     public ThreadMessenger() {
-        mTimer = new Timer();
+        mExecutor = Executors.newSingleThreadScheduledExecutor();
     }
 
     public void notify(Object message) {
         if (mListener != null) {
-            mListener.onMessage(message);
+            mExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    mListener.onMessage(message);
+                }
+            });
         }
     }
 
     @Override
     public void postDelayed(Runnable runnable, long delayMillis) {
-        mTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                runnable.run();
-            }
-        }, delayMillis);
+        mExecutor.schedule(runnable, delayMillis, TimeUnit.MILLISECONDS);
     }
 
     @Override
     public void setOnMessageListener(OnMessageListener listener) {
         mListener = listener;
+    }
+
+    @Override
+    public void cleanup() {
+        mExecutor.shutdown();
     }
 }

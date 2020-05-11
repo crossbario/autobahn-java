@@ -81,7 +81,6 @@ public class Handshake {
             }
             buffer.write(bytes(CRLF));
         } catch (Exception e) {
-            e.printStackTrace();
             throw new ParseFailed(e.getMessage());
         }
         return buffer.toByteArray();

@@ -85,7 +85,7 @@ public class WebSocket implements ITransport {
                 try {
                     mSerializer = initializeSerializer(response.protocol);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOGGER.v(e.getMessage(), e);
                 }
             }
 
@@ -94,7 +94,7 @@ public class WebSocket implements ITransport {
                 try {
                     transportHandler.onConnect(WebSocket.this, mSerializer);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOGGER.v(e.getMessage(), e);
                 }
             }
 
@@ -117,7 +117,7 @@ public class WebSocket implements ITransport {
                 try {
                     transportHandler.onMessage(payload.getBytes(), false);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOGGER.v(e.getMessage(), e);
                 }
             }
 
@@ -126,7 +126,7 @@ public class WebSocket implements ITransport {
                 try {
                     transportHandler.onMessage(payload, isBinary);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOGGER.v(e.getMessage(), e);
                 }
             }
         }, webSocketOptions, null);

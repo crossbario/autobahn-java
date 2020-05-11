@@ -19,8 +19,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.List;
 
+import io.crossbar.autobahn.utils.ABLogger;
+import io.crossbar.autobahn.utils.IABLogger;
+
 
 public abstract class ISerializer {
+
+    private static final IABLogger LOGGER = ABLogger.getLogger(ISerializer.class.getName());
 
     public final ObjectMapper mapper;
 
@@ -32,7 +37,7 @@ public abstract class ISerializer {
         try {
             return mapper.writeValueAsBytes(message);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            LOGGER.v(e.getMessage(), e);
             return null;
         }
     }
@@ -41,7 +46,7 @@ public abstract class ISerializer {
         try {
             return mapper.readValue(payload, new TypeReference<List<Object>>() {});
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.v(e.getMessage(), e);
             return null;
         }
     }

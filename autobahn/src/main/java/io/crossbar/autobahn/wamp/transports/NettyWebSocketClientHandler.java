@@ -151,7 +151,7 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         if (Globals.DEBUG) {
-            cause.printStackTrace();
+            LOGGER.v(cause.getMessage(), cause);
         }
         if (!mHandshakeFuture.isDone()) {
             mHandshakeFuture.setFailure(cause);

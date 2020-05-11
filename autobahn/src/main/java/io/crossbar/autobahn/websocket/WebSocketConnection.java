@@ -228,7 +228,7 @@ public class WebSocketConnection implements IWebSocket {
                 try {
                     mReader.join();
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    LOGGER.v(e.getMessage(), e);
                 }
             }
         } else {
@@ -242,7 +242,7 @@ public class WebSocketConnection implements IWebSocket {
                 try {
                     mSocket.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOGGER.v(e.getMessage(), e);
                 }
             }
         });
@@ -460,6 +460,7 @@ public class WebSocketConnection implements IWebSocket {
         if (mExecutor != null) {
             mExecutor.shutdown();
         }
+        mMessenger.cleanup();
 
         if (mWsHandler != null) {
             try {

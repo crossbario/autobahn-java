@@ -11,11 +11,9 @@
 
 package io.crossbar.autobahn.utils;
 
-public class ABLogger {
+import static io.crossbar.autobahn.utils.Platform.isAndroid;
 
-    private static boolean isAndroid() {
-        return System.getProperty("java.vendor").equals("The Android Project");
-    }
+public class ABLogger {
 
     public static IABLogger getLogger(String tag) {
         Class<?> loggerClass;
