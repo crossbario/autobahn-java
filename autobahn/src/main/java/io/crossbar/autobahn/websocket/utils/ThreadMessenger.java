@@ -46,4 +46,9 @@ public class ThreadMessenger implements IThreadMessenger {
     public void setOnMessageListener(OnMessageListener listener) {
         mListener = listener;
     }
+
+    @Override
+    public void cleanup() {
+        mExecutor.shutdown();
+    }
 }

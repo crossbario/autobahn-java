@@ -25,6 +25,11 @@ public class AndroidThreadMessenger implements IThreadMessenger {
         mListener = listener;
     }
 
+    @Override
+    public void cleanup() {
+
+    }
+
     public AndroidThreadMessenger() {
         mHandler = new Handler(Looper.getMainLooper()) {
             @Override

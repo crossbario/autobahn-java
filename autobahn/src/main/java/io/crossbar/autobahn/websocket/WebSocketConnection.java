@@ -460,6 +460,7 @@ public class WebSocketConnection implements IWebSocket {
         if (mExecutor != null) {
             mExecutor.shutdown();
         }
+        mMessenger.cleanup();
 
         if (mWsHandler != null) {
             try {

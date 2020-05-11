@@ -15,6 +15,7 @@ public interface IThreadMessenger {
     void notify(Object message);
     void postDelayed(Runnable runnable, long delayMillis);
     void setOnMessageListener(OnMessageListener listener);
+    void cleanup();
     interface OnMessageListener {
         void onMessage(Object message);
     }
