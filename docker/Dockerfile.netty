@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM ubuntu:20.04
 
 MAINTAINER The Crossbar.io Project <support@crossbario.com>
 
@@ -21,12 +21,12 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
 USER root
 
 ENV DEBIAN_FRONTEND noninteractive
-ENV GRADLE_VERSION 4.7
+ENV GRADLE_VERSION 6.4.1
 
 WORKDIR /workspace
 
 RUN    apt update \
-    && apt install unzip wget openjdk-8-jdk-headless -y \
+    && apt install unzip wget openjdk-11-jdk-headless -y \
     && apt clean \
     && rm -rf /var/lib/apt/lists/
 
