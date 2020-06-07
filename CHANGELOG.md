@@ -1,3 +1,11 @@
+# Release v20.5.1
+
+* MISC: Improve logging and messaging (#482)
+* NEW: Untie WebSocket implementation from Android (#481)
+* FIX: Fix wildcard option check in Subscribe message (#477)
+
+---
+
 # Release v20.2.1
 
 * MISC: XBR Code cleaning (#473)
