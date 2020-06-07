@@ -3,7 +3,7 @@ apply plugin: project.IS_ANDROID ? project.PLUGIN_ANDROID_APP: project.PLUGIN_JA
 if (plugins.hasPlugin(project.PLUGIN_ANDROID_APP)) {
     android {
         compileSdkVersion 29
-        buildToolsVersion '29.0.2'
+        buildToolsVersion '29.0.3'
 
         defaultConfig {
             minSdkVersion 24
@@ -35,6 +35,7 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_APP)) {
             exclude 'META-INF/spring.schemas'
             exclude 'META-INF/license.txt'
             exclude 'META-INF/notice.txt'
+            exclude 'META-INF/INDEX.list'
         }
     }
 
