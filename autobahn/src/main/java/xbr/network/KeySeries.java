@@ -20,7 +20,6 @@ import org.libsodium.jni.crypto.Random;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;

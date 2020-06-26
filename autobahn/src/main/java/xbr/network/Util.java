@@ -18,13 +18,12 @@ import org.web3j.crypto.ECDSASignature;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;
 import org.web3j.crypto.Sign;
+import org.web3j.crypto.StructuredDataEncoder;
 import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
-
-import xbr.network.web3.StructuredDataEncoder;
 
 public class Util {
 
@@ -102,7 +101,7 @@ public class Util {
         byte[] result = new byte[65];
         System.arraycopy(r, 0, result, 0, r.length);
         System.arraycopy(s, 0, result, r.length, s.length);
-        result[64] = signed.getV();
+        result[64] = signed.getV()[0];
 
         return result;
     }

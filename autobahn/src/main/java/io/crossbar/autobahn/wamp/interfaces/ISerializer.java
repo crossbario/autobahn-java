@@ -51,7 +51,7 @@ public abstract class ISerializer {
         }
     }
 
-    public <T> T convertValue(Object fromValue, TypeReference toValueTypeRef) {
+    public <T> T convertValue(Object fromValue, TypeReference<T> toValueTypeRef) {
         // https://github.com/FasterXML/jackson-databind#tutorial-fancier-stuff-conversions
         // ResultType result = mapper.convertValue(sourceObject, ResultType.class);
         return mapper.convertValue(fromValue, toValueTypeRef);
