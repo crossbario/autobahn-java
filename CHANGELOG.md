@@ -1,3 +1,10 @@
+# Release v20.6.1
+
+* bump dependencies versions (#490)
+* update Makefile (#488)
+
+---
+
 # Release v20.5.1
 
 * MISC: Improve logging and messaging (#482)

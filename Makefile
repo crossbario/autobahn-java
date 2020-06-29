@@ -1,5 +1,5 @@
 BUILD_DATE=$(shell date -u +"%Y-%m-%d")
-AUTOBAHN_JAVA_VERSION='20.6.1'
+AUTOBAHN_JAVA_VERSION='20.6.2'
 AUTOBAHN_JAVA_VCS_REF='a23b951'
 
 default:
