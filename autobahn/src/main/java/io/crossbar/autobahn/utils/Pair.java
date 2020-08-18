@@ -9,7 +9,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-package io.crossbar.autobahn.websocket.utils;
+package io.crossbar.autobahn.utils;
 
 public class Pair<F, S> {
     public final F first;

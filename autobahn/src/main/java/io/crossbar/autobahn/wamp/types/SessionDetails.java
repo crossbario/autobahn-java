@@ -12,13 +12,18 @@
 package io.crossbar.autobahn.wamp.types;
 
 public class SessionDetails {
-    public long sessionID;
-    public String realm;
-    public String authid;
-    public String authrole;
+    public final long sessionID;
+    public final String realm;
+    public final String authid;
+    public final String authrole;
+    public final String authmethod;
 
-    public SessionDetails(String realm, long sessionID) {
+    public SessionDetails(String realm, long sessionID, String authid, String authrole,
+                          String authmethod) {
         this.realm = realm;
         this.sessionID = sessionID;
+        this.authid = authid;
+        this.authrole = authrole;
+        this.authmethod = authmethod;
     }
 }

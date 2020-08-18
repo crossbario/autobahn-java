@@ -245,7 +245,8 @@ public class Session implements ISession, ITransportHandler {
             Welcome msg = (Welcome) message;
             mState = STATE_JOINED;
             mSessionID = msg.session;
-            SessionDetails details = new SessionDetails(msg.realm, msg.session);
+            SessionDetails details = new SessionDetails(msg.realm, msg.session, msg.authid,
+                    msg.authrole, msg.authmethod);
             mJoinFuture.complete(details);
             List<CompletableFuture<?>> futures = new ArrayList<>();
             for (OnJoinListener listener: mOnJoinListeners) {
