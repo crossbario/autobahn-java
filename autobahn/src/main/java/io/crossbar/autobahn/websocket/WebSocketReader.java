@@ -37,7 +37,7 @@ import io.crossbar.autobahn.websocket.messages.ServerHandshake;
 import io.crossbar.autobahn.websocket.messages.TextMessage;
 import io.crossbar.autobahn.websocket.types.WebSocketOptions;
 import io.crossbar.autobahn.websocket.interfaces.IThreadMessenger;
-import io.crossbar.autobahn.websocket.utils.Pair;
+import io.crossbar.autobahn.utils.Pair;
 import io.crossbar.autobahn.websocket.utils.Utf8Validator;
 
 

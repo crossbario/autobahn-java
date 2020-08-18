@@ -14,7 +14,7 @@ import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
 import io.crossbar.autobahn.wamp.types.Challenge;
 import io.crossbar.autobahn.wamp.types.ChallengeResponse;
-import io.crossbar.autobahn.websocket.utils.Pair;
+import io.crossbar.autobahn.utils.Pair;
 
 import static io.crossbar.autobahn.wamp.utils.Shortcuts.getOrDefault;
 import static org.libsodium.jni.SodiumConstants.SECRETKEY_BYTES;
