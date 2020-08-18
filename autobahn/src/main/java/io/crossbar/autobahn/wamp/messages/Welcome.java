@@ -24,11 +24,18 @@ public class Welcome implements IMessage {
     public final long session;
     public final Map<String, Map> roles;
     public final String realm;
+    public final String authid;
+    public final String authrole;
+    public final String authmethod;
 
-    public Welcome(long session, Map<String, Map> roles, String realm) {
+    public Welcome(long session, Map<String, Map> roles, String realm, String authid,
+                   String authrole, String authmethod) {
         this.session = session;
         this.roles = roles;
         this.realm = realm;
+        this.authid = authid;
+        this.authrole = authrole;
+        this.authmethod = authmethod;
     }
 
     public static Welcome parse(List<Object> wmsg) {
@@ -39,8 +46,11 @@ public class Welcome implements IMessage {
         Map<String, Object> details = (Map<String, Object>) wmsg.get(2);
         Map<String, Map> roles = (Map<String, Map>) details.get("roles");
         String realm = (String) details.get("realm");
+        String authid = (String) details.get("authid");
+        String authrole = (String) details.get("authrole");
+        String authmethod = (String) details.get("authmethod");
 
-        return new Welcome(session, roles, realm);
+        return new Welcome(session, roles, realm, authid, authrole, authmethod);
     }
 
     @Override
