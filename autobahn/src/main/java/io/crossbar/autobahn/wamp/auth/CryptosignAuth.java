@@ -1,19 +1,23 @@
 package io.crossbar.autobahn.wamp.auth;
 
+import org.libsodium.jni.crypto.Random;
 import org.libsodium.jni.keys.SigningKey;
+import org.libsodium.jni.keys.VerifyKey;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import io.crossbar.autobahn.utils.AuthUtil;
 import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
 import io.crossbar.autobahn.wamp.types.Challenge;
 import io.crossbar.autobahn.wamp.types.ChallengeResponse;
-import io.crossbar.autobahn.utils.AuthUtil;
+import io.crossbar.autobahn.websocket.utils.Pair;
 
 import static io.crossbar.autobahn.wamp.utils.Shortcuts.getOrDefault;
+import static org.libsodium.jni.SodiumConstants.SECRETKEY_BYTES;
 
 public class CryptosignAuth implements IAuthenticator {
     public static final String authmethod = "cryptosign";
@@ -23,6 +27,16 @@ public class CryptosignAuth implements IAuthenticator {
     public final Map<String, Object> authextra;
 
     private final byte[] privateKeyRaw;
+
+    public static Pair<String, String> generateSigningKeyPair() {
+        VerifyKey key = new VerifyKey(new Random().randomBytes(SECRETKEY_BYTES));
+        SigningKey signingKey = new SigningKey(key.toBytes());
+
+        String privateKey = AuthUtil.toHexString(key.toBytes());
+        String publicKey = AuthUtil.toHexString(signingKey.getVerifyKey().toBytes());
+
+        return new Pair<>(publicKey, privateKey);
+    }
 
     public CryptosignAuth(String authid, String privkey, Map<String, Object> authextra) {
         this(authid, null, privkey, authextra);
