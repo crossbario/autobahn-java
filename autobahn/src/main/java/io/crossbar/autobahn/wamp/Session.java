@@ -384,7 +384,10 @@ public class Session implements ISession, ITransportHandler {
                     arg = msg.args;
                 }
 
-                if (subscription.handler instanceof Consumer) {
+                if (subscription.handler instanceof Runnable) {
+                    Runnable handler = (Runnable) subscription.handler;
+                    future = runAsync(handler::run, mExecutor);
+                } else if (subscription.handler instanceof Consumer) {
                     Consumer handler = (Consumer) subscription.handler;
                     future = runAsync(() -> handler.accept(arg), mExecutor);
                 } else if (subscription.handler instanceof Function) {
@@ -633,6 +636,19 @@ public class Session implements ISession, ITransportHandler {
                 resultTypeRef, resultTypeClass, handler));
         send(new Subscribe(requestID, options, topic));
         return future;
+    }
+
+    @Override
+    public CompletableFuture<Subscription> subscribe(String topic, Runnable handler) {
+        return reallySubscribe(topic, handler, null, null, null);
+    }
+
+    @Override
+    public CompletableFuture<Subscription> subscribe(
+            String topic,
+            Runnable handler,
+            SubscribeOptions options) {
+        return reallySubscribe(topic, handler, options, null, null);
     }
 
     @Override

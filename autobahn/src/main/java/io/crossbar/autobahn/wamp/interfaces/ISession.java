@@ -47,6 +47,28 @@ public interface ISession {
      * @return a CompletableFuture that resolves to an instance of
      * {@link io.crossbar.autobahn.wamp.types.Subscription}
      */
+    CompletableFuture<Subscription> subscribe(String topic, Runnable handler);
+
+    /**
+     * Subscribes to a WAMP topic.
+     * @param topic URI of the topic to subscribe
+     * @param handler callback method for results of publication to the topic
+     * @param options options for the subscribe
+     * @return a CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.Subscription}
+     */
+    CompletableFuture<Subscription> subscribe(
+            String topic,
+            Runnable handler,
+            SubscribeOptions options);
+
+    /**
+     * Subscribes to a WAMP topic.
+     * @param topic URI of the topic to subscribe
+     * @param handler callback method for results of publication to the topic
+     * @return a CompletableFuture that resolves to an instance of
+     * {@link io.crossbar.autobahn.wamp.types.Subscription}
+     */
     CompletableFuture<Subscription> subscribe(
             String topic,
             Consumer<List<Object>> handler);
