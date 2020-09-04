@@ -15,13 +15,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 
-import org.json.JSONException;
 import org.libsodium.jni.SodiumConstants;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.utils.Numeric;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -200,15 +198,19 @@ public class SimpleBuyer {
                 if (mRemainingBalance.compareTo(price) > 0) {
                     int channelSeq = mSeq + 1;
                     boolean isFinal = false;
-                    try {
-                        byte[] signature = Util.signEIP712Data(mECKey, channelAddr, channelSeq,
-                                mRemainingBalance.subtract(price), isFinal);
-                        BigInteger remainingPost = mRemainingBalance.subtract(price);
-                        buyKey(keyID, channelAddr, channelSeq, price, remainingPost, signature,
-                                ciphertext, future);
-                    } catch (IOException | JSONException e) {
-                        e.printStackTrace();
-                    }
+                    byte[] signature = new byte[29];
+                    BigInteger remainingPost = mRemainingBalance.subtract(price);
+                    buyKey(keyID, channelAddr, channelSeq, price, remainingPost, signature,
+                            ciphertext, future);
+//                    try {
+//                        byte[] signature = Util.signEIP712Data(mECKey, channelAddr, channelSeq,
+//                                mRemainingBalance.subtract(price), isFinal);
+//                        BigInteger remainingPost = mRemainingBalance.subtract(price);
+//                        buyKey(keyID, channelAddr, channelSeq, price, remainingPost, signature,
+//                                ciphertext, future);
+//                    } catch (IOException | JSONException e) {
+//                        e.printStackTrace();
+//                    }
                 }
             });
         } else {
@@ -228,8 +230,9 @@ public class SimpleBuyer {
             int remoteSeq = (int) receipt.get("channel_seq");
             byte[] remaining = Numeric.toBytesPadded(
                     new BigInteger((byte[]) receipt.get("remaining")), 32);
-            String signer = Util.recoverEIP712Signer(channelAddr, (int) receipt.get("channel_seq"),
-                    new BigInteger(remaining), false, (byte[]) receipt.get("signature"));
+//            String signer = Util.recoverEIP712Signer(channelAddr, (int) receipt.get("channel_seq"),
+//                    new BigInteger(remaining), false, (byte[]) receipt.get("signature"));
+            String signer = "";
             if (!signer.equals(Numeric.toHexString(mMarketMakerAddr))) {
                 System.out.println("Shit went south, I am out...");
                 mSession.leave();

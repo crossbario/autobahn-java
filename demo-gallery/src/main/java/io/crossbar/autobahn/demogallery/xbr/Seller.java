@@ -14,23 +14,33 @@ package io.crossbar.autobahn.demogallery.xbr;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import io.crossbar.autobahn.wamp.Client;
 import io.crossbar.autobahn.wamp.Session;
+import io.crossbar.autobahn.wamp.auth.CryptosignAuth;
 import io.crossbar.autobahn.wamp.types.PublishOptions;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
 import xbr.network.SimpleSeller;
+import xbr.network.Util;
 
 public class Seller {
+
+    private static final String TAG = Seller.class.getName();
+    private static final String DELEGATE_ETH_KEY = "d99b5b29e6da2528bf458b26237a6cf8655a3e3276c1cdc0de1f98cefee81c01";
+    private static final String MEMBER_ETH_KEY = "2eac15546def97adc6d69ca6e28eec831189baa2533e7910755d15403a0749e8";
+    private static final String CS_KEY = "0db085a389c1216ad62b88b408e1d830abca9c9f9dad67eb8c8f8734fe7575eb";
+
+    private SimpleSeller mSeller;
 
     public void sell() {
         Session session = new Session();
         session.addOnJoinListener(this::onJoin);
-        Client client = new Client(session, "ws://10.0.2.2:8080/ws", "realm1");
+
+        CryptosignAuth auth = new CryptosignAuth("public", CS_KEY);
+
+        Client client = new Client(session, "ws://10.0.2.2:8070/ws", "idma", auth);
         client.connect().whenComplete((exitInfo, throwable) -> {
             if (throwable != null) {
                 throwable.printStackTrace();
@@ -42,34 +52,32 @@ public class Seller {
 
     private void onJoin(Session session, SessionDetails details) {
         System.out.println("Joined...");
-        SimpleSeller seller = new SimpleSeller(
-                "0x3e5e9111ae8eb78fe1cc3bb8915d5d461f3ef9a9",
-                "0xadd53f9a7e588d003326d1cbf9e4a43c061aadd9bc938c843a79e7b4fd2ad743"
-        );
-        // Ugly, find a "nicer" way of doing things... (35 XBR)
-        BigInteger price = BigInteger.valueOf(35).multiply(BigInteger.valueOf(10).pow(18));
-        int intervalSeconds = 10;
-        String topic = "io.crossbar.example";
-        // This is a random API key of 16 bytes
-        byte[] apiID = new byte[16];
-        seller.add(apiID, topic, price, intervalSeconds);
 
-        seller.start(session).whenComplete((integer, throwable) -> {
+        byte[] apiID = new byte[16];
+        String topic = "xbr.myapp.example";
+
+        session.call(
+                "xbr.marketmaker.get_config", Map.class
+        ).thenCompose(config -> {
+            String marketMaker = (String) config.get("marketmaker");
+            mSeller = new SimpleSeller(marketMaker, DELEGATE_ETH_KEY);
+            BigInteger price = Util.toXBR(1);
+            int intervalSeconds = 10;
+            mSeller.add(apiID, topic, price, intervalSeconds);
+            return mSeller.start(session);
+        }).thenAccept(bigInteger -> {
             Map<String, Object> payload = new HashMap<>();
             payload.put("name", "crossbario");
             payload.put("country", "DE");
             payload.put("level", "Crossbar is super cool!");
             try {
-                Map<String, Object> enc = seller.wrap(apiID, topic, payload);
-                List<Object> args = new ArrayList<>();
-                args.add(enc.get("id"));
-                args.add(enc.get("serializer"));
-                args.add(enc.get("ciphertext"));
-                session.publish(topic, args, null, new PublishOptions(true, true));
-                System.out.println(topic);
+                Map<String, Object> enc = mSeller.wrap(apiID, topic, payload);
+                session.publish(topic, new PublishOptions(true, true), enc.get("id"),
+                        enc.get("serializer"), enc.get("ciphertext"));
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
+            System.out.println("BALANCE IS " + Util.toInt(bigInteger) + " XBR");
         });
     }
 }
