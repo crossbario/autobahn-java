@@ -10,13 +10,12 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import io.crossbar.autobahn.utils.AuthUtil;
+import io.crossbar.autobahn.utils.Pair;
 import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.interfaces.IAuthenticator;
 import io.crossbar.autobahn.wamp.types.Challenge;
 import io.crossbar.autobahn.wamp.types.ChallengeResponse;
-import io.crossbar.autobahn.utils.Pair;
 
-import static io.crossbar.autobahn.wamp.utils.Shortcuts.getOrDefault;
 import static org.libsodium.jni.SodiumConstants.SECRETKEY_BYTES;
 
 public class CryptosignAuth implements IAuthenticator {
@@ -36,6 +35,15 @@ public class CryptosignAuth implements IAuthenticator {
         String publicKey = AuthUtil.toHexString(signingKey.getVerifyKey().toBytes());
 
         return new Pair<>(publicKey, privateKey);
+    }
+
+    public CryptosignAuth(String authid, String privateKey) {
+        this(authid, privateKey, getPublicKey(AuthUtil.toBinary(privateKey)));
+    }
+
+    private static String getPublicKey(byte[] privateKeyRaw) {
+        SigningKey signingKey = new SigningKey(privateKeyRaw);
+        return AuthUtil.toHexString(signingKey.getVerifyKey().toBytes());
     }
 
     public CryptosignAuth(String authid, String privkey, Map<String, Object> authextra) {
@@ -64,9 +72,6 @@ public class CryptosignAuth implements IAuthenticator {
                           Map<String, Object> authextra) {
         this.authid = authid;
         this.authrole = authrole;
-        if (authextra == null || getOrDefault(authextra, "pubkey", null) == null) {
-            throw new RuntimeException("authextra must contain pubkey");
-        }
         this.authextra = authextra;
         try {
             privateKeyRaw = AuthUtil.toBinary(privkey);

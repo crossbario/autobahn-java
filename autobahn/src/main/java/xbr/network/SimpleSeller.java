@@ -37,6 +37,9 @@ import io.crossbar.autobahn.wamp.types.InvocationResult;
 import io.crossbar.autobahn.wamp.types.Registration;
 
 public class SimpleSeller {
+
+    private static final String TAG = SimpleSeller.class.getName();
+
     private static final int STATE_NONE = 0;
     private static final int STATE_STARTING = 1;
     private static final int STATE_STARTED = 2;
@@ -59,6 +62,7 @@ public class SimpleSeller {
     private int mSeq;
     private HashMap<String, Object> mChannel;
     private HashMap<String, Object> mPayingBalance;
+    private Map<String, Object> mMakerConfig;
 
     private SimpleSeller(byte[] marketMakerAddr, byte[] sellerKey) {
         mState = STATE_NONE;
@@ -122,40 +126,36 @@ public class SimpleSeller {
 
         String provider = Numeric.toHexStringWithPrefix(mECKey.getPublicKey());
         String procedureSell = String.format("xbr.provider.%s.sell", provider);
-        mSession.register(procedureSell, this::sell).thenAccept(registration -> {
-            mSessionRegs.add(registration);
-        }).exceptionally(throwable -> {
-            future.completeExceptionally(throwable);
-            return null;
-        });
-
         String procedureCloseChannel = String.format("xbr.provider.%s.close_channel", provider);
-        mSession.register(procedureCloseChannel, this::closeChannel).thenAccept(registration -> {
+        mSession.register(procedureSell, this::sell).thenCompose(registration -> {
             mSessionRegs.add(registration);
-        }).exceptionally(throwable -> {
-            future.completeExceptionally(throwable);
-            return null;
-        });
+            return mSession.register(procedureCloseChannel, this::closeChannel);
+        }).thenCompose(registration -> {
+            mSessionRegs.add(registration);
 
-        for (KeySeries series: mKeys.values()) {
-            series.start();
-        }
+            for (KeySeries series: mKeys.values()) {
+                series.start();
+            }
 
-        mSession.call(
-                "xbr.marketmaker.get_active_paying_channel",
-                new TypeReference<HashMap<String, Object>>() {},
-                mAddr
-        ).thenCompose(channel -> {
+            return session.call("xbr.marketmaker.get_config", Map.class);
+
+        }).thenCompose(makerConfig -> {
+
+            mMakerConfig = makerConfig;
+
+            return mSession.call(
+                    "xbr.marketmaker.get_active_paying_channel",
+                    new TypeReference<HashMap<String, Object>>() {},
+                    mAddr);
+        }).thenCompose(channel -> {
             mChannel = channel;
             return mSession.call(
                     "xbr.marketmaker.get_paying_channel_balance",
                     new TypeReference<HashMap<String, Object>>() {},
-                    channel.get("channel"));
+                    channel.get("channel_oid"));
         }).thenAccept(payingBalance -> {
             mSeq = (int) payingBalance.get("seq");
             mBalance = new BigInteger((byte[]) payingBalance.get("remaining"));
-            BigInteger bi = new BigInteger("10").pow(18);
-            System.out.println(mBalance.divide(bi));
             mState = STATE_STARTED;
             future.complete(mBalance);
         }).exceptionally(throwable -> {
@@ -173,8 +173,8 @@ public class SimpleSeller {
         byte[] buyerPubKey = (byte[]) args.get(1);
         byte[] keyIDRaw = (byte[]) args.get(2);
         String keyID = Numeric.toHexString(keyIDRaw);
-        byte[] channelAddrRaw = (byte[]) args.get(3);
-        String channelAddr = Numeric.toHexString(channelAddrRaw);
+        byte[] channelOidRaw = (byte[]) args.get(3);
+        String channelOid = Numeric.toHexString(channelOidRaw);
         int channelSeq = (int) args.get(4);
         byte[] amountRaw = (byte[]) args.get(5);
         BigInteger amount = new BigInteger(amountRaw);
@@ -190,8 +190,15 @@ public class SimpleSeller {
             throw new ApplicationError("crossbar.error.no_such_object");
         }
 
-        String signerAddr = Util.recoverEIP712Signer(channelAddrRaw, channelSeq, balance, false,
-                signature);
+        // FIXME::
+        int currentBlock = 1;
+        int verifyingChainId = (int) mMakerConfig.get("verifying_chain_id");
+        String verifyingContractAddress = (String) mMakerConfig.get("verifying_contract_adr");
+        byte[] marketOidRaw = (byte[]) mChannel.get("market_oid");
+        String marketOid = Numeric.toHexString(marketOidRaw);
+
+        String signerAddr = Util.recoverEIP712Signer(verifyingChainId, verifyingContractAddress,
+                currentBlock, marketOid, channelOid, channelSeq, balance, false, signature);
 
         if (!signerAddr.equals(marketMakerAddr)) {
             throw new ApplicationError("xbr.error.invalid_signature");
@@ -213,13 +220,9 @@ public class SimpleSeller {
         receipt.put("balance", mBalance.toByteArray());
 
         try {
-            byte[] sellerSignature = Util.signEIP712Data(
-                    mECKey,
-                    (byte[]) mChannel.get("channel"),
-                    mSeq,
-                    mBalance,
-                    false
-            );
+            byte[] sellerSignature = Util.signEIP712Data(mECKey, verifyingChainId,
+                    verifyingContractAddress, currentBlock, marketOid, channelOid, mSeq,
+                    mBalance, false);
             receipt.put("signature", sellerSignature);
         } catch (IOException | JSONException e) {
             e.printStackTrace();

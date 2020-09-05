@@ -13,14 +13,21 @@ package io.crossbar.autobahn.demogallery.xbr;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 import io.crossbar.autobahn.wamp.Client;
 import io.crossbar.autobahn.wamp.Session;
+import io.crossbar.autobahn.wamp.auth.CryptosignAuth;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
 import xbr.network.SimpleBuyer;
 import xbr.network.Util;
 
 public class Buyer {
+
+    private static final String TAG = Seller.class.getName();
+    private static final String DELEGATE_ETH_KEY = "77c5495fbb039eed474fc940f29955ed0531693cc9212911efd35dff0373153f";
+    private static final String MEMBER_ETH_KEY = "2e114163041d2fb8d45f9251db259a68ee6bdbfd6d10fe1ae87c5c4bcd6ba491";
+    private static final String CS_KEY = "dc88492fcff5470fcc76f21fa03f1752e0738e1e5cd56cd61fc280bac4d4c4d9";
 
     private BigInteger mRemainingBalance;
     private Session mSession;
@@ -29,7 +36,10 @@ public class Buyer {
     public void buy() {
         mSession = new Session();
         mSession.addOnJoinListener(this::onJoin);
-        Client client = new Client(mSession, "ws://10.0.2.2:8080/ws", "realm1");
+
+        CryptosignAuth auth = new CryptosignAuth("public", CS_KEY);
+        Client client = new Client(mSession, "ws://10.0.2.2:8070/ws", "idma", auth);
+
         client.connect().whenComplete((exitInfo, throwable) -> {
             if (throwable != null) {
                 throwable.printStackTrace();
@@ -41,14 +51,20 @@ public class Buyer {
 
     private void onJoin(Session session, SessionDetails details) {
         System.out.println("Joined...");
-        mBuyer = new SimpleBuyer(
-                "0x3e5e9111ae8eb78fe1cc3bb8915d5d461f3ef9a9",
-                "395df67f0c2d2d9fe1ad08d1bc8b6627011959b79c53d7dd6a3536a33ab8a4fd",
-                Util.toXBR(50)
-        );
-        mBuyer.start(session, details.authid).whenComplete((balance, throwable) -> {
+
+        session.call(
+                "xbr.marketmaker.get_config", Map.class
+        ).thenCompose(config -> {
+            String marketMaker = (String) config.get("marketmaker");
+            mBuyer = new SimpleBuyer(marketMaker, DELEGATE_ETH_KEY, Util.toXBR(50));
+            return mBuyer.start(session, details.authid);
+        }).thenAccept(balance -> {
+
+            System.out.println(balance);
+
             mRemainingBalance = balance;
-            mSession.subscribe("io.crossbar.example", this::actuallyBuy);
+            mSession.subscribe("xbr.myapp.example", this::actuallyBuy);
+
         });
     }
 

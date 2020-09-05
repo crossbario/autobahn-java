@@ -19,15 +19,12 @@ import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;
 import org.web3j.crypto.Sign;
 import org.web3j.crypto.StructuredDataEncoder;
-import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 
 public class Util {
-
-    private static final String VERIFYING_ADDR = "0x254dffcd3277C0b1660F6d42EFbB754edaBAbC2B";
 
     public static BigInteger toXBR(int xbr) {
         return BigInteger.valueOf(xbr).multiply(BigInteger.valueOf(10).pow(18));
@@ -41,59 +38,75 @@ public class Util {
         return new BigInteger((byte[]) xbr);
     }
 
-    private static JSONObject createEIP712Data(String verifyingAddr, byte[] channelAddr,
-                                        int channelSeq, BigInteger balance, boolean isFinal)
+    public static int toInt(BigInteger value) {
+        BigInteger bi = new BigInteger("10").pow(18);
+        return Integer.parseInt(value.divide(bi).toString());
+    }
+
+    private static JSONObject createEIP712Data(int chainId, String verifyingContract, int closeAt,
+                                               String marketId, String channelId, int channelSeq,
+                                               BigInteger balance, boolean isFinal)
             throws JSONException {
+
         JSONObject result = new JSONObject();
 
         JSONObject types = new JSONObject();
         JSONArray eip712Domain = new JSONArray(
                 "[" +
                 "{'name': 'name', 'type': 'string'}, " +
-                "{'name': 'version', 'type': 'string'}, " +
-                "{'name': 'chainId', 'type': 'uint256'}, " +
-                "{'name': 'verifyingContract', 'type': 'address'}" +
+                "{'name': 'version', 'type': 'string'} " +
                 "]"
         );
         JSONArray channelClose = new JSONArray(
                 "[" +
-                "{'name': 'channel_adr', 'type': 'address'}, " +
-                "{'name': 'channel_seq', 'type': 'uint32'}, " +
-                "{'name': 'balance', 'type': 'uint256'}, " +
-                "{'name': 'is_final', 'type': 'bool'}," +
+                "{'name': 'chainId', 'type': 'uint256'}, " +
+                "{'name': 'verifyingContract', 'type': 'address'}, " +
+                "{'name': 'closeAt', 'type': 'uint256'}, " +
+                "{'name': 'marketId', 'type': 'bytes16'}, " +
+                "{'name': 'channelId', 'type': 'bytes16'}, " +
+                "{'name': 'channelSeq', 'type': 'uint32'}, " +
+                "{'name': 'balance', 'type': 'uint256'}," +
+                "{'name': 'isFinal', 'type': 'bool'}" +
                 "]"
         );
         types.put("EIP712Domain", eip712Domain);
-        types.put("ChannelClose", channelClose);
+        types.put("EIP712ChannelClose", channelClose);
         result.put("types", types);
 
-        result.put("primaryType", "ChannelClose");
+        result.put("primaryType", "EIP712ChannelClose");
 
         JSONObject domain = new JSONObject();
         domain.put("name", "XBR");
         domain.put("version", "1");
-        domain.put("chainId", 1);
-        domain.put("verifyingContract", verifyingAddr);
-        result.put("domain", domain);
+        domain.put("verifyingContract", verifyingContract);
 
         JSONObject message = new JSONObject();
-        message.put("channel_adr", Numeric.toHexString(channelAddr));
-        message.put("channel_seq", channelSeq);
+        message.put("chainId", chainId);
+        message.put("verifyingContract", verifyingContract);
+        message.put("closeAt", closeAt);
+        message.put("marketId", marketId);
+        message.put("channelId", channelId);
+        message.put("channelSeq", channelSeq);
         message.put("balance", balance);
-        message.put("is_final", isFinal);
+        message.put("isFinal", isFinal);
+
+        result.put("domain", domain);
         result.put("message", message);
 
         return result;
     }
 
-    static byte[] signEIP712Data(ECKeyPair keyPair, byte[] channelAddr, int channelSeq,
+    static byte[] signEIP712Data(ECKeyPair keyPair, int chainId, String verifyingContract,
+                                 int closeAt, String marketId, String channelId, int channelSeq,
                                  BigInteger balance, boolean isFinal)
+
             throws IOException, JSONException {
 
-        JSONObject data = createEIP712Data(VERIFYING_ADDR, channelAddr, channelSeq, balance,
-                isFinal);
+        JSONObject data = createEIP712Data(chainId, verifyingContract, closeAt, marketId, channelId,
+                channelSeq, balance, isFinal);
         StructuredDataEncoder encoder = new StructuredDataEncoder(data.toString());
         byte[] message = encoder.hashStructuredData();
+
         Sign.SignatureData signed = Sign.signMessage(message, keyPair, false);
 
         byte[] r = signed.getR();
@@ -106,11 +119,13 @@ public class Util {
         return result;
     }
 
-    static String recoverEIP712Signer(byte[] channelAddr, int channelSeq, BigInteger balance,
-                                      boolean isFinal, byte[] signature) {
+
+    static String recoverEIP712Signer(int chainId, String verifyingContract, int closeAt,
+                                      String marketId, String channelId, int channelSeq,
+                                      BigInteger balance, boolean isFinal, byte[] signature) {
         try {
-            JSONObject data = createEIP712Data(VERIFYING_ADDR, channelAddr, channelSeq, balance,
-                    isFinal);
+            JSONObject data = createEIP712Data(chainId, verifyingContract, closeAt, marketId, channelId,
+                    channelSeq, balance, isFinal);
             StructuredDataEncoder encoder = new StructuredDataEncoder(data.toString());
             byte[] message = encoder.hashStructuredData();
             byte v = signature[64];
