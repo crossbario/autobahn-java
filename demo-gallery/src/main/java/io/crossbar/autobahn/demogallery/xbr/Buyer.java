@@ -11,16 +11,23 @@
 
 package io.crossbar.autobahn.demogallery.xbr;
 
+import org.web3j.crypto.Credentials;
+import org.web3j.crypto.ECKeyPair;
+import org.web3j.utils.Numeric;
+
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.crossbar.autobahn.utils.AuthUtil;
 import io.crossbar.autobahn.wamp.Client;
 import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.auth.CryptosignAuth;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
 import xbr.network.SimpleBuyer;
 import xbr.network.Util;
+import xbr.network.eip712.MarketMemberLogin;
 
 public class Buyer {
 
@@ -37,10 +44,26 @@ public class Buyer {
         mSession = new Session();
         mSession.addOnJoinListener(this::onJoin);
 
-        CryptosignAuth auth = new CryptosignAuth("public", CS_KEY);
-        Client client = new Client(mSession, "ws://10.0.2.2:8070/ws", "idma", auth);
+        ECKeyPair keyPair = ECKeyPair.create(Numeric.hexStringToByteArray(MEMBER_ETH_KEY));
+        String addressHex = Credentials.create(keyPair).getAddress();
+        byte[] addressRaw = Numeric.hexStringToByteArray(addressHex);
 
-        client.connect().whenComplete((exitInfo, throwable) -> {
+        String pubkeyHex = CryptosignAuth.getPublicKey(AuthUtil.toBinary(CS_KEY));
+
+        Map<String, Object> extras = new HashMap<>();
+        extras.put("wallet_address", addressRaw);
+        extras.put("pubkey", pubkeyHex);
+
+        MarketMemberLogin.sign(
+                keyPair, addressHex, pubkeyHex
+        ).thenCompose(signature -> {
+            extras.put("signature", signature);
+
+            CryptosignAuth auth = new CryptosignAuth("public", CS_KEY, extras);
+            Client client = new Client(mSession, "ws://10.0.2.2:8070/ws", "idma", auth);
+
+            return client.connect();
+        }).whenComplete((exitInfo, throwable) -> {
             if (throwable != null) {
                 throwable.printStackTrace();
             } else {
@@ -52,19 +75,21 @@ public class Buyer {
     private void onJoin(Session session, SessionDetails details) {
         System.out.println("Joined...");
 
+        System.out.println(details.authrole);
+
         session.call(
                 "xbr.marketmaker.get_config", Map.class
         ).thenCompose(config -> {
+            System.out.println("STASRTINGG..");
             String marketMaker = (String) config.get("marketmaker");
             mBuyer = new SimpleBuyer(marketMaker, DELEGATE_ETH_KEY, Util.toXBR(50));
             return mBuyer.start(session, details.authid);
         }).thenAccept(balance -> {
-
-            System.out.println(balance);
-
             mRemainingBalance = balance;
             mSession.subscribe("xbr.myapp.example", this::actuallyBuy);
-
+        }).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
         });
     }
 

@@ -13,10 +13,15 @@ package io.crossbar.autobahn.demogallery.xbr;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import org.web3j.crypto.Credentials;
+import org.web3j.crypto.ECKeyPair;
+import org.web3j.utils.Numeric;
+
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.crossbar.autobahn.utils.AuthUtil;
 import io.crossbar.autobahn.wamp.Client;
 import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.auth.CryptosignAuth;
@@ -24,6 +29,7 @@ import io.crossbar.autobahn.wamp.types.PublishOptions;
 import io.crossbar.autobahn.wamp.types.SessionDetails;
 import xbr.network.SimpleSeller;
 import xbr.network.Util;
+import xbr.network.eip712.MarketMemberLogin;
 
 public class Seller {
 
@@ -38,10 +44,26 @@ public class Seller {
         Session session = new Session();
         session.addOnJoinListener(this::onJoin);
 
-        CryptosignAuth auth = new CryptosignAuth("public", CS_KEY);
+        ECKeyPair keyPair = ECKeyPair.create(Numeric.hexStringToByteArray(MEMBER_ETH_KEY));
+        String addressHex = Credentials.create(keyPair).getAddress();
+        byte[] addressRaw = Numeric.hexStringToByteArray(addressHex);
 
-        Client client = new Client(session, "ws://10.0.2.2:8070/ws", "idma", auth);
-        client.connect().whenComplete((exitInfo, throwable) -> {
+        String pubkeyHex = CryptosignAuth.getPublicKey(AuthUtil.toBinary(CS_KEY));
+
+        Map<String, Object> extras = new HashMap<>();
+        extras.put("wallet_address", addressRaw);
+        extras.put("pubkey", pubkeyHex);
+
+        MarketMemberLogin.sign(
+                keyPair, addressHex, pubkeyHex
+        ).thenCompose(signature -> {
+            extras.put("signature", signature);
+
+            CryptosignAuth auth = new CryptosignAuth("public", CS_KEY, extras);
+            Client client = new Client(session, "ws://10.0.2.2:8070/ws", "idma", auth);
+
+            return client.connect();
+        }).whenComplete((exitInfo, throwable) -> {
             if (throwable != null) {
                 throwable.printStackTrace();
             } else {

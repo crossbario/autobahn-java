@@ -32,4 +32,12 @@
         android:layout_below="@id/button_websocket_echo_client"
         android:text="@string/button_xbr_seller"
         android:onClick="onClick"/>
+    <Button
+        android:id="@+id/buttonXBRBuyer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/buttonXBRSeller"
+        android:text="@string/button_xbr_buyer"
+        android:onClick="onClick"/>
+
 </RelativeLayout>

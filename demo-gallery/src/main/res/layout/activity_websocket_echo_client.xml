@@ -27,7 +27,8 @@
             android:layout_height="wrap_content"
             android:paddingTop="16dp"
             android:layout_weight="1"
-            android:layout_marginRight="5dp">
+            android:layout_marginRight="5dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/hostname"
@@ -44,7 +45,8 @@
             android:layout_height="wrap_content"
             android:paddingTop="16dp"
             android:orientation="horizontal"
-            android:layout_weight="3">
+            android:layout_weight="3"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/port"
@@ -76,7 +78,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="16dp"
-        android:orientation="horizontal">
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/msg"

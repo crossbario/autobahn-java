@@ -3,4 +3,5 @@
     <string name="button_text_websocket_echo_client">WebSocket Echo Client</string>
     <string name="button_text_test_suite_client">Testsuite Client</string>
     <string name="button_xbr_seller">XBR Seller</string>
+    <string name="button_xbr_buyer">XBR Buyer</string>
 </resources>

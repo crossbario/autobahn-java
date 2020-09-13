@@ -32,7 +32,7 @@ import io.crossbar.autobahn.websocket.types.WebSocketOptions;
 
 public class EchoClientActivity extends AppCompatActivity {
 
-    static final String TAG = "io.crossbar.autobahn.echo";
+    private static final String TAG = "io.crossbar.autobahn.echo";
     private static final String PREFS_NAME = "AutobahnAndroidEcho";
 
     private EditText mHostname;

@@ -23,6 +23,7 @@
         <activity android:name=".android.EchoClientActivity"/>
         <activity android:name=".android.TestSuiteClientActivity"/>
         <activity android:name=".android.XbrSellerActivity"/>
+        <activity android:name=".android.XbrBuyerActivity"/>
     </application>
 
 </manifest>

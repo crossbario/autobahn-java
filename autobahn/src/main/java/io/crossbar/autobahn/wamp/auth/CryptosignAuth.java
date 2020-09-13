@@ -41,7 +41,7 @@ public class CryptosignAuth implements IAuthenticator {
         this(authid, privateKey, getPublicKey(AuthUtil.toBinary(privateKey)));
     }
 
-    private static String getPublicKey(byte[] privateKeyRaw) {
+    public static String getPublicKey(byte[] privateKeyRaw) {
         SigningKey signingKey = new SigningKey(privateKeyRaw);
         return AuthUtil.toHexString(signingKey.getVerifyKey().toBytes());
     }

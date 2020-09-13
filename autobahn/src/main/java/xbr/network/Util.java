@@ -23,6 +23,7 @@ import org.web3j.crypto.StructuredDataEncoder;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 
 public class Util {
 
@@ -96,33 +97,45 @@ public class Util {
         return result;
     }
 
-    static byte[] signEIP712Data(ECKeyPair keyPair, int chainId, String verifyingContract,
-                                 int closeAt, String marketId, String channelId, int channelSeq,
-                                 BigInteger balance, boolean isFinal)
+    static CompletableFuture<byte[]> signEIP712Data(ECKeyPair keyPair, int chainId,
+                                                    String verifyingContract, int closeAt,
+                                                    String marketId, String channelId,
+                                                    int channelSeq, BigInteger balance,
+                                                    boolean isFinal) {
 
-            throws IOException, JSONException {
+        CompletableFuture<byte[]> future = new CompletableFuture<>();
 
-        JSONObject data = createEIP712Data(chainId, verifyingContract, closeAt, marketId, channelId,
-                channelSeq, balance, isFinal);
-        StructuredDataEncoder encoder = new StructuredDataEncoder(data.toString());
-        byte[] message = encoder.hashStructuredData();
+        try {
+            JSONObject data = createEIP712Data(chainId, verifyingContract, closeAt, marketId, channelId,
+                    channelSeq, balance, isFinal);
+            StructuredDataEncoder encoder = new StructuredDataEncoder(data.toString());
+            byte[] message = encoder.hashStructuredData();
 
-        Sign.SignatureData signed = Sign.signMessage(message, keyPair, false);
+            Sign.SignatureData signed = Sign.signMessage(message, keyPair, false);
 
-        byte[] r = signed.getR();
-        byte[] s = signed.getS();
-        byte[] result = new byte[65];
-        System.arraycopy(r, 0, result, 0, r.length);
-        System.arraycopy(s, 0, result, r.length, s.length);
-        result[64] = signed.getV()[0];
+            byte[] r = signed.getR();
+            byte[] s = signed.getS();
+            byte[] result = new byte[65];
+            System.arraycopy(r, 0, result, 0, r.length);
+            System.arraycopy(s, 0, result, r.length, s.length);
+            result[64] = signed.getV()[0];
 
-        return result;
+            future.complete(result);
+        } catch (IOException | JSONException e) {
+            future.completeExceptionally(e);
+        }
+
+        return future;
     }
 
 
-    static String recoverEIP712Signer(int chainId, String verifyingContract, int closeAt,
-                                      String marketId, String channelId, int channelSeq,
-                                      BigInteger balance, boolean isFinal, byte[] signature) {
+    static CompletableFuture<String> recoverEIP712Signer(int chainId, String verifyingContract,
+                                                         int closeAt, String marketId,
+                                                         String channelId, int channelSeq,
+                                                         BigInteger balance, boolean isFinal,
+                                                         byte[] signature) {
+        CompletableFuture<String> future = new CompletableFuture<>();
+
         try {
             JSONObject data = createEIP712Data(chainId, verifyingContract, closeAt, marketId, channelId,
                     channelSeq, balance, isFinal);
@@ -146,11 +159,14 @@ public class Util {
                             message);
 
             if (publicKey != null) {
-                return "0x" + Keys.getAddress(publicKey);
+                future.complete("0x" + Keys.getAddress(publicKey));
+            } else {
+                future.complete(null);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            future.completeExceptionally(e);
         }
-        return null;
+
+        return future;
     }
 }

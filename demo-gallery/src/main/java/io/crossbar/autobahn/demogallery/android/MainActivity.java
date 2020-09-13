@@ -40,6 +40,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.buttonXBRSeller:
                 startActivity(new Intent(getApplicationContext(), XbrSellerActivity.class));
                 break;
+            case R.id.buttonXBRBuyer:
+                startActivity(new Intent(getApplicationContext(), XbrBuyerActivity.class));
+                break;
         }
     }
 }
