@@ -15,27 +15,32 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 
-import org.json.JSONException;
 import org.libsodium.jni.SodiumConstants;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.utils.Numeric;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 
+import io.crossbar.autobahn.utils.ABLogger;
+import io.crossbar.autobahn.utils.IABLogger;
 import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import xbr.network.crypto.SealedBox;
 import xbr.network.crypto.SecretBox;
+import xbr.network.pojo.Quote;
+import xbr.network.pojo.Receipt;
 
 import static org.libsodium.jni.NaCl.sodium;
 
 public class SimpleBuyer {
+
+    private static final IABLogger LOGGER = ABLogger.getLogger(SimpleBuyer.class.getName());
 
     private final byte[] mEthPrivateKey;
     private final byte[] mEthPublicKey;
@@ -45,7 +50,7 @@ public class SimpleBuyer {
     private final BigInteger mMaxPrice;
     private final ECKeyPair mECKey;
 
-    private HashMap<byte[], SecretBox> mKeys;
+    private HashMap<String, SecretBox> mKeys;
     private Session mSession;
     private boolean mRunning;
     private int mSeq;
@@ -184,6 +189,21 @@ public class SimpleBuyer {
 
     }
 
+    private CompletableFuture<Object> decrypt(SecretBox secretBox, byte[] ciphertext) {
+        CompletableFuture<Object> future = new CompletableFuture<>();
+
+        try {
+            byte[] message = secretBox.decrypt(ciphertext);
+            ObjectMapper mapper = new ObjectMapper(new CBORFactory());
+            Object result = mapper.readValue(message, Object.class);
+            future.complete(result);
+        } catch (Exception e) {
+            future.completeExceptionally(e);
+        }
+
+        return future;
+    }
+
     public CompletableFuture<Object> unwrap(byte[] keyID, String encSerializer, byte[] ciphertext) {
         CompletableFuture<Object> future = new CompletableFuture<>();
 
@@ -196,83 +216,82 @@ public class SimpleBuyer {
         byte[] marketOidRaw = (byte[]) mChannel.get("market_oid");
         String marketOidHex = Numeric.toHexString(marketOidRaw);
 
-        if (!mKeys.containsKey(keyID)) {
+        String keyHex = Numeric.toHexString(keyID);
+
+        if (mKeys.containsKey(keyHex)) {
+            LOGGER.i("Key already in store (or currently being bought)");
+            SecretBox box = mKeys.get(keyHex);
+            if (box != null) {
+                decrypt(box, ciphertext).thenAccept(o -> {
+                    future.complete(o);
+                }).exceptionally(throwable -> {
+                    future.completeExceptionally(throwable);
+                    return null;
+                });
+            }
+        } else {
+            mKeys.put(keyHex, null);
+            int channelSeq = mSeq + 1;
+            boolean isFinal = false;
+
+            AtomicReference<BigInteger> price = new AtomicReference<>();
+            AtomicReference<BigInteger> remainingPostBuy = new AtomicReference<>();
+            AtomicReference<Receipt> receipt = new AtomicReference<>();
+
             mSession.call(
                     "xbr.marketmaker.get_quote",
-                    new TypeReference<HashMap<String, Object>>() {},
+                    new TypeReference<Quote>() {},
                     keyID
-            ).thenAccept(quote -> {
-                BigInteger price = Util.toXBR((byte[]) quote.get("price"));
+            ).thenCompose(quote -> {
+                CompletableFuture<byte[]> dFuture = new CompletableFuture<>();
+
+                price.set(quote.getPriceBigInt());
                 // If we have the balance to buy...
-                if (mRemainingBalance.compareTo(price) > 0) {
-                    int channelSeq = mSeq + 1;
-                    boolean isFinal = false;
-                    BigInteger remainingPost = mRemainingBalance.subtract(price);
-                    try {
-                        byte[] signature = Util.signEIP712Data(mECKey, verifyingChainId,
-                                verifyingContractAddress, currentBlock, marketOidHex, channelOidHex,
-                                channelSeq, remainingPost, isFinal);
-                        buyKey(keyID, channelOidRaw, channelSeq, price, remainingPost, signature,
-                                ciphertext, future);
-                    } catch (IOException | JSONException e) {
-                        e.printStackTrace();
-                    }
+                if (mRemainingBalance.compareTo(price.get()) > 0) {
+                    remainingPostBuy.set(mRemainingBalance.subtract(price.get()));
+
+                    return Util.signEIP712Data(mECKey, verifyingChainId,
+                            verifyingContractAddress, currentBlock, marketOidHex, channelOidHex,
+                            channelSeq, remainingPostBuy.get(), isFinal);
+                } else {
+                    dFuture.completeExceptionally(new ApplicationError("xbr.error.insufficient_balance"));
+                    return dFuture;
                 }
+            }).thenCompose(signature -> {
+                return mSession.call(
+                        "xbr.marketmaker.buy_key", new TypeReference<Receipt>() {},
+                        mEthAddr, mPublicKey, keyID, channelOidRaw, channelSeq,
+                        Numeric.toBytesPadded(price.get(), 32),
+                        Numeric.toBytesPadded(remainingPostBuy.get(), 32), signature
+                );
+            }).thenCompose(receiptObj -> {
+                receipt.set(receiptObj);
+
+                return Util.recoverEIP712Signer(verifyingChainId, verifyingContractAddress,
+                        currentBlock, marketOidHex, channelOidHex, receiptObj.channel_seq,
+                        new BigInteger(receiptObj.remaining), false, receiptObj.signature);
+
+            }).thenCompose(signer -> {
+                if (signer == null || !signer.equals(Numeric.toHexString(mMarketMakerAddr))) {
+                    mSession.leave();
+                    throw new ApplicationError("xbr.error.wrong_market_maker");
+                } else {
+                    Receipt rec = receipt.get();
+                    mSeq = rec.channel_seq;
+                    mRemainingBalance = Util.toXBR(rec.remaining);
+                    SealedBox box = new SealedBox(mPublicKey, mPrivateKey);
+                    byte[] key = box.decrypt((rec.sealed_key));
+                    SecretBox secretBox = new SecretBox(key);
+                    mKeys.put(keyHex, secretBox);
+                    return decrypt(secretBox, ciphertext);
+                }
+            }).thenAccept(o -> {
+                future.complete(o);
             }).exceptionally(throwable -> {
                 future.completeExceptionally(throwable);
                 return null;
             });
-        } else {
-            future.completeExceptionally(new ApplicationError("xbr.error.insufficient_balance"));
         }
         return future;
-    }
-
-    private void buyKey(byte[] keyID, byte[] channelOid, int channelSeq, BigInteger price,
-                        BigInteger balance, byte[] signature, byte[] ciphertext,
-                        CompletableFuture<Object> future) {
-        mSession.call(
-                "xbr.marketmaker.buy_key", new TypeReference<HashMap<String, Object>>() {},
-                mEthAddr, mPublicKey, keyID, channelOid, channelSeq,
-                Numeric.toBytesPadded(price, 32), Numeric.toBytesPadded(balance, 32), signature
-        ).thenAccept(receipt -> {
-
-            // FIXME::
-            int currentBlock = 1;
-            int verifyingChainId = (int) mMakerConfig.get("verifying_chain_id");
-            String verifyingContractAddress = (String) mMakerConfig.get("verifying_contract_adr");
-            byte[] channelOidRaw = (byte[]) mChannel.get("channel_oid");
-            String channelOidHex = Numeric.toHexString(channelOidRaw);
-            byte[] marketOidRaw = (byte[]) mChannel.get("market_oid");
-            String marketOidHex = Numeric.toHexString(marketOidRaw);
-
-            int remoteSeq = (int) receipt.get("channel_seq");
-            byte[] remaining = (byte[]) receipt.get("remaining");
-            String signer = Util.recoverEIP712Signer(verifyingChainId, verifyingContractAddress,
-                    currentBlock, marketOidHex, channelOidHex, (int) receipt.get("channel_seq"),
-                    new BigInteger(remaining), false, (byte[]) receipt.get("signature"));
-
-            if (!signer.equals(Numeric.toHexString(mMarketMakerAddr))) {
-                System.out.println("Shit went south, I am out...");
-                mSession.leave();
-            } else {
-                mSeq = remoteSeq;
-                mRemainingBalance = Util.toXBR(receipt.get("remaining"));
-                SealedBox box = new SealedBox(mPublicKey, mPrivateKey);
-                byte[] key = box.decrypt((byte[]) receipt.get("sealed_key"));
-                SecretBox secretBox = new SecretBox(key);
-                byte[] message = secretBox.decrypt(ciphertext);
-                ObjectMapper mapper = new ObjectMapper(new CBORFactory());
-                try {
-                    Object result = mapper.readValue(message, Object.class);
-                    future.complete(result);
-                } catch (Exception e) {
-                    future.completeExceptionally(e);
-                }
-            }
-        }).exceptionally(throwable -> {
-            throwable.printStackTrace();
-            return null;
-        });
     }
 }

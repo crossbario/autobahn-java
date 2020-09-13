@@ -167,12 +167,10 @@ public class TestSuiteClientActivity extends AppCompatActivity implements View.O
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.start:
-                mStart.setEnabled(false);
-                currentCase = 0;
-                processNext();
-                break;
+        if (v.getId() == R.id.start) {
+            mStart.setEnabled(false);
+            currentCase = 0;
+            processNext();
         }
     }
 }

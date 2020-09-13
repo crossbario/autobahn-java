@@ -37,6 +37,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.button_websocket_echo_client:
                 startActivity(new Intent(getApplicationContext(), EchoClientActivity.class));
                 break;
+            case R.id.buttonXBRSeller:
+                startActivity(new Intent(getApplicationContext(), XbrSellerActivity.class));
+                break;
+            case R.id.buttonXBRBuyer:
+                startActivity(new Intent(getApplicationContext(), XbrBuyerActivity.class));
+                break;
         }
     }
 }

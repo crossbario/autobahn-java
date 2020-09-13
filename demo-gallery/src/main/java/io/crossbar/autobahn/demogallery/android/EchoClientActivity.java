@@ -32,17 +32,15 @@ import io.crossbar.autobahn.websocket.types.WebSocketOptions;
 
 public class EchoClientActivity extends AppCompatActivity {
 
-    static final String TAG = "io.crossbar.autobahn.echo";
+    private static final String TAG = "io.crossbar.autobahn.echo";
     private static final String PREFS_NAME = "AutobahnAndroidEcho";
 
-    static EditText mHostname;
-    static EditText mPort;
-    static TextView mStatusline;
-    static Button mStart;
-    static EditText mMessage;
-    static Button mSendMessage;
-
-
+    private EditText mHostname;
+    private EditText mPort;
+    private TextView mStatusline;
+    private Button mStart;
+    private EditText mMessage;
+    private Button mSendMessage;
     private SharedPreferences mSettings;
 
     private void alert(String message) {
@@ -52,17 +50,15 @@ public class EchoClientActivity extends AppCompatActivity {
     }
 
     private void loadPrefs() {
-
         mHostname.setText(mSettings.getString("hostname", "192.168.1.3"));
         mPort.setText(mSettings.getString("port", "9000"));
     }
 
     private void savePrefs() {
-
         SharedPreferences.Editor editor = mSettings.edit();
         editor.putString("hostname", mHostname.getText().toString());
         editor.putString("port", mPort.getText().toString());
-        editor.commit();
+        editor.apply();
     }
 
     private void setButtonConnect() {

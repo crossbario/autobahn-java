@@ -3,67 +3,60 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:weightSum="1" android:background="#028ec9" android:padding="12dip">
+    android:background="@color/autobahn"
+    android:padding="12dp">
 
     <TextView
         android:id="@+id/textView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Autobahn WebSockets for Android"
-        android:textColor="#ffffff"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:gravity="center"
-        android:paddingBottom="16dip"/>
+        android:gravity="center"/>
 
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Fuzzing Server"
-        android:textColor="@color/lightgrey"/>
-    <LinearLayout
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
-        android:id="@+id/linearLayout1"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:paddingTop="16dp"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-        <EditText
+        <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/wsuri"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:maxLines="1"
             android:text="ws://192.168.1.128:9001"
-            android:textColor="@color/darkgrey" />
-    </LinearLayout>
+            android:hint="Fuzzing Server" />
+    </com.google.android.material.textfield.TextInputLayout>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:id="@+id/textView3"
-        android:text="User Agent Identifier"
-        android:textColor="@color/lightgrey"/>
-
-    <EditText
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@color/darkgrey"
-        android:id="@+id/agent"
-        android:text="AutobahnAndroid"/>
+        android:paddingTop="16dp"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/agent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:text="AutobahnAndroid"
+            android:hint="User Agent Identifier" />
+    </com.google.android.material.textfield.TextInputLayout>
 
     <Button
-        android:layout_width="120dip"
+        android:layout_width="wrap_content"
         android:text="Start Tests"
         android:layout_gravity="center"
-        android:layout_height="80dip"
-        android:layout_margin="16dip"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
         android:id="@+id/start"/>
-<TextView  
-    android:layout_width="fill_parent" 
-    android:layout_height="wrap_content" 
-    android:textSize="18sp"
-    android:text="Press button to start tests."
-    android:textColor="@color/lightgrey"
-    android:id="@+id/statusline"/>
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:text="Press button to start tests."
+        android:id="@+id/statusline"/>
 </LinearLayout>

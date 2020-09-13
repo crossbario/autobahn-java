@@ -43,6 +43,11 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_APP)) {
         implementation project(path: ':autobahn')
         implementation 'androidx.appcompat:appcompat:1.2.0'
         implementation 'com.android.support:multidex:1.0.3'
+        implementation "androidx.constraintlayout:constraintlayout:2.0.1"
+        implementation "com.google.android.material:material:1.2.1"
+
+        implementation 'com.basgeekball:awesome-validation:4.2'
+        implementation 'org.web3j:crypto:4.6.0-android'
     }
 } else if (project.IS_NEXT) {
     // Nothing useful is produced here, however this avoids

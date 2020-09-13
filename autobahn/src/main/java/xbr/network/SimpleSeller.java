@@ -14,19 +14,19 @@ package xbr.network;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 
-import org.json.JSONException;
 import org.libsodium.jni.crypto.Random;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;
 import org.web3j.utils.Numeric;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
@@ -35,6 +35,7 @@ import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.InvocationDetails;
 import io.crossbar.autobahn.wamp.types.InvocationResult;
 import io.crossbar.autobahn.wamp.types.Registration;
+import io.crossbar.autobahn.wamp.utils.Platform;
 
 public class SimpleSeller {
 
@@ -64,6 +65,8 @@ public class SimpleSeller {
     private HashMap<String, Object> mPayingBalance;
     private Map<String, Object> mMakerConfig;
 
+    private Executor mExecutor;
+
     private SimpleSeller(byte[] marketMakerAddr, byte[] sellerKey) {
         mState = STATE_NONE;
 
@@ -74,6 +77,8 @@ public class SimpleSeller {
         mKeys = new HashMap<>();
         mKeysMap = new HashMap<>();
         mSessionRegs = new ArrayList<>();
+
+        mExecutor = Platform.autoSelectExecutor();
     }
 
     public SimpleSeller(String marketMakerAddr, String sellerKey) {
@@ -166,8 +171,10 @@ public class SimpleSeller {
         return future;
     }
 
-    public InvocationResult sell(List<Object> args, Map<String, Object> kwargs,
-                                 InvocationDetails details) {
+    public CompletableFuture<InvocationResult> sell(List<Object> args, Map<String, Object> kwargs,
+                                                    InvocationDetails details) {
+
+        CompletableFuture<InvocationResult> result = new CompletableFuture<>();
 
         String marketMakerAddr = Numeric.toHexString((byte[]) args.get(0));
         byte[] buyerPubKey = (byte[]) args.get(1);
@@ -197,38 +204,45 @@ public class SimpleSeller {
         byte[] marketOidRaw = (byte[]) mChannel.get("market_oid");
         String marketOid = Numeric.toHexString(marketOidRaw);
 
-        String signerAddr = Util.recoverEIP712Signer(verifyingChainId, verifyingContractAddress,
-                currentBlock, marketOid, channelOid, channelSeq, balance, false, signature);
+        AtomicReference<Map<String, Object>> receiptRef = new AtomicReference<>();
 
-        if (!signerAddr.equals(marketMakerAddr)) {
-            throw new ApplicationError("xbr.error.invalid_signature");
-        }
+        Util.recoverEIP712Signer(verifyingChainId, verifyingContractAddress,
+                currentBlock, marketOid, channelOid, channelSeq, balance, false, signature
+        ).thenCompose(signerAddr -> {
+            if (!signerAddr.equals(marketMakerAddr)) {
+                throw new ApplicationError("xbr.error.invalid_signature");
+            }
 
-        mSeq += 1;
-        mBalance = mBalance.subtract(amount);
+            mSeq += 1;
+            mBalance = mBalance.subtract(amount);
 
-        KeySeries series = mKeysMap.get(keyID);
-        byte[] sealedKey = series.encryptKey(keyIDRaw, buyerPubKey);
+            KeySeries series = mKeysMap.get(keyID);
+            byte[] sealedKey = series.encryptKey(keyIDRaw, buyerPubKey);
 
-        Map<String, Object> receipt = new HashMap<>();
-        receipt.put("key_id", keyIDRaw);
-        receipt.put("delegate", mAddr);
-        receipt.put("buyer_pubkey", buyerPubKey);
-        receipt.put("sealed_key", sealedKey);
-        receipt.put("channel_seq", mSeq);
-        receipt.put("amount", amountRaw);
-        receipt.put("balance", mBalance.toByteArray());
+            Map<String, Object> receipt = new HashMap<>();
+            receipt.put("key_id", keyIDRaw);
+            receipt.put("delegate", mAddr);
+            receipt.put("buyer_pubkey", buyerPubKey);
+            receipt.put("sealed_key", sealedKey);
+            receipt.put("channel_seq", mSeq);
+            receipt.put("amount", amountRaw);
+            receipt.put("balance", mBalance.toByteArray());
 
-        try {
-            byte[] sellerSignature = Util.signEIP712Data(mECKey, verifyingChainId,
-                    verifyingContractAddress, currentBlock, marketOid, channelOid, mSeq,
-                    mBalance, false);
+            receiptRef.set(receipt);
+
+            return Util.signEIP712Data(mECKey, verifyingChainId, verifyingContractAddress,
+                    currentBlock, marketOid, channelOid, mSeq, mBalance, false);
+        }).thenAccept(sellerSignature -> {
+            Map<String, Object> receipt = receiptRef.get();
             receipt.put("signature", sellerSignature);
-        } catch (IOException | JSONException e) {
-            e.printStackTrace();
-        }
+            result.complete(new InvocationResult((Object) receipt));
 
-        return new InvocationResult((Object) receipt);
+        }).exceptionally(throwable -> {
+            result.completeExceptionally(throwable);
+            return null;
+        });
+
+        return result;
     }
 
     public String closeChannel(List<Object> args, Map<String, Object> kwargs,
@@ -238,9 +252,29 @@ public class SimpleSeller {
         return null;
     }
 
-    public Map<String, Object> wrap(byte[] apiID, String uri, Map<String, Object> payload)
-            throws JsonProcessingException {
-        KeySeries series = mKeys.get(Numeric.toHexString(apiID));
-        return series.encrypt(payload);
+    public CompletableFuture<Map<String, Object>> wrap(byte[] apiID, String uri,
+                                                       Map<String, Object> payload) {
+
+        CompletableFuture<Map<String, Object>> future = new CompletableFuture<>();
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                KeySeries series = mKeys.get(Numeric.toHexString(apiID));
+                future.complete(series.encrypt(payload));
+            } catch (JsonProcessingException e) {
+                future.completeExceptionally(e);
+            }
+        }, mExecutor);
+
+        return future;
+    }
+
+    public CompletableFuture<Void> stop() {
+        mState = STATE_STOPPING;
+        for (Map.Entry<String, KeySeries> entry : mKeysMap.entrySet()) {
+            entry.getValue().stop();
+        }
+
+        return CompletableFuture.completedFuture(null);
     }
 }
