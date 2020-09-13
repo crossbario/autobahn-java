@@ -216,9 +216,6 @@ public class SimpleBuyer {
         byte[] marketOidRaw = (byte[]) mChannel.get("market_oid");
         String marketOidHex = Numeric.toHexString(marketOidRaw);
 
-        System.out.println("BUYING KEY " + keyID);
-        System.out.println("BUYING KEY " + Numeric.toHexString(keyID));
-
         String keyHex = Numeric.toHexString(keyID);
 
         if (mKeys.containsKey(keyHex)) {

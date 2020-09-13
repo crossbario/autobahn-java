@@ -11,8 +11,6 @@
 
 package io.crossbar.autobahn.demogallery.xbr;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.utils.Numeric;
@@ -20,6 +18,7 @@ import org.web3j.utils.Numeric;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.crossbar.autobahn.utils.AuthUtil;
 import io.crossbar.autobahn.wamp.Client;
@@ -84,6 +83,7 @@ public class Seller {
 
         byte[] apiID = new byte[16];
         String topic = "xbr.myapp.example";
+        AtomicReference<BigInteger> balance = new AtomicReference<>();
 
         session.call(
                 "xbr.marketmaker.get_config", Map.class
@@ -94,19 +94,21 @@ public class Seller {
             int intervalSeconds = 10;
             mSeller.add(apiID, topic, price, intervalSeconds);
             return mSeller.start(session);
-        }).thenAccept(bigInteger -> {
+        }).thenCompose(bigInteger -> {
+            balance.set(bigInteger);
             Map<String, Object> payload = new HashMap<>();
             payload.put("name", "crossbario");
             payload.put("country", "DE");
             payload.put("level", "Crossbar is super cool!");
-            try {
-                Map<String, Object> enc = mSeller.wrap(apiID, topic, payload);
-                session.publish(topic, new PublishOptions(true, true), enc.get("id"),
-                        enc.get("serializer"), enc.get("ciphertext"));
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
-            System.out.println("BALANCE IS " + Util.toInt(bigInteger) + " XBR");
+            return mSeller.wrap(apiID, topic, payload);
+        }).thenCompose(enc -> {
+            return session.publish(topic, new PublishOptions(true, true), enc.get("id"),
+                    enc.get("serializer"), enc.get("ciphertext"));
+        }).thenAccept(publication -> {
+            System.out.println("BALANCE IS " + Util.toInt(balance.get()) + " XBR");
+        }).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
         });
     }
 }

@@ -11,7 +11,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.basgeekball.awesomevalidation.AwesomeValidation;
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
@@ -20,6 +19,7 @@ import org.web3j.utils.Numeric;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
 import io.crossbar.autobahn.demogallery.R;
@@ -144,6 +144,7 @@ public class XbrSellerActivity extends AppCompatActivity implements View.OnClick
         mStatus.setText("Connected to server");
         mButtonSell.setText("Stop Selling");
         mWasConnected = true;
+        AtomicReference<BigInteger> balance = new AtomicReference<>();
 
         byte[] apiID = new byte[16];
         String topic = "xbr.myapp.example";
@@ -157,20 +158,19 @@ public class XbrSellerActivity extends AppCompatActivity implements View.OnClick
             int intervalSeconds = 10;
             mSeller.add(apiID, topic, price, intervalSeconds);
             return mSeller.start(session);
-        }).thenAccept(bigInteger -> {
+        }).thenCompose(bigInteger -> {
+            balance.set(bigInteger);
             mStatus.setText("Seller is ready now");
             Map<String, Object> payload = new HashMap<>();
             payload.put("name", "crossbario");
             payload.put("country", "DE");
             payload.put("level", "Crossbar is super cool!");
-            try {
-                Map<String, Object> enc = mSeller.wrap(apiID, topic, payload);
-                session.publish(topic, new PublishOptions(true, true), enc.get("id"),
-                        enc.get("serializer"), enc.get("ciphertext"));
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
-            System.out.println("BALANCE IS " + Util.toInt(bigInteger) + " XBR");
+            return mSeller.wrap(apiID, topic, payload);
+        }).thenCompose(enc -> {
+            return session.publish(topic, new PublishOptions(true, true), enc.get("id"),
+                    enc.get("serializer"), enc.get("ciphertext"));
+        }).thenAccept(publication -> {
+            System.out.println("BALANCE IS " + Util.toInt(balance.get()) + " XBR");
         }).exceptionally(throwable -> {
             mStatus.setText("Something went wrong");
             return null;

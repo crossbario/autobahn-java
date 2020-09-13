@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.crossbar.autobahn.wamp.Session;
@@ -34,6 +35,7 @@ import io.crossbar.autobahn.wamp.types.CallResult;
 import io.crossbar.autobahn.wamp.types.InvocationDetails;
 import io.crossbar.autobahn.wamp.types.InvocationResult;
 import io.crossbar.autobahn.wamp.types.Registration;
+import io.crossbar.autobahn.wamp.utils.Platform;
 
 public class SimpleSeller {
 
@@ -63,6 +65,8 @@ public class SimpleSeller {
     private HashMap<String, Object> mPayingBalance;
     private Map<String, Object> mMakerConfig;
 
+    private Executor mExecutor;
+
     private SimpleSeller(byte[] marketMakerAddr, byte[] sellerKey) {
         mState = STATE_NONE;
 
@@ -73,6 +77,8 @@ public class SimpleSeller {
         mKeys = new HashMap<>();
         mKeysMap = new HashMap<>();
         mSessionRegs = new ArrayList<>();
+
+        mExecutor = Platform.autoSelectExecutor();
     }
 
     public SimpleSeller(String marketMakerAddr, String sellerKey) {
@@ -246,10 +252,21 @@ public class SimpleSeller {
         return null;
     }
 
-    public Map<String, Object> wrap(byte[] apiID, String uri, Map<String, Object> payload)
-            throws JsonProcessingException {
-        KeySeries series = mKeys.get(Numeric.toHexString(apiID));
-        return series.encrypt(payload);
+    public CompletableFuture<Map<String, Object>> wrap(byte[] apiID, String uri,
+                                                       Map<String, Object> payload) {
+
+        CompletableFuture<Map<String, Object>> future = new CompletableFuture<>();
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                KeySeries series = mKeys.get(Numeric.toHexString(apiID));
+                future.complete(series.encrypt(payload));
+            } catch (JsonProcessingException e) {
+                future.completeExceptionally(e);
+            }
+        }, mExecutor);
+
+        return future;
     }
 
     public CompletableFuture<Void> stop() {

@@ -31,7 +31,6 @@ import xbr.network.eip712.MarketMemberLogin;
 
 public class Buyer {
 
-    private static final String TAG = Seller.class.getName();
     private static final String DELEGATE_ETH_KEY = "77c5495fbb039eed474fc940f29955ed0531693cc9212911efd35dff0373153f";
     private static final String MEMBER_ETH_KEY = "2e114163041d2fb8d45f9251db259a68ee6bdbfd6d10fe1ae87c5c4bcd6ba491";
     private static final String CS_KEY = "dc88492fcff5470fcc76f21fa03f1752e0738e1e5cd56cd61fc280bac4d4c4d9";
