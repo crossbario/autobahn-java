@@ -39,6 +39,13 @@ public class Seller {
     private static final String CS_KEY = "0db085a389c1216ad62b88b408e1d830abca9c9f9dad67eb8c8f8734fe7575eb";
 
     private SimpleSeller mSeller;
+    private String mURI;
+    private String mRealm;
+
+    public Seller(String uri, String realm) {
+        mURI = uri;
+        mRealm = realm;
+    }
 
     public void sell() {
         Session session = new Session();
@@ -60,7 +67,7 @@ public class Seller {
             extras.put("signature", signature);
 
             CryptosignAuth auth = new CryptosignAuth("public", CS_KEY, extras);
-            Client client = new Client(session, "ws://10.0.2.2:8070/ws", "idma", auth);
+            Client client = new Client(session, mURI, mRealm, auth);
 
             return client.connect();
         }).whenComplete((exitInfo, throwable) -> {

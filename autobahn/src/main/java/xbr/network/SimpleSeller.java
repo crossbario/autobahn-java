@@ -251,4 +251,13 @@ public class SimpleSeller {
         KeySeries series = mKeys.get(Numeric.toHexString(apiID));
         return series.encrypt(payload);
     }
+
+    public CompletableFuture<Void> stop() {
+        mState = STATE_STOPPING;
+        for (Map.Entry<String, KeySeries> entry : mKeysMap.entrySet()) {
+            entry.getValue().stop();
+        }
+
+        return CompletableFuture.completedFuture(null);
+    }
 }
