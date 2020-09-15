@@ -1,9 +1,11 @@
-apply plugin: project.IS_ANDROID ? project.PLUGIN_ANDROID_LIB: project.PLUGIN_JAVA_LIB
-apply plugin: project.IS_ANDROID ? 'com.github.dcendents.android-maven': 'maven-publish'
-apply plugin: 'com.jfrog.bintray'
+def IS_ANDROID = project.hasProperty('IS_ANDROID') ? project.IS_ANDROID: true
+def IS_NEXT = project.hasProperty('IS_NEXT') ? project.IS_NEXT: false
+def IS_NETTY = project.hasProperty('IS_NETTY') ? project.IS_NETTY: false
+def ARTIFACT_ANDROID = (project.hasProperty('BUILD_LEGACY') && project.BUILD_LEGACY) ? 'autobahn-android-legacy': 'autobahn-android'
+def PUBLISH = project.hasProperty('PUBLISH') && project.PUBLISH
 
-def ARTIFACT_ANDROID = 'autobahn-android'
-def ARTIFACT_ANDROID_LEGACY = 'autobahn-android-legacy'
+apply plugin: IS_ANDROID ? 'com.android.library': 'java-library'
+
 def ARTIFACT_JAVA = 'autobahn-java'
 def ARTIFACT_NEXT = 'autobahn'
 
@@ -21,7 +23,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.11.1'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.11.1'
     implementation 'org.msgpack:jackson-dataformat-msgpack:0.8.20'
-    if (project.IS_ANDROID) {
+    if (IS_ANDROID) {
         implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.2'
         implementation 'org.web3j:core:4.6.0-android'
         implementation 'org.web3j:abi:4.6.0-android'
@@ -33,47 +35,51 @@ dependencies {
         implementation 'org.web3j:utils:4.6.0'
         implementation 'org.json:json:20200518'
     }
-    if (project.IS_NETTY) {
+    if (IS_NETTY) {
         implementation 'io.netty:netty-codec-http:4.1.50.Final'
         implementation 'io.netty:netty-handler:4.1.50.Final'
     }
 }
 
-bintray {
-    user = System.getenv('BINTRAY_USER')
-    key = System.getenv('BINTRAY_KEY')
-    if (project.IS_ANDROID) {
-        configurations = ['archives']
-    } else {
-        publications = ['mavenJava']
-    }
-    publish = true
-    pkg {
-        repo = 'autobahn'
-        if (project.IS_ANDROID) {
-            name = project.BUILD_LEGACY ? ARTIFACT_ANDROID_LEGACY: ARTIFACT_ANDROID
-        } else if (project.IS_NEXT){
-            name = ARTIFACT_NEXT
+if (PUBLISH) {
+    apply plugin: 'com.jfrog.bintray'
+
+    bintray {
+        user = System.getenv('BINTRAY_USER')
+        key = System.getenv('BINTRAY_KEY')
+        if (IS_ANDROID) {
+            configurations = ['archives']
         } else {
-            name = ARTIFACT_JAVA
+            publications = ['mavenJava']
         }
-        userOrg = 'crossbario'
-        licenses = [licenseName]
-        vcsUrl = gitUrl
-        version {
-            name = relVersion
-            released = new Date()
-            mavenCentralSync {
-                sync = true
-                user = System.getenv('SONATYPE_USERNAME')
-                password = System.getenv('SONATYPE_PASSWORD')
-                close = '1'
+        publish = true
+        pkg {
+            repo = 'autobahn'
+            if (IS_ANDROID) {
+                name = ARTIFACT_ANDROID
+            } else if (IS_NEXT){
+                name = ARTIFACT_NEXT
+            } else {
+                name = ARTIFACT_JAVA
+            }
+            userOrg = 'crossbario'
+            licenses = [licenseName]
+            vcsUrl = gitUrl
+            version {
+                name = relVersion
+                released = new Date()
+                mavenCentralSync {
+                    sync = true
+                    user = System.getenv('SONATYPE_USERNAME')
+                    password = System.getenv('SONATYPE_PASSWORD')
+                    close = '1'
+                }
             }
         }
     }
 }
 
-if (project.IS_ANDROID) {
+if (IS_ANDROID) {
     android {
         compileSdkVersion 29
         buildToolsVersion '29.0.3'
@@ -110,6 +116,8 @@ if (project.IS_ANDROID) {
             exclude 'META-INF/notice.txt'
         }
     }
+
+
     task sourcesJar(type: Jar) {
         classifier = 'sources'
         from android.sourceSets.main.java.srcDirs
@@ -126,39 +134,44 @@ if (project.IS_ANDROID) {
             variant.javaCompile.classpath.files
         })
     }
-    project.archivesBaseName = project.BUILD_LEGACY ? ARTIFACT_ANDROID_LEGACY: ARTIFACT_ANDROID
+    project.archivesBaseName = ARTIFACT_ANDROID
     group = groupID
     version = relVersion
-    install {
-        repositories.mavenInstaller {
-            // This generates POM.xml with proper parameters
-            pom {
-                project {
-                    packaging 'aar'
-                    groupId groupID
-                    artifactId project.BUILD_LEGACY ? ARTIFACT_ANDROID_LEGACY: ARTIFACT_ANDROID
 
-                    // Add your description here
-                    name project.BUILD_LEGACY ? ARTIFACT_ANDROID_LEGACY: ARTIFACT_ANDROID
-                    description 'WebSocket & WAMP for Android'
-                    url siteUrl
+    if (PUBLISH) {
+        apply plugin: 'com.github.dcendents.android-maven'
 
-                    // Set your license
-                    licenses {
-                        license {
-                            name licenseName
-                            url licenseUrl
-                        }
-                    }
-                    developers {
-                        developer {
-                            id "crossbario"
-                            name "Crossbar.io"
-                            email "support@crossbario.com"
-                        }
-                    }
-                    scm {
+        install {
+            repositories.mavenInstaller {
+                // This generates POM.xml with proper parameters
+                pom {
+                    project {
+                        packaging 'aar'
+                        groupId groupID
+                        artifactId ARTIFACT_ANDROID
+
+                        // Add your description here
+                        name ARTIFACT_ANDROID
+                        description 'WebSocket & WAMP for Android'
                         url siteUrl
+
+                        // Set your license
+                        licenses {
+                            license {
+                                name licenseName
+                                url licenseUrl
+                            }
+                        }
+                        developers {
+                            developer {
+                                id "crossbario"
+                                name "Crossbar.io"
+                                email "support@crossbario.com"
+                            }
+                        }
+                        scm {
+                            url siteUrl
+                        }
                     }
                 }
             }
@@ -197,27 +210,32 @@ if (project.IS_ANDROID) {
         classifier = 'javadoc'
         from javadoc.destinationDir
     }
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                from components.java
-                artifact sourcesJar
-                artifact javadocJar
 
-                groupId groupID
-                artifactId project.IS_NEXT ? ARTIFACT_NEXT: ARTIFACT_JAVA
-                version relVersion
-                pom.withXml {
-                    def root = asNode()
-                    root.appendNode('description', 'WebSocket & WAMP for Java8+')
-                    root.appendNode('name', 'Autobahn Java')
-                    root.appendNode('url', siteUrl)
-                    root.children().last() + pomConfig
+    if (PUBLISH) {
+        apply plugin: 'maven-publish'
+
+        publishing {
+            publications {
+                mavenJava(MavenPublication) {
+                    from components.java
+                    artifact sourcesJar
+                    artifact javadocJar
+
+                    groupId groupID
+                    artifactId IS_NEXT ? ARTIFACT_NEXT: ARTIFACT_JAVA
+                    version relVersion
+                    pom.withXml {
+                        def root = asNode()
+                        root.appendNode('description', 'WebSocket & WAMP for Java8+')
+                        root.appendNode('name', 'Autobahn Java')
+                        root.appendNode('url', siteUrl)
+                        root.children().last() + pomConfig
+                    }
                 }
             }
         }
     }
-    if (project.IS_NEXT) {
+    if (IS_NEXT) {
         sourceSets {
             main {
                 java {

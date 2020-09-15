@@ -1,17 +1,22 @@
 // Set global platform properties.
+def _PLATFORM = project.properties.get('buildPlatform')
+assert (_PLATFORM == 'android' || _PLATFORM == 'netty' || _PLATFORM == 'next' || _PLATFORM == null)
+
+def _PUBLISH = true
+if (_PLATFORM == null) {
+    _PLATFORM = 'android'
+    _PUBLISH = false
+}
+
 project.ext {
-    PLATFORM = project.properties.get('buildPlatform', 'android')
-    PLATFORM_ANDROID = 'android'
-    PLATFORM_NETTY = 'netty'
-    PLATFORM_NEXT = 'next'
+    PLATFORM = _PLATFORM
     PLUGIN_ANDROID_APP = 'com.android.application'
-    PLUGIN_ANDROID_LIB = 'com.android.library'
     PLUGIN_JAVA_APP = 'application'
-    PLUGIN_JAVA_LIB = 'java-library'
-    IS_ANDROID = PLATFORM == PLATFORM_ANDROID
-    IS_NETTY = PLATFORM == PLATFORM_NETTY
-    IS_NEXT = PLATFORM == PLATFORM_NEXT
+    IS_ANDROID = _PLATFORM == 'android'
+    IS_NETTY = _PLATFORM == 'netty'
+    IS_NEXT = _PLATFORM == 'next'
     BUILD_LEGACY = project.properties.get('buildLegacy', false)
+    PUBLISH = _PUBLISH
 }
 
 buildscript {
