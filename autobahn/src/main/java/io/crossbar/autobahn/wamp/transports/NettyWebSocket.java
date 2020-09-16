@@ -35,7 +35,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -48,7 +47,6 @@ import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
-import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketClientCompressionHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
@@ -174,7 +172,6 @@ public class NettyWebSocket implements ITransport {
                 channelPipeline.addLast(
                         new HttpClientCodec(),
                         new HttpObjectAggregator(8192),
-                        WebSocketClientCompressionHandler.INSTANCE,
                         new IdleStateHandler(
                                 opt.getAutoPingInterval() + opt.getAutoPingTimeout(),
                                 opt.getAutoPingInterval(), 0, TimeUnit.SECONDS),
