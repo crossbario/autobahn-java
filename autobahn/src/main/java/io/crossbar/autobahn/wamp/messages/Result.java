@@ -13,7 +13,6 @@ package io.crossbar.autobahn.wamp.messages;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +34,7 @@ public class Result implements IMessage {
     }
 
     public static Result parse(List<Object> wmsg) {
-        MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "RESULT", 4, 6);
+        MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "RESULT", 3, 5);
 
         long request = MessageUtil.parseLong(wmsg.get(1));
         List<Object> args = null;
