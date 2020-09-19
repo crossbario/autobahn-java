@@ -64,6 +64,7 @@ public class TestSuiteClientActivity extends AppCompatActivity implements View.O
         mOptions.setReceiveTextMessagesRaw(true);
         mOptions.setMaxMessagePayloadSize(16 * 1024 * 1024);
         mOptions.setMaxFramePayloadSize(16 * 1024 * 1024);
+        mOptions.setAutoPingInterval(0);
     }
 
     private void loadPrefs() {

@@ -286,7 +286,15 @@ class WebSocketReader extends Thread {
                     framePayload = new byte[mFrameHeader.mPayloadLen];
                     System.arraycopy(mMessageData, mFrameHeader.mHeaderLen, framePayload, 0, mFrameHeader.mPayloadLen);
                 }
-                mMessageData = Arrays.copyOfRange(mMessageData, mFrameHeader.mTotalLen, mMessageData.length + mFrameHeader.mTotalLen);
+
+                // mMessageData = Arrays.copyOfRange(mMessageData, mFrameHeader.mTotalLen, mMessageData.length + mFrameHeader.mTotalLen);
+                // We were previously recreating the message data array for each fragment, that is resource hungry.
+                // Imagine having set the message max payload size to 16M, each time we receive a new frame for a
+                // message, we were creating a new byte[] of 16M.
+                //
+                // Now imagine if the sender sends a message of size 4M in fragments of 64, we will be creating a byte[16M]
+                // 4 * 2**20 / 64 times which is 65536, that's one hell of a pressure on the GC.
+                System.arraycopy(mMessageData, mFrameHeader.mTotalLen, mMessageData, 0, mMessageData.length - mFrameHeader.mTotalLen);
                 mPosition -= mFrameHeader.mTotalLen;
 
                 if (mFrameHeader.mOpcode > 7) {
@@ -534,7 +542,7 @@ class WebSocketReader extends Thread {
                 /// \FIXME verify handshake from server
                 Map<String, String> handshakeParams = parseHttpHeaders(Arrays.copyOfRange(headers, 1, headers.length));
 
-                mMessageData = Arrays.copyOfRange(mMessageData, pos + 4, mMessageData.length + pos + 4);
+                System.arraycopy(mMessageData, pos + 4, mMessageData, 0, mMessageData.length - (pos + 4));
                 mPosition -= pos + 4;
 
                 if (!serverError) {
