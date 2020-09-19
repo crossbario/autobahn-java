@@ -286,7 +286,8 @@ class WebSocketReader extends Thread {
                     framePayload = new byte[mFrameHeader.mPayloadLen];
                     System.arraycopy(mMessageData, mFrameHeader.mHeaderLen, framePayload, 0, mFrameHeader.mPayloadLen);
                 }
-                mMessageData = Arrays.copyOfRange(mMessageData, mFrameHeader.mTotalLen, mMessageData.length + mFrameHeader.mTotalLen);
+
+                System.arraycopy(mMessageData, mFrameHeader.mTotalLen, mMessageData, 0, mMessageData.length - mFrameHeader.mTotalLen);
                 mPosition -= mFrameHeader.mTotalLen;
 
                 if (mFrameHeader.mOpcode > 7) {
@@ -534,7 +535,7 @@ class WebSocketReader extends Thread {
                 /// \FIXME verify handshake from server
                 Map<String, String> handshakeParams = parseHttpHeaders(Arrays.copyOfRange(headers, 1, headers.length));
 
-                mMessageData = Arrays.copyOfRange(mMessageData, pos + 4, mMessageData.length + pos + 4);
+                System.arraycopy(mMessageData, pos + 4, mMessageData, 0, mMessageData.length - (pos + 4));
                 mPosition -= pos + 4;
 
                 if (!serverError) {
