@@ -24,6 +24,7 @@ import java.util.Map;
 import io.crossbar.autobahn.utils.ABLogger;
 import io.crossbar.autobahn.utils.IABLogger;
 import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
+import io.crossbar.autobahn.websocket.interfaces.IThreadMessenger;
 import io.crossbar.autobahn.websocket.messages.BinaryMessage;
 import io.crossbar.autobahn.websocket.messages.Close;
 import io.crossbar.autobahn.websocket.messages.ConnectionLost;
@@ -36,8 +37,6 @@ import io.crossbar.autobahn.websocket.messages.ServerError;
 import io.crossbar.autobahn.websocket.messages.ServerHandshake;
 import io.crossbar.autobahn.websocket.messages.TextMessage;
 import io.crossbar.autobahn.websocket.types.WebSocketOptions;
-import io.crossbar.autobahn.websocket.interfaces.IThreadMessenger;
-import io.crossbar.autobahn.utils.Pair;
 import io.crossbar.autobahn.websocket.utils.Utf8Validator;
 
 
@@ -439,11 +438,10 @@ class WebSocketReader extends Thread {
     /**
      * WebSockets handshake reply from server received, default notifies master.
      *
-     * @param success Success handshake flag
      */
-    protected void onHandshake(Map<String, String> handshakeParams, boolean success) {
+    protected void onHandshake(Map<String, String> handshakeParams) {
 
-        mMessenger.notify(new ServerHandshake(handshakeParams, success));
+        mMessenger.notify(new ServerHandshake(handshakeParams));
     }
 
 
@@ -516,6 +514,12 @@ class WebSocketReader extends Thread {
         mMessenger.notify(new BinaryMessage(payload));
     }
 
+    private void emitServerError(String msg) {
+        mMessenger.notify(new ServerError(msg));
+        mState = STATE_CLOSED;
+        mStopped = true;
+    }
+
     /**
      * Process WebSockets handshake received from server.
      */
@@ -530,67 +534,124 @@ class WebSocketReader extends Thread {
                 boolean serverError = false;
                 String rawHeaders = new String(Arrays.copyOf(mMessageData, pos + 4), "UTF-8");
                 String[] headers = rawHeaders.split("\r\n");
-                if (headers[0].startsWith("HTTP")) {
-                    Pair<Integer, String> status = parseHttpStatus(headers[0]);
-                    if (status.first >= 300) {
-                        // Invalid status code for success connection
-                        mMessenger.notify(new ServerError(status.first, status.second));
-                        serverError = true;
+
+                String httpStatusLine = headers[0];
+                String[] sl = httpStatusLine.split(" ");
+                if (sl.length < 2 || !sl[0].startsWith("HTTP")) {
+                    String msg = String.format("Bad HTTP response status line %s", httpStatusLine);
+                    emitServerError(msg);
+                    break;
+                }
+
+                String httpVersion = sl[0].trim();
+                if (!httpVersion.equals("HTTP/1.1")) {
+                    String msg = String.format("Unsupported HTTP version %s", httpVersion);
+                    emitServerError(msg);
+                    break;
+                }
+
+                int statusCode;
+
+                try {
+                    statusCode = Integer.parseInt(sl[1].trim());
+                } catch (NumberFormatException ignore) {
+                    String msg = String.format("Bad HTTP status code ('%s')", sl[1].trim());
+                    emitServerError(msg);
+                    break;
+                }
+
+                if (statusCode != 101) {
+                    String reason = "";
+                    if (sl.length > 2) {
+                        StringBuilder builder = new StringBuilder();
+                        for (int i = 2; i < sl.length; i++) {
+                            builder.append(sl[i]);
+                            // Don't add empty space at the end.
+                            if (i != sl.length - 1) {
+                                builder.append(" ");
+                            }
+                        }
+                        reason = builder.toString();
+                    }
+                    String msg = String.format("WebSocket connection upgrade failed (%d %s)",
+                            statusCode, reason);
+                    emitServerError(msg);
+                    break;
+                }
+
+                Map<String, String> handshakeParams = parseHttpHeaders(Arrays.copyOfRange(headers, 1, headers.length));
+
+                if (!handshakeParams.containsKey("upgrade")) {
+                    emitServerError("HTTP Upgrade header missing");
+                    break;
+                }
+
+                String upgrade = handshakeParams.get("upgrade");
+                if (upgrade == null || upgrade.toLowerCase().equals("upgrade")) {
+                    String msg = String.format("HTTP Upgrade header different from 'websocket' " +
+                            "(case-insensitive) : %s", upgrade);
+                    emitServerError(msg);
+                    break;
+                }
+
+                if (!handshakeParams.containsKey("connection")) {
+                    emitServerError("HTTP Connection header missing");
+                    break;
+                }
+
+                String[] connValues = handshakeParams.get("connection").split(",");
+                boolean connectionUpgrade = false;
+                for (String connValue : connValues) {
+                    if (connValue.toLowerCase().equals("upgrade")) {
+                        connectionUpgrade = true;
+                        break;
                     }
                 }
 
-                /// \FIXME verify handshake from server
-                Map<String, String> handshakeParams = parseHttpHeaders(Arrays.copyOfRange(headers, 1, headers.length));
+                if (!connectionUpgrade) {
+                    String msg = String.format("HTTP Connection header does not include 'upgrade'" +
+                            " value (case-insensitive) : %s", handshakeParams.get("connection"));
+                    emitServerError(msg);
+                    break;
+                }
+
+                if (!handshakeParams.containsKey("sec-websocket-accept")) {
+                    String msg = "HTTP Sec-WebSocket-Accept header missing in opening handshake " +
+                            "reply";
+                    emitServerError(msg);
+                    break;
+                } else {
+                    // FIXME: check sec-websocket-accept wasn't returned multiple times
+                    // FIXME: verify websocket key
+                }
 
                 System.arraycopy(mMessageData, pos + 4, mMessageData, 0, mMessageData.length - (pos + 4));
                 mPosition -= pos + 4;
 
-                if (!serverError) {
-                    // process further when data after HTTP headers left in buffer
-                    res = mPosition > 0;
+                // process further when data after HTTP headers left in buffer
+                res = mPosition > 0;
+                mState = STATE_OPEN;
 
-                    mState = STATE_OPEN;
-                } else {
-                    res = true;
-                    mState = STATE_CLOSED;
-                    mStopped = true;
-                }
-
-                onHandshake(handshakeParams, !serverError);
+                onHandshake(handshakeParams);
                 break;
             }
         }
         return res;
     }
 
-    private Map<String, String> parseHttpHeaders(String[] httpResponse) throws UnsupportedEncodingException {
+    private Map<String, String> parseHttpHeaders(String[] httpResponse) {
         Map<String, String> headers = new HashMap<>();
-        for (String line : httpResponse) {
+        for (String line: httpResponse) {
             if (line.length() > 0) {
                 String[] h = line.split(": ");
                 if (h.length == 2) {
-                    headers.put(h[0], h[1]);
-                    LOGGER.d(String.format("'%s'='%s'", h[0], h[1]));
+                    headers.put(h[0].toLowerCase(), h[1]);
+                    LOGGER.d(String.format("'%s'='%s'", h[0].toLowerCase(), h[1]));
                 }
             }
         }
 
         return headers;
-    }
-
-    private Pair<Integer, String> parseHttpStatus(String statusLine) throws UnsupportedEncodingException {
-        // The status line could like:
-        // HTTP/1.1 101 Switching Protocols
-        String[] statusLineParts = statusLine.split(" ");
-        int statusCode = Integer.valueOf(statusLineParts[1]);
-        StringBuilder statusMessageBuilder = new StringBuilder();
-        for (int i = 2; i < statusLineParts.length; i++) {
-            statusMessageBuilder.append(statusLineParts[i]);
-            statusMessageBuilder.append(" ");
-        }
-        String statusMessage = statusMessageBuilder.toString().trim();
-        LOGGER.d(String.format("Status: %d (%s)", statusCode, statusMessage));
-        return new Pair<>(statusCode, statusMessage);
     }
 
     /**
