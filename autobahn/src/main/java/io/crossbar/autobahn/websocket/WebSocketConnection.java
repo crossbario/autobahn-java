@@ -93,10 +93,10 @@ public class WebSocketConnection implements IWebSocket {
                     mReader.getTimeSinceLastRead() >= mOptions.getAutoPingInterval() - 1) {
                 sendPing();
                 mExecutor.schedule(() -> {
-                    if (mReader.getTimeSinceLastRead() < mOptions.getAutoPingInterval()) {
+                    if (mReader.getTimeSinceLastRead() < mOptions.getAutoPingTimeout()) {
                         return;
                     }
-                    mMessenger.notify(new ConnectionLost("AutoPing timed out."));
+                    mMessenger.notify(new ConnectionLost("WebSocket ping timed out."));
                 }, mOptions.getAutoPingTimeout(), TimeUnit.SECONDS);
             }
         }
@@ -623,22 +623,20 @@ public class WebSocketConnection implements IWebSocket {
 
                     LOGGER.d("opening handshake received");
 
-                    if (serverHandshake.mSuccess) {
-                        if (mWsHandler != null) {
-                            if (mOptions.getAutoPingInterval() > 0) {
-                                mPingerTask = mExecutor.scheduleAtFixedRate(
-                                        mAutoPinger, 0,
-                                        mOptions.getAutoPingInterval(), TimeUnit.SECONDS);
-                            }
-                            String protocol = getOrDefault(serverHandshake.headers,
-                                    "Sec-WebSocket-Protocol", null);
-                            mWsHandler.setConnection(WebSocketConnection.this);
-                            mWsHandler.onConnect(new ConnectionResponse(protocol));
-                            mWsHandler.onOpen();
-                            LOGGER.d("onOpen() called, ready to rock.");
-                        } else {
-                            LOGGER.d("could not call onOpen() .. handler already NULL");
+                    if (mWsHandler != null) {
+                        if (mOptions.getAutoPingInterval() > 0) {
+                            mPingerTask = mExecutor.scheduleAtFixedRate(
+                                    mAutoPinger, 0,
+                                    mOptions.getAutoPingInterval(), TimeUnit.SECONDS);
                         }
+                        String protocol = getOrDefault(serverHandshake.headers,
+                                "Sec-WebSocket-Protocol", null);
+                        mWsHandler.setConnection(WebSocketConnection.this);
+                        mWsHandler.onConnect(new ConnectionResponse(protocol));
+                        mWsHandler.onOpen();
+                        LOGGER.d("onOpen() called, ready to rock.");
+                    } else {
+                        LOGGER.d("could not call onOpen() .. handler already NULL");
                     }
                 } else if (message instanceof CannotConnect) {
 
@@ -654,8 +652,6 @@ public class WebSocketConnection implements IWebSocket {
 
                 } else if (message instanceof ProtocolViolation) {
 
-                    @SuppressWarnings("unused")
-                    ProtocolViolation protocolViolation = (ProtocolViolation) message;
                     failConnection(IWebSocketConnectionHandler.CLOSE_PROTOCOL_ERROR,
                             "WebSockets protocol violation");
 
@@ -669,7 +665,7 @@ public class WebSocketConnection implements IWebSocket {
 
                     ServerError error = (ServerError) message;
                     failConnection(IWebSocketConnectionHandler.CLOSE_SERVER_ERROR,
-                            "Server error " + error.mStatusCode + " (" + error.mStatusMessage + ")");
+                            "Server error " + error.mStatusMessage);
 
                 } else {
 
