@@ -630,7 +630,7 @@ public class WebSocketConnection implements IWebSocket {
                                     mOptions.getAutoPingInterval(), TimeUnit.SECONDS);
                         }
                         String protocol = getOrDefault(serverHandshake.headers,
-                                "Sec-WebSocket-Protocol", null);
+                                "sec-websocket-protocol", null);
                         mWsHandler.setConnection(WebSocketConnection.this);
                         mWsHandler.onConnect(new ConnectionResponse(protocol));
                         mWsHandler.onOpen();
