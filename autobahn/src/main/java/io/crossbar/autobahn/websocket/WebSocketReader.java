@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -117,8 +118,8 @@ class WebSocketReader extends Thread {
         LOGGER.d("Created");
     }
 
-    double getTimeSinceLastRead() {
-        return (System.currentTimeMillis() - mLastReadTime) / 1000.0;
+    long getTimeSinceLastRead() {
+        return System.nanoTime() - mLastReadTime;
     }
 
     /**
@@ -694,7 +695,7 @@ class WebSocketReader extends Thread {
                 mPosition += len;
                 if (len > 0) {
 
-                    mLastReadTime = System.currentTimeMillis();
+                    mLastReadTime = System.nanoTime();
                     // process buffered data
                     while (consumeData()) {
 

@@ -12,6 +12,9 @@
 package io.crossbar.autobahn.websocket.types;
 
 
+import java.time.zone.ZoneRules;
+import java.util.concurrent.TimeUnit;
+
 /**
  * WebSockets connection options. This can be supplied to WebSocketConnection in connect().
  * Note that the latter copies the options provided to connect(), so any change after
@@ -31,6 +34,8 @@ public class WebSocketOptions {
     private String[] mTlsProtocols;
     private int mAutoPingInterval;
     private int mAutoPingTimeout;
+    private long mAutoPingTimeoutNano;
+    private long mAutoPingIntervalNano;
 
     /**
      * Construct default options.
@@ -47,8 +52,12 @@ public class WebSocketOptions {
         mMaskClientFrames = true;
         mReconnectInterval = 0;  // no reconnection by default
         mTlsProtocols = null;
+
         mAutoPingInterval = 10;
+        mAutoPingIntervalNano = TimeUnit.NANOSECONDS.convert(mAutoPingInterval, TimeUnit.SECONDS);
+
         mAutoPingTimeout = 5;
+        mAutoPingTimeoutNano = TimeUnit.NANOSECONDS.convert(mAutoPingTimeout, TimeUnit.SECONDS);
     }
 
     /**
@@ -68,8 +77,12 @@ public class WebSocketOptions {
         mMaskClientFrames = other.mMaskClientFrames;
         mReconnectInterval = other.mReconnectInterval;
         mTlsProtocols = other.mTlsProtocols;
+
         mAutoPingInterval = other.mAutoPingInterval;
+        mAutoPingIntervalNano = TimeUnit.NANOSECONDS.convert(mAutoPingInterval, TimeUnit.SECONDS);
+
         mAutoPingTimeout = other.mAutoPingTimeout;
+        mAutoPingTimeoutNano = TimeUnit.NANOSECONDS.convert(mAutoPingTimeout, TimeUnit.SECONDS);
     }
 
     /**
@@ -289,6 +302,7 @@ public class WebSocketOptions {
 
     public void setAutoPingInterval(int seconds) {
         mAutoPingInterval = seconds;
+        mAutoPingIntervalNano = TimeUnit.NANOSECONDS.convert(mAutoPingInterval, TimeUnit.SECONDS);
     }
 
     public int getAutoPingInterval() {
@@ -297,9 +311,18 @@ public class WebSocketOptions {
 
     public void setAutoPingTimeout(int seconds) {
         mAutoPingTimeout = seconds;
+        mAutoPingTimeoutNano = TimeUnit.NANOSECONDS.convert(mAutoPingTimeout, TimeUnit.SECONDS);
     }
 
     public int getAutoPingTimeout() {
         return mAutoPingTimeout;
+    }
+
+    public long getAutoPingTimeoutNano() {
+        return mAutoPingTimeoutNano;
+    }
+
+    public long getAutoPingIntervalNano() {
+        return mAutoPingIntervalNano;
     }
 }

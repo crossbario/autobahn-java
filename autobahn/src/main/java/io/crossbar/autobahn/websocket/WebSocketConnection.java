@@ -58,6 +58,8 @@ public class WebSocketConnection implements IWebSocket {
 
     private static final IABLogger LOGGER = ABLogger.getLogger(WebSocketConnection.class.getName());
 
+    private final long ONE_SECOND_NANO;
+
     private IThreadMessenger mMessenger;
 
     private WebSocketReader mReader;
@@ -89,14 +91,20 @@ public class WebSocketConnection implements IWebSocket {
     private final Runnable mAutoPinger = new Runnable() {
         @Override
         public void run() {
-            if (mReader != null &&
-                    mReader.getTimeSinceLastRead() >= mOptions.getAutoPingInterval() - 1) {
+            if (mReader == null) {
+                return;
+            }
+
+            if (mReader.getTimeSinceLastRead() >= mOptions.getAutoPingIntervalNano() - ONE_SECOND_NANO) {
                 sendPing();
                 mExecutor.schedule(() -> {
-                    if (mReader.getTimeSinceLastRead() < mOptions.getAutoPingTimeout()) {
+                    if (mReader == null) {
                         return;
                     }
-                    mMessenger.notify(new ConnectionLost("WebSocket ping timed out."));
+                    long lastRead = mReader.getTimeSinceLastRead();
+                    if (lastRead >= mOptions.getAutoPingTimeoutNano()) {
+                        mMessenger.notify(new ConnectionLost("WebSocket ping timed out."));
+                    }
                 }, mOptions.getAutoPingTimeout(), TimeUnit.SECONDS);
             }
         }
@@ -153,7 +161,7 @@ public class WebSocketConnection implements IWebSocket {
                     // create & start WebSocket writer
                     createWriter();
 
-                    // start WebSockets handshake
+                    // start WebSocket handshake
                     ClientHandshake hs = new ClientHandshake(mWsHost + ":" + mWsPort);
                     hs.mPath = mWsPath;
                     hs.mQuery = mWsQuery;
@@ -173,6 +181,8 @@ public class WebSocketConnection implements IWebSocket {
 
     public WebSocketConnection() {
         LOGGER.d("Created");
+
+        ONE_SECOND_NANO = TimeUnit.NANOSECONDS.convert(1, TimeUnit.SECONDS);
 
         // create WebSocket master handler
         createHandler();
@@ -199,6 +209,7 @@ public class WebSocketConnection implements IWebSocket {
     @Override
     public void sendPing() {
         sendMessage(new Ping());
+        LOGGER.d("WebSocket Ping sent");
     }
 
     @Override
@@ -314,14 +325,14 @@ public class WebSocketConnection implements IWebSocket {
             throw new WebSocketException("already connected");
         }
 
-        // parse WebSockets URI
+        // parse WebSocket URI
         //
         try {
             mWsUri = new URI(wsUri);
 
             mWsScheme = mWsUri.getScheme();
             if (mWsScheme == null || (!mWsScheme.equals("ws") && !mWsScheme.equals("wss"))) {
-                throw new WebSocketException("unsupported scheme for WebSockets URI");
+                throw new WebSocketException("unsupported scheme for WebSocket URI");
             }
 
             if (mWsUri.getPort() == -1) {
@@ -335,7 +346,7 @@ public class WebSocketConnection implements IWebSocket {
             }
 
             if (mWsUri.getHost() == null) {
-                throw new WebSocketException("no host specified in WebSockets URI");
+                throw new WebSocketException("no host specified in WebSocket URI");
             } else {
                 mWsHost = mWsUri.getHost();
             }
@@ -353,7 +364,7 @@ public class WebSocketConnection implements IWebSocket {
             }
 
         } catch (URISyntaxException e) {
-            throw new WebSocketException("invalid WebSockets URI");
+            throw new WebSocketException("invalid WebSocket URI");
         }
 
         mWsSubprotocols = wsSubprotocols;
@@ -507,11 +518,15 @@ public class WebSocketConnection implements IWebSocket {
     }
 
     public void setOptions(WebSocketOptions options) {
+        boolean optionsWasNull = mOptions == null;
         if (mOptions == null) {
             mOptions = new WebSocketOptions(options);
         } else {
             mOptions.setAutoPingInterval(options.getAutoPingInterval());
             mOptions.setAutoPingTimeout(options.getAutoPingTimeout());
+        }
+
+        if (!optionsWasNull) {
             // Now do the magic here.
             if (mPingerTask != null) {
                 mPingerTask.cancel(true);
@@ -519,9 +534,10 @@ public class WebSocketConnection implements IWebSocket {
             if (mExecutor == null) {
                 mExecutor = Executors.newSingleThreadScheduledExecutor();
             }
-            if (mOptions.getAutoPingInterval() > 0) {
+            if (isConnected() && mOptions.getAutoPingInterval() > 0) {
+                // Send first ping after ping interval + 1 second.
                 mPingerTask = mExecutor.scheduleAtFixedRate(
-                        mAutoPinger, 0,
+                        mAutoPinger, mOptions.getAutoPingInterval() + 1,
                         mOptions.getAutoPingInterval(), TimeUnit.SECONDS);
             }
         }
@@ -576,14 +592,14 @@ public class WebSocketConnection implements IWebSocket {
                 } else if (message instanceof Ping) {
 
                     Ping ping = (Ping) message;
-                    LOGGER.d("WebSockets Ping received");
+                    LOGGER.d("WebSocket Ping received");
 
                     if (ping.mPayload == null) {
                         mWsHandler.onPing();
                     } else {
                         mWsHandler.onPing(ping.mPayload);
                     }
-                    LOGGER.d("WebSockets Pong sent");
+                    LOGGER.d("WebSocket Pong sent");
 
                 } else if (message instanceof Pong) {
                     Pong pong = (Pong) message;
@@ -593,7 +609,7 @@ public class WebSocketConnection implements IWebSocket {
                         mWsHandler.onPong(pong.mPayload);
                     }
 
-                    LOGGER.d("WebSockets Pong received");
+                    LOGGER.d("WebSocket Pong received");
 
                 } else if (message instanceof Close) {
 
@@ -602,7 +618,7 @@ public class WebSocketConnection implements IWebSocket {
                     final int crossbarCloseCode = (close.mCode == 1000) ? IWebSocketConnectionHandler.CLOSE_NORMAL : IWebSocketConnectionHandler.CLOSE_CONNECTION_LOST;
 
                     if (close.mIsReply) {
-                        LOGGER.d("WebSockets Close received (" + close.mCode + " - " + close.mReason + ")");
+                        LOGGER.d("WebSocket Close received (" + close.mCode + " - " + close.mReason + ")");
                         closeAndCleanup();
                         onClose(crossbarCloseCode, close.mReason);
                     } else if (mActive) {
@@ -611,7 +627,7 @@ public class WebSocketConnection implements IWebSocket {
                         WebSocketConnection.this.sendMessage(new Close(1000, true));
                         mActive = false;
                     } else {
-                        LOGGER.d("WebSockets Close received (" + close.mCode + " - " + close.mReason + ")");
+                        LOGGER.d("WebSocket Close received (" + close.mCode + " - " + close.mReason + ")");
                         // we've initiated disconnect, so ready to close the channel
                         closeAndCleanup();
                         onClose(crossbarCloseCode, close.mReason);
@@ -625,8 +641,9 @@ public class WebSocketConnection implements IWebSocket {
 
                     if (mWsHandler != null) {
                         if (mOptions.getAutoPingInterval() > 0) {
+                            // Send first ping after "ping interval + 1 second"
                             mPingerTask = mExecutor.scheduleAtFixedRate(
-                                    mAutoPinger, 0,
+                                    mAutoPinger, mOptions.getAutoPingInterval() + 1,
                                     mOptions.getAutoPingInterval(), TimeUnit.SECONDS);
                         }
                         String protocol = getOrDefault(serverHandshake.headers,
@@ -653,13 +670,13 @@ public class WebSocketConnection implements IWebSocket {
                 } else if (message instanceof ProtocolViolation) {
 
                     failConnection(IWebSocketConnectionHandler.CLOSE_PROTOCOL_ERROR,
-                            "WebSockets protocol violation");
+                            "WebSocket protocol violation");
 
                 } else if (message instanceof Error) {
 
                     Error error = (Error) message;
                     failConnection(IWebSocketConnectionHandler.CLOSE_INTERNAL_ERROR,
-                            "WebSockets internal error (" + error.mException.toString() + ")");
+                            "WebSocket internal error (" + error.mException.toString() + ")");
 
                 } else if (message instanceof ServerError) {
 
@@ -682,7 +699,7 @@ public class WebSocketConnection implements IWebSocket {
 
 
     /**
-     * Create WebSockets background writer.
+     * Create WebSocket background writer.
      */
     private void createWriter() throws IOException {
         mWriterThread = Executors.newSingleThreadExecutor();
@@ -720,7 +737,7 @@ public class WebSocketConnection implements IWebSocket {
     }
 
     /**
-     * Create WebSockets background reader.
+     * Create WebSocket background reader.
      */
     private void createReader() throws IOException {
 
