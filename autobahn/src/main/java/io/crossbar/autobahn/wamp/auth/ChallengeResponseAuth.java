@@ -1,7 +1,12 @@
 package io.crossbar.autobahn.wamp.auth;
 
-import java.io.UnsupportedEncodingException;
+import org.bouncycastle.crypto.digests.SHA256Digest;
+import org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator;
+import org.bouncycastle.crypto.params.KeyParameter;
+
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
+import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -23,8 +28,6 @@ public class ChallengeResponseAuth implements IAuthenticator {
     public final Map<String, Object> authextra;
     public final String secret;
 
-    private Mac sha256HMAC;
-
     public ChallengeResponseAuth(String authid, String secret) {
         this(authid, secret, null, null);
     }
@@ -39,21 +42,42 @@ public class ChallengeResponseAuth implements IAuthenticator {
         this.authrole = authrole;
         this.secret = secret;
         this.authextra = authextra;
-        try {
-            SecretKeySpec secretKey = new SecretKeySpec(secret.getBytes("UTF-8"), "HmacSHA256");
-            sha256HMAC = Mac.getInstance("HmacSHA256");
-            sha256HMAC.init(secretKey);
-        } catch (NoSuchAlgorithmException | UnsupportedEncodingException | InvalidKeyException e) {
-            throw new RuntimeException(e);
-        }
+    }
+
+    private String deriveKey(String password, String salt, int iterations, int keySize) throws Exception {
+        PKCS5S2ParametersGenerator gen = new PKCS5S2ParametersGenerator(new SHA256Digest());
+        gen.init(password.getBytes(StandardCharsets.UTF_8), salt.getBytes(StandardCharsets.UTF_8),
+                iterations);
+        byte[] keyRaw = ((KeyParameter) gen.generateDerivedParameters(keySize * 8)).getKey();
+
+        // IMPORTANT
+        // Don't use the above byte[] directly, while constructing SecretKeySpec object.
+        // That results in wrong signature generation due to some unknown reason.
+        return AuthUtil.encodeToString(keyRaw);
+    }
+
+    private String computeWCS(String key, String challenge) throws Exception {
+        Mac sha256HMAC = Mac.getInstance("HmacSHA256");
+        Key secretKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), sha256HMAC.getAlgorithm());
+        sha256HMAC.init(secretKey);
+
+        return AuthUtil.encodeToString(sha256HMAC.doFinal(challenge.getBytes(StandardCharsets.UTF_8)));
     }
 
     @Override
     public CompletableFuture<ChallengeResponse> onChallenge(Session session, Challenge challenge) {
-        String ch = (String) challenge.extra.get("challenge");
         try {
-            String hash = AuthUtil.encodeToString(sha256HMAC.doFinal(ch.getBytes("UTF-8")));
-            return CompletableFuture.completedFuture(new ChallengeResponse(hash, authextra));
+            String key;
+
+            if (challenge.extra.containsKey("salt")) {
+                key = deriveKey(secret, (String) challenge.extra.get("salt"),
+                        (int) challenge.extra.get("iterations"), (int) challenge.extra.get("keylen"));
+            } else {
+                key = secret;
+            }
+
+            String signature = computeWCS(key, (String) challenge.extra.get("challenge"));
+            return CompletableFuture.completedFuture(new ChallengeResponse(signature, authextra));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
