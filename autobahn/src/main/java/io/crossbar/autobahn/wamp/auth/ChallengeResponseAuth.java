@@ -5,7 +5,9 @@ import org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.bouncycastle.crypto.params.KeyParameter;
 
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
 import java.security.Key;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -42,11 +44,24 @@ public class ChallengeResponseAuth implements IAuthenticator {
         this.authextra = authextra;
     }
 
-    private byte[] pbkdf2(String password, String salt, int iterations, int keySize) {
+    private String deriveKey(String password, String salt, int iterations, int keySize) throws Exception {
         PKCS5S2ParametersGenerator gen = new PKCS5S2ParametersGenerator(new SHA256Digest());
         gen.init(password.getBytes(StandardCharsets.UTF_8), salt.getBytes(StandardCharsets.UTF_8),
                 iterations);
-        return ((KeyParameter) gen.generateDerivedParameters(keySize * 8)).getKey();
+        byte[] keyRaw = ((KeyParameter) gen.generateDerivedParameters(keySize * 8)).getKey();
+
+        // IMPORTANT
+        // Don't use the above byte[] directly, while constructing SecretKeySpec object.
+        // That results in wrong signature generation due to some unknown reason.
+        return AuthUtil.encodeToString(keyRaw);
+    }
+
+    private String computeWCS(String key, String challenge) throws Exception {
+        Mac sha256HMAC = Mac.getInstance("HmacSHA256");
+        Key secretKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), sha256HMAC.getAlgorithm());
+        sha256HMAC.init(secretKey);
+
+        return AuthUtil.encodeToString(sha256HMAC.doFinal(challenge.getBytes(StandardCharsets.UTF_8)));
     }
 
     @Override
@@ -55,24 +70,14 @@ public class ChallengeResponseAuth implements IAuthenticator {
             String key;
 
             if (challenge.extra.containsKey("salt")) {
-                byte[] keyRaw = pbkdf2(secret, (String) challenge.extra.get("salt"),
+                key = deriveKey(secret, (String) challenge.extra.get("salt"),
                         (int) challenge.extra.get("iterations"), (int) challenge.extra.get("keylen"));
-                // IMPORTANT
-                // Don't use the above byte[] directly, while constructing SecretKeySpec object.
-                // That results in wrong signature generation due to some unknown reason.
-                key = AuthUtil.encodeToString(keyRaw);
             } else {
                 key = secret;
             }
 
-            Mac sha256HMAC = Mac.getInstance("HmacSHA256");
-            Key secretKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), sha256HMAC.getAlgorithm());
-            sha256HMAC.init(secretKey);
-
-            String ch = (String) challenge.extra.get("challenge");
-            String hash = AuthUtil.encodeToString(sha256HMAC.doFinal(ch.getBytes(StandardCharsets.UTF_8)));
-
-            return CompletableFuture.completedFuture(new ChallengeResponse(hash, authextra));
+            String signature = computeWCS(key, (String) challenge.extra.get("challenge"));
+            return CompletableFuture.completedFuture(new ChallengeResponse(signature, authextra));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
