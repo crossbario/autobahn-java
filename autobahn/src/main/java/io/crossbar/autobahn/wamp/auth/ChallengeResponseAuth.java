@@ -52,17 +52,21 @@ public class ChallengeResponseAuth implements IAuthenticator {
     @Override
     public CompletableFuture<ChallengeResponse> onChallenge(Session session, Challenge challenge) {
         try {
-            byte[] key;
+            String key;
 
             if (challenge.extra.containsKey("salt")) {
-                key = pbkdf2(secret, (String) challenge.extra.get("salt"),
+                byte[] keyRaw = pbkdf2(secret, (String) challenge.extra.get("salt"),
                         (int) challenge.extra.get("iterations"), (int) challenge.extra.get("keylen"));
+                // IMPORTANT
+                // Don't use the above byte[] directly, while constructing SecretKeySpec object
+                // that results in wrong signature generation due to some unknown reason.
+                key = AuthUtil.encodeToString(keyRaw);
             } else {
-                key = secret.getBytes(StandardCharsets.UTF_8);
+                key = secret;
             }
 
             Mac sha256HMAC = Mac.getInstance("HmacSHA256");
-            Key secretKey = new SecretKeySpec(key, sha256HMAC.getAlgorithm());
+            Key secretKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), sha256HMAC.getAlgorithm());
             sha256HMAC.init(secretKey);
 
             String ch = (String) challenge.extra.get("challenge");
