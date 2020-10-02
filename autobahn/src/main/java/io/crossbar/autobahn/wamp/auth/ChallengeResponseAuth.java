@@ -58,8 +58,8 @@ public class ChallengeResponseAuth implements IAuthenticator {
                 byte[] keyRaw = pbkdf2(secret, (String) challenge.extra.get("salt"),
                         (int) challenge.extra.get("iterations"), (int) challenge.extra.get("keylen"));
                 // IMPORTANT
-                // Don't use the above byte[] directly, while constructing SecretKeySpec object
-                // that results in wrong signature generation due to some unknown reason.
+                // Don't use the above byte[] directly, while constructing SecretKeySpec object.
+                // That results in wrong signature generation due to some unknown reason.
                 key = AuthUtil.encodeToString(keyRaw);
             } else {
                 key = secret;
