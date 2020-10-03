@@ -33,6 +33,7 @@ import io.crossbar.autobahn.utils.ABLogger;
 import io.crossbar.autobahn.utils.IABLogger;
 import io.crossbar.autobahn.websocket.exceptions.ParseFailed;
 import io.crossbar.autobahn.websocket.exceptions.WebSocketException;
+import io.crossbar.autobahn.websocket.interfaces.IThreadMessenger;
 import io.crossbar.autobahn.websocket.interfaces.IWebSocket;
 import io.crossbar.autobahn.websocket.interfaces.IWebSocketConnectionHandler;
 import io.crossbar.autobahn.websocket.messages.BinaryMessage;
@@ -50,7 +51,6 @@ import io.crossbar.autobahn.websocket.messages.ServerHandshake;
 import io.crossbar.autobahn.websocket.messages.TextMessage;
 import io.crossbar.autobahn.websocket.types.ConnectionResponse;
 import io.crossbar.autobahn.websocket.types.WebSocketOptions;
-import io.crossbar.autobahn.websocket.interfaces.IThreadMessenger;
 
 import static io.crossbar.autobahn.websocket.utils.Platform.selectThreadMessenger;
 
@@ -87,22 +87,26 @@ public class WebSocketConnection implements IWebSocket {
 
     private ScheduledExecutorService mExecutor;
     private ScheduledFuture<?> mPingerTask;
+    private ScheduledFuture<?> mTimeoutTask;
 
     private final Runnable mAutoPinger = new Runnable() {
         @Override
         public void run() {
-            if (mReader == null) {
+            if (!isConnected()) {
                 return;
             }
 
-            if (mReader.getTimeSinceLastRead() >= mOptions.getAutoPingIntervalNano() - ONE_SECOND_NANO) {
+            if (mReader.getTimeSinceLastRead() >= mOptions.getAutoPingInterval()) {
                 sendPing();
-                mExecutor.schedule(() -> {
-                    if (mReader == null) {
+
+                mTimeoutTask = mExecutor.schedule(() -> {
+
+                    if (!isConnected()) {
                         return;
                     }
-                    long lastRead = mReader.getTimeSinceLastRead();
-                    if (lastRead >= mOptions.getAutoPingTimeoutNano()) {
+
+                    // We didn't receive a WebSocket read, something is likely wrong there.
+                    if (mReader.getTimeSinceLastRead() >= mOptions.getAutoPingTimeout()) {
                         mMessenger.notify(new ConnectionLost("WebSocket ping timed out."));
                     }
                 }, mOptions.getAutoPingTimeout(), TimeUnit.SECONDS);
@@ -220,11 +224,13 @@ public class WebSocketConnection implements IWebSocket {
     @Override
     public void sendPong() {
         sendMessage(new Pong());
+        LOGGER.d("WebSocket Pong sent");
     }
 
     @Override
     public void sendPong(byte[] payload) {
         sendMessage(new Pong(payload));
+        LOGGER.d("WebSocket Pong sent");
     }
 
     @Override
@@ -535,9 +541,8 @@ public class WebSocketConnection implements IWebSocket {
                 mExecutor = Executors.newSingleThreadScheduledExecutor();
             }
             if (isConnected() && mOptions.getAutoPingInterval() > 0) {
-                // Send first ping after ping interval + 1 second.
                 mPingerTask = mExecutor.scheduleAtFixedRate(
-                        mAutoPinger, mOptions.getAutoPingInterval() + 1,
+                        mAutoPinger, mOptions.getAutoPingInterval(),
                         mOptions.getAutoPingInterval(), TimeUnit.SECONDS);
             }
         }
@@ -599,14 +604,19 @@ public class WebSocketConnection implements IWebSocket {
                     } else {
                         mWsHandler.onPing(ping.mPayload);
                     }
-                    LOGGER.d("WebSocket Pong sent");
 
                 } else if (message instanceof Pong) {
                     Pong pong = (Pong) message;
+
                     if (pong.mPayload == null) {
                         mWsHandler.onPong();
                     } else {
                         mWsHandler.onPong(pong.mPayload);
+                    }
+
+                    // We already received a pong, cancel the timeout executor
+                    if (mTimeoutTask != null && !mTimeoutTask.isCancelled()) {
+                        mTimeoutTask.cancel(true);
                     }
 
                     LOGGER.d("WebSocket Pong received");
@@ -640,18 +650,18 @@ public class WebSocketConnection implements IWebSocket {
                     LOGGER.d("opening handshake received");
 
                     if (mWsHandler != null) {
-                        if (mOptions.getAutoPingInterval() > 0) {
-                            // Send first ping after "ping interval + 1 second"
-                            mPingerTask = mExecutor.scheduleAtFixedRate(
-                                    mAutoPinger, mOptions.getAutoPingInterval() + 1,
-                                    mOptions.getAutoPingInterval(), TimeUnit.SECONDS);
-                        }
                         String protocol = getOrDefault(serverHandshake.headers,
                                 "sec-websocket-protocol", null);
                         mWsHandler.setConnection(WebSocketConnection.this);
                         mWsHandler.onConnect(new ConnectionResponse(protocol));
                         mWsHandler.onOpen();
                         LOGGER.d("onOpen() called, ready to rock.");
+
+                        if (mOptions.getAutoPingInterval() > 0) {
+                            mPingerTask = mExecutor.scheduleAtFixedRate(
+                                    mAutoPinger, mOptions.getAutoPingInterval(),
+                                    mOptions.getAutoPingInterval(), TimeUnit.SECONDS);
+                        }
                     } else {
                         LOGGER.d("could not call onOpen() .. handler already NULL");
                     }
