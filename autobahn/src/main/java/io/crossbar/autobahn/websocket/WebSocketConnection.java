@@ -58,8 +58,6 @@ public class WebSocketConnection implements IWebSocket {
 
     private static final IABLogger LOGGER = ABLogger.getLogger(WebSocketConnection.class.getName());
 
-    private final long ONE_SECOND_NANO;
-
     private IThreadMessenger mMessenger;
 
     private WebSocketReader mReader;
@@ -185,8 +183,6 @@ public class WebSocketConnection implements IWebSocket {
 
     public WebSocketConnection() {
         LOGGER.d("Created");
-
-        ONE_SECOND_NANO = TimeUnit.NANOSECONDS.convert(1, TimeUnit.SECONDS);
 
         // create WebSocket master handler
         createHandler();
@@ -615,7 +611,7 @@ public class WebSocketConnection implements IWebSocket {
                     }
 
                     // We already received a pong, cancel the timeout executor
-                    if (mTimeoutTask != null && !mTimeoutTask.isCancelled()) {
+                    if (mTimeoutTask != null && !mTimeoutTask.isDone() && !mTimeoutTask.isCancelled()) {
                         mTimeoutTask.cancel(true);
                     }
 

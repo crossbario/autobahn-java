@@ -118,7 +118,7 @@ class WebSocketReader extends Thread {
     }
 
     double getTimeSinceLastRead() {
-        return System.currentTimeMillis() - mLastReadTime;
+        return Math.round((System.currentTimeMillis() - mLastReadTime) / 1000.0);
     }
 
     /**
