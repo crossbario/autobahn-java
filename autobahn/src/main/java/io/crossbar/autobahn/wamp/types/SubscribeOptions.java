@@ -28,6 +28,10 @@ public class SubscribeOptions extends HashMap<String, Object> {
         super(origin);
     }
 
+    public SubscribeOptions() {
+        super();
+    }
+
     public void putMatch(String match) {
         put(KEY_MATCH, match);
     }
