@@ -67,6 +67,9 @@ public class MessageUtil {
 		if (object instanceof Integer) {
 			return (int) object;
 		}
-		return (long) object;
+		if (object instanceof Long) {
+		    return (Long) object;
+        }
+		return 0;
     }
 }

@@ -30,8 +30,7 @@ public class Subscribe implements IMessage {
 
     private final long request;
     private final String topic;
-    private final String match;
-    private final boolean getRetained;
+    private final SubscribeOptions options;
 
     private static final String MATCH_EXACT = "exact";
     private static final String MATCH_PREFIX = "prefix";
@@ -41,17 +40,16 @@ public class Subscribe implements IMessage {
         this.request = request;
         this.topic = topic;
         if (options != null) {
-            if (options.match != null) {
-                if (!options.match.equals(MATCH_EXACT) && !options.match.equals(MATCH_PREFIX) &&
-                        !options.match.equals(MATCH_WILDCARD)) {
+            String match = options.getMatch();
+            if (match != null) {
+                if (!match.equals(MATCH_EXACT) && !match.equals(MATCH_PREFIX) &&
+                        !match.equals(MATCH_WILDCARD)) {
                     throw new IllegalArgumentException("match must be one of exact, prefix or wildcard.");
                 }
             }
-            this.match = options.match;
-            this.getRetained = options.getRetained;
+            this.options = options;
         } else {
-            this.match = MATCH_EXACT;
-            this.getRetained = false;
+            this.options = new SubscribeOptions(MATCH_EXACT, false);
         }
     }
 
@@ -59,21 +57,16 @@ public class Subscribe implements IMessage {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "SUBSCRIBE", 4);
 
         long request = MessageUtil.parseLong(wmsg.get(1));
-        Map<String, Object> options = (Map<String, Object>) wmsg.get(2);
+        SubscribeOptions options = new SubscribeOptions((Map<String, Object>) wmsg.get(2));
         
-        String match = null;
-        if (options.containsKey("match")) {
-            match = (String) options.get("match");
-            if (!match.equals(MATCH_EXACT) && !match.equals(MATCH_PREFIX) &&
-                    !match.equals(MATCH_WILDCARD)) {
-                throw new ProtocolError("match must be one of exact, prefix or wildcard.");
-            }
+        String match = options.getMatch();
+        if (match != null && !match.equals(MATCH_EXACT) && !match.equals(MATCH_PREFIX) &&
+                !match.equals(MATCH_WILDCARD)) {
+            throw new ProtocolError("match must be one of exact, prefix or wildcard.");
         }
-        boolean getRetained = getOrDefault(options, "get_retained", false);
 
         String topic = (String) wmsg.get(3);
-        SubscribeOptions opt = new SubscribeOptions(match, true, getRetained);
-        return new Subscribe(request, opt, topic);
+        return new Subscribe(request, options, topic);
     }
 
     @Override
@@ -81,14 +74,14 @@ public class Subscribe implements IMessage {
         List<Object> marshaled = new ArrayList<>();
         marshaled.add(MESSAGE_TYPE);
         marshaled.add(request);
-        Map<String, Object> extra = new HashMap<>();
-        if (match != null && !match.equals(MATCH_EXACT)) {
-        	 extra.put("match", match);
+
+        SubscribeOptions options = new SubscribeOptions(this.options);
+        String match = options.getMatch();
+        if (match != null && match.equals(MATCH_EXACT)) {
+        	 options.removeMatch();
         }
-        if (getRetained) {
-        	extra.put("get_retained", getRetained);
-        }
-        marshaled.add(extra);
+
+        marshaled.add(options);
         marshaled.add(topic);
         return marshaled;
     }
