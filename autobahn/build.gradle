@@ -18,11 +18,10 @@ def relVersion = System.getenv().containsKey('AUTOBAHN_BUILD_VERSION') ? System.
 def siteUrl = 'https://github.com/crossbario/autobahn-java'
 
 dependencies {
-    api 'com.fasterxml.jackson.core:jackson-core:2.11.1'
-    //api 'net.sourceforge.streamsupport:streamsupport-cfuture:1.6.2'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.11.1'
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.11.1'
-    implementation 'org.msgpack:jackson-dataformat-msgpack:0.8.20'
+    api 'com.fasterxml.jackson.core:jackson-core:2.12.3'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.3'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.3'
+    implementation 'org.msgpack:jackson-dataformat-msgpack:0.8.22'
     if (IS_ANDROID) {
         implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.2'
         implementation 'org.web3j:core:4.6.0-android'
@@ -33,59 +32,21 @@ dependencies {
         implementation 'org.web3j:core:4.6.0'
         implementation 'org.web3j:abi:4.6.0'
         implementation 'org.web3j:utils:4.6.0'
-        implementation 'org.json:json:20200518'
+        implementation 'org.json:json:20210307'
     }
     if (IS_NETTY) {
-        implementation 'io.netty:netty-codec-http:4.1.50.Final'
-        implementation 'io.netty:netty-handler:4.1.50.Final'
-    }
-}
-
-if (PUBLISH) {
-    apply plugin: 'com.jfrog.bintray'
-
-    bintray {
-        user = System.getenv('BINTRAY_USER')
-        key = System.getenv('BINTRAY_KEY')
-        if (IS_ANDROID) {
-            configurations = ['archives']
-        } else {
-            publications = ['mavenJava']
-        }
-        publish = true
-        pkg {
-            repo = 'autobahn'
-            if (IS_ANDROID) {
-                name = ARTIFACT_ANDROID
-            } else if (IS_NEXT){
-                name = ARTIFACT_NEXT
-            } else {
-                name = ARTIFACT_JAVA
-            }
-            userOrg = 'crossbario'
-            licenses = [licenseName]
-            vcsUrl = gitUrl
-            version {
-                name = relVersion
-                released = new Date()
-                mavenCentralSync {
-                    sync = true
-                    user = System.getenv('SONATYPE_USERNAME')
-                    password = System.getenv('SONATYPE_PASSWORD')
-                    close = '1'
-                }
-            }
-        }
+        implementation 'io.netty:netty-codec-http:4.1.63.Final'
+        implementation 'io.netty:netty-handler:4.1.63.Final'
     }
 }
 
 if (IS_ANDROID) {
     android {
-        compileSdkVersion 29
-        buildToolsVersion '29.0.3'
+        compileSdkVersion 30
+        buildToolsVersion '30.0.3'
         defaultConfig {
             minSdkVersion 24
-            targetSdkVersion 29
+            targetSdkVersion 30
         }
         buildTypes {
             release {
