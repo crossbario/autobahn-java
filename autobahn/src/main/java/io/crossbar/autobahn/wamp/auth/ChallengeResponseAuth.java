@@ -26,7 +26,7 @@ public class ChallengeResponseAuth implements IAuthenticator {
     public final String authid;
     public final String authrole;
     public final Map<String, Object> authextra;
-    public final String secret;
+    public final byte[] secret;
 
     public ChallengeResponseAuth(String authid, String secret) {
         this(authid, secret, null, null);
@@ -37,6 +37,22 @@ public class ChallengeResponseAuth implements IAuthenticator {
     }
 
     public ChallengeResponseAuth(String authid, String secret, String authrole,
+                                 Map<String, Object> authextra) {
+        this.authid = authid;
+        this.authrole = authrole;
+        this.secret = secret.getBytes(StandardCharsets.UTF_8);
+        this.authextra = authextra;
+    }
+
+    public ChallengeResponseAuth(String authid, byte[] secret) {
+        this(authid, secret, null, null);
+    }
+
+    public ChallengeResponseAuth(String authid, byte[] secret, Map<String, Object> authextra) {
+        this(authid, secret, null, authextra);
+    }
+
+    public ChallengeResponseAuth(String authid, byte[] secret, String authrole,
                                  Map<String, Object> authextra) {
         this.authid = authid;
         this.authrole = authrole;
@@ -56,9 +72,9 @@ public class ChallengeResponseAuth implements IAuthenticator {
         return AuthUtil.encodeToString(keyRaw);
     }
 
-    private String computeWCS(String key, String challenge) throws Exception {
+    private String computeWCS(byte[] key, String challenge) throws Exception {
         Mac sha256HMAC = Mac.getInstance("HmacSHA256");
-        Key secretKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), sha256HMAC.getAlgorithm());
+        Key secretKey = new SecretKeySpec(key, sha256HMAC.getAlgorithm());
         sha256HMAC.init(secretKey);
 
         return AuthUtil.encodeToString(sha256HMAC.doFinal(challenge.getBytes(StandardCharsets.UTF_8)));
@@ -67,11 +83,11 @@ public class ChallengeResponseAuth implements IAuthenticator {
     @Override
     public CompletableFuture<ChallengeResponse> onChallenge(Session session, Challenge challenge) {
         try {
-            String key;
+            byte[] key;
 
             if (challenge.extra.containsKey("salt")) {
-                key = deriveKey(secret, (String) challenge.extra.get("salt"),
-                        (int) challenge.extra.get("iterations"), (int) challenge.extra.get("keylen"));
+                key = deriveKey(new String(secret, StandardCharsets.UTF_8), (String) challenge.extra.get("salt"),
+                        (int) challenge.extra.get("iterations"), (int) challenge.extra.get("keylen")).getBytes(StandardCharsets.UTF_8);
             } else {
                 key = secret;
             }
