@@ -1,4 +1,3 @@
-// Set global platform properties.
 def _PLATFORM = project.properties.get('buildPlatform')
 assert (_PLATFORM == 'android' || _PLATFORM == 'netty' || _PLATFORM == 'next' || _PLATFORM == null)
 
@@ -22,15 +21,13 @@ project.ext {
 buildscript {
     repositories {
         google()
+        mavenCentral()
         jcenter()
-    }
-    dependencies {
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5'
     }
     // Android specific dependencies.
     if (project.properties.get('buildPlatform', 'android') == 'android') {
         dependencies {
-            classpath 'com.android.tools.build:gradle:4.0.1'
+            classpath 'com.android.tools.build:gradle:4.1.3'
             classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
         }
     }
@@ -39,6 +36,7 @@ buildscript {
 allprojects {
     repositories {
         google()
+        mavenCentral()
         jcenter()
         maven { url "https://dl.bintray.com/ethereum/maven/" }
     }

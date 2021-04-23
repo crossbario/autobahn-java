@@ -2,12 +2,12 @@ apply plugin: project.IS_ANDROID ? project.PLUGIN_ANDROID_APP: project.PLUGIN_JA
 
 if (plugins.hasPlugin(project.PLUGIN_ANDROID_APP)) {
     android {
-        compileSdkVersion 29
-        buildToolsVersion '29.0.3'
+        compileSdkVersion 30
+        buildToolsVersion '30.0.3'
 
         defaultConfig {
             minSdkVersion 24
-            targetSdkVersion 29
+            targetSdkVersion 30
             multiDexEnabled true
         }
         buildTypes {
@@ -43,8 +43,8 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_APP)) {
         implementation project(path: ':autobahn')
         implementation 'androidx.appcompat:appcompat:1.2.0'
         implementation 'com.android.support:multidex:1.0.3'
-        implementation "androidx.constraintlayout:constraintlayout:2.0.1"
-        implementation "com.google.android.material:material:1.2.1"
+        implementation "androidx.constraintlayout:constraintlayout:2.0.4"
+        implementation "com.google.android.material:material:1.3.0"
 
         implementation 'com.basgeekball:awesome-validation:4.2'
         implementation 'org.web3j:crypto:4.6.0-android'
