@@ -74,15 +74,8 @@ build_android:
 
 publish_android: build_android
 	sed -i 's/DEBUG = true/DEBUG = false/g' autobahn/src/main/java/io/crossbar/autobahn/utils/Globals.java
-	AUTOBAHN_BUILD_VERSION=${AUTOBAHN_JAVA_VERSION} ./gradlew bintrayUpload -PbuildPlatform=android
+	AUTOBAHN_BUILD_VERSION=${AUTOBAHN_JAVA_VERSION} ./gradlew :autobahn:publishReleasePublicationToCentralRepository -PbuildPlatform=android
 	sed -i 's/DEBUG = false/DEBUG = true/g' autobahn/src/main/java/io/crossbar/autobahn/utils/Globals.java
-
-publish_android_legacy: build_android
-	sed -i 's/DEBUG = true/DEBUG = false/g' autobahn/src/main/java/io/crossbar/autobahn/utils/Globals.java
-	$(shell ./enable_old_androids.sh)
-	AUTOBAHN_BUILD_VERSION=${AUTOBAHN_JAVA_VERSION} ./gradlew bintrayUpload -PbuildPlatform=android -PbuildLegacy=true
-	sed -i 's/DEBUG = false/DEBUG = true/g' autobahn/src/main/java/io/crossbar/autobahn/utils/Globals.java
-
 
 build_netty:
 	docker run -it --rm \
@@ -93,5 +86,5 @@ build_netty:
 
 publish_netty:
 	sed -i 's/DEBUG = true/DEBUG = false/g' autobahn/src/main/java/io/crossbar/autobahn/utils/Globals.java
-	AUTOBAHN_BUILD_VERSION=${AUTOBAHN_JAVA_VERSION} ./gradlew publish -PbuildPlatform=netty
+	AUTOBAHN_BUILD_VERSION=${AUTOBAHN_JAVA_VERSION} ./gradlew :autobahn:publishMavenJavaPublicationToCentralRepository -PbuildPlatform=netty
 	sed -i 's/DEBUG = false/DEBUG = true/g' autobahn/src/main/java/io/crossbar/autobahn/utils/Globals.java
