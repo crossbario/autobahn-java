@@ -2,7 +2,6 @@ def IS_ANDROID = project.hasProperty('IS_ANDROID') ? project.IS_ANDROID: true
 def IS_NEXT = project.hasProperty('IS_NEXT') ? project.IS_NEXT: false
 def IS_NETTY = project.hasProperty('IS_NETTY') ? project.IS_NETTY: false
 def ARTIFACT_ANDROID = (project.hasProperty('BUILD_LEGACY') && project.BUILD_LEGACY) ? 'autobahn-android-legacy': 'autobahn-android'
-def PUBLISH = project.hasProperty('PUBLISH') && project.PUBLISH
 
 apply plugin: IS_ANDROID ? 'com.android.library': 'java-library'
 apply plugin: 'maven-publish'
@@ -11,12 +10,13 @@ def ARTIFACT_JAVA = 'autobahn-java'
 def ARTIFACT_NEXT = 'autobahn'
 
 def groupID = 'io.crossbar.autobahn'
-def gitUrl = 'https://github.com/crossbario/autobahn-java.git'
 def licenseName = 'MIT'
 def licenseUrl = 'https://opensource.org/licenses/MIT'
 def relVersion = System.getenv().containsKey('AUTOBAHN_BUILD_VERSION') ? System.getenv(
-        'AUTOBAHN_BUILD_VERSION'): '21.4.24'
+        'AUTOBAHN_BUILD_VERSION'): '21.4.1'
 def siteUrl = 'https://github.com/crossbario/autobahn-java'
+def SONATYPE_USER = System.getenv().containsKey('SONATYPE_USER') ? System.getenv('SONATYPE_USER'): ''
+def SONATYPE_PASS = System.getenv().containsKey('SONATYPE_PASS') ? System.getenv('SONATYPE_PASS'): ''
 
 dependencies {
     api 'com.fasterxml.jackson.core:jackson-core:2.12.3'
@@ -77,9 +77,6 @@ if (IS_ANDROID) {
             exclude 'META-INF/license.txt'
             exclude 'META-INF/notice.txt'
         }
-        dexOptions {
-            javaMaxHeapSize "4g"
-        }
     }
 
     task sourcesJar(type: Jar) {
@@ -93,11 +90,6 @@ if (IS_ANDROID) {
         classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
         classpath += configurations.compile
     }
-    afterEvaluate {
-        javadoc.classpath += files(android.libraryVariants.collect { variant ->
-            variant.javaCompile.classpath.files
-        })
-    }
 
     task javadocJar(type: Jar, dependsOn: javadoc) {
         archiveClassifier.set("javadoc")
@@ -109,6 +101,9 @@ if (IS_ANDROID) {
     version = relVersion
 
     afterEvaluate {
+        javadoc.classpath += files(android.libraryVariants.collect { variant ->
+            variant.javaCompile.classpath.files
+        })
         publishing {
             publications {
                 // Creates a Maven publication called "release".
@@ -116,35 +111,28 @@ if (IS_ANDROID) {
                     // Applies the component for the release build variant.
                     from components.release
 
-                    artifact sourcesJar
-                    artifact javadocJar
+                    artifacts {
+                        archives javadocJar, sourcesJar
+                    }
 
                     // You can then customize attributes of the publication as shown below.
                     groupId = groupID
                     artifactId = ARTIFACT_ANDROID
                     version = relVersion
-
-                }
-                // Creates a Maven publication called “debug”.
-                debug(MavenPublication) {
-                    // Applies the component for the debug build variant.
-                    from components.debug
-
-                    artifact sourcesJar
-                    artifact javadocJar
-
-                    groupId = groupID
-                    artifactId = ARTIFACT_ANDROID + '-debug'
-                    version = relVersion
+                    ext.repo = 'central'
                 }
             }
         }
+    }
+
+    publishing {
         repositories {
             maven {
-                url 'https://repo1.maven.org/maven2'
+                name 'central'
+                url 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
                 credentials {
-                    username ""
-                    password ""
+                    username SONATYPE_USER
+                    password SONATYPE_PASS
                 }
             }
         }
@@ -198,6 +186,16 @@ if (IS_ANDROID) {
                 }
             }
         }
+        repositories {
+            maven {
+                name 'central'
+                url 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+                credentials {
+                    username SONATYPE_USER
+                    password SONATYPE_PASS
+                }
+            }
+        }
     }
 
     if (IS_NEXT) {
@@ -228,9 +226,4 @@ if (IS_ANDROID) {
     }
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
-}
-
-artifacts {
-    archives sourcesJar
-    archives javadocJar
 }
