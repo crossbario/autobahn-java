@@ -1,5 +1,5 @@
 BUILD_DATE=$(shell date -u +"%Y-%m-%d")
-AUTOBAHN_JAVA_VERSION='20.7.1'
+AUTOBAHN_JAVA_VERSION='21.4.24'
 # git log --pretty=format:'%h' -n 1
 AUTOBAHN_JAVA_VCS_REF='c48c8d1'
 
@@ -93,5 +93,5 @@ build_netty:
 
 publish_netty:
 	sed -i 's/DEBUG = true/DEBUG = false/g' autobahn/src/main/java/io/crossbar/autobahn/utils/Globals.java
-	AUTOBAHN_BUILD_VERSION=${AUTOBAHN_JAVA_VERSION} ./gradlew bintrayUpload -PbuildPlatform=netty
+	AUTOBAHN_BUILD_VERSION=${AUTOBAHN_JAVA_VERSION} ./gradlew publish -PbuildPlatform=netty
 	sed -i 's/DEBUG = false/DEBUG = true/g' autobahn/src/main/java/io/crossbar/autobahn/utils/Globals.java
