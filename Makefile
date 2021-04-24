@@ -1,5 +1,5 @@
 BUILD_DATE=$(shell date -u +"%Y-%m-%d")
-AUTOBAHN_JAVA_VERSION='20.7.1'
+AUTOBAHN_JAVA_VERSION='21.4.1'
 # git log --pretty=format:'%h' -n 1
 AUTOBAHN_JAVA_VCS_REF='c48c8d1'
 
@@ -74,15 +74,8 @@ build_android:
 
 publish_android: build_android
 	sed -i 's/DEBUG = true/DEBUG = false/g' autobahn/src/main/java/io/crossbar/autobahn/utils/Globals.java
-	AUTOBAHN_BUILD_VERSION=${AUTOBAHN_JAVA_VERSION} ./gradlew bintrayUpload -PbuildPlatform=android
+	AUTOBAHN_BUILD_VERSION=${AUTOBAHN_JAVA_VERSION} ./gradlew :autobahn:publishReleasePublicationToCentralRepository -PbuildPlatform=android
 	sed -i 's/DEBUG = false/DEBUG = true/g' autobahn/src/main/java/io/crossbar/autobahn/utils/Globals.java
-
-publish_android_legacy: build_android
-	sed -i 's/DEBUG = true/DEBUG = false/g' autobahn/src/main/java/io/crossbar/autobahn/utils/Globals.java
-	$(shell ./enable_old_androids.sh)
-	AUTOBAHN_BUILD_VERSION=${AUTOBAHN_JAVA_VERSION} ./gradlew bintrayUpload -PbuildPlatform=android -PbuildLegacy=true
-	sed -i 's/DEBUG = false/DEBUG = true/g' autobahn/src/main/java/io/crossbar/autobahn/utils/Globals.java
-
 
 build_netty:
 	docker run -it --rm \
@@ -93,5 +86,5 @@ build_netty:
 
 publish_netty:
 	sed -i 's/DEBUG = true/DEBUG = false/g' autobahn/src/main/java/io/crossbar/autobahn/utils/Globals.java
-	AUTOBAHN_BUILD_VERSION=${AUTOBAHN_JAVA_VERSION} ./gradlew bintrayUpload -PbuildPlatform=netty
+	AUTOBAHN_BUILD_VERSION=${AUTOBAHN_JAVA_VERSION} ./gradlew :autobahn:publishReleasePublicationToCentralRepository -PbuildPlatform=netty
 	sed -i 's/DEBUG = false/DEBUG = true/g' autobahn/src/main/java/io/crossbar/autobahn/utils/Globals.java

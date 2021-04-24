@@ -2,20 +2,22 @@ def IS_ANDROID = project.hasProperty('IS_ANDROID') ? project.IS_ANDROID: true
 def IS_NEXT = project.hasProperty('IS_NEXT') ? project.IS_NEXT: false
 def IS_NETTY = project.hasProperty('IS_NETTY') ? project.IS_NETTY: false
 def ARTIFACT_ANDROID = (project.hasProperty('BUILD_LEGACY') && project.BUILD_LEGACY) ? 'autobahn-android-legacy': 'autobahn-android'
-def PUBLISH = project.hasProperty('PUBLISH') && project.PUBLISH
 
 apply plugin: IS_ANDROID ? 'com.android.library': 'java-library'
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
 
 def ARTIFACT_JAVA = 'autobahn-java'
 def ARTIFACT_NEXT = 'autobahn'
 
 def groupID = 'io.crossbar.autobahn'
-def gitUrl = 'https://github.com/crossbario/autobahn-java.git'
 def licenseName = 'MIT'
 def licenseUrl = 'https://opensource.org/licenses/MIT'
 def relVersion = System.getenv().containsKey('AUTOBAHN_BUILD_VERSION') ? System.getenv(
-        'AUTOBAHN_BUILD_VERSION'): '18.3.1'
+        'AUTOBAHN_BUILD_VERSION'): '21.4.1'
 def siteUrl = 'https://github.com/crossbario/autobahn-java'
+def SONATYPE_USER = System.getenv().containsKey('SONATYPE_USER') ? System.getenv('SONATYPE_USER'): ''
+def SONATYPE_PASS = System.getenv().containsKey('SONATYPE_PASS') ? System.getenv('SONATYPE_PASS'): ''
 
 dependencies {
     api 'com.fasterxml.jackson.core:jackson-core:2.12.3'
@@ -37,6 +39,27 @@ dependencies {
     if (IS_NETTY) {
         implementation 'io.netty:netty-codec-http:4.1.63.Final'
         implementation 'io.netty:netty-handler:4.1.63.Final'
+    }
+}
+
+// Create the pom configuration:
+def pomConfig = {
+    // Set your license
+    licenses {
+        license {
+            name licenseName
+            url licenseUrl
+        }
+    }
+    developers {
+        developer {
+            id "crossbario"
+            name "Crossbar.io"
+            email "support@crossbario.com"
+        }
+    }
+    scm {
+        url siteUrl
     }
 }
 
@@ -78,9 +101,8 @@ if (IS_ANDROID) {
         }
     }
 
-
     task sourcesJar(type: Jar) {
-        classifier = 'sources'
+        archiveClassifier.set("sources")
         from android.sourceSets.main.java.srcDirs
     }
 
@@ -90,112 +112,44 @@ if (IS_ANDROID) {
         classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
         classpath += configurations.compile
     }
+
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        archiveClassifier.set("javadoc")
+        from javadoc.destinationDir
+    }
+
+    project.archivesBaseName = ARTIFACT_ANDROID
+    group = groupID
+    version = relVersion
+
     afterEvaluate {
         javadoc.classpath += files(android.libraryVariants.collect { variant ->
             variant.javaCompile.classpath.files
         })
     }
-    project.archivesBaseName = ARTIFACT_ANDROID
-    group = groupID
-    version = relVersion
 
-    if (PUBLISH) {
-        apply plugin: 'com.github.dcendents.android-maven'
-
-        install {
-            repositories.mavenInstaller {
-                // This generates POM.xml with proper parameters
-                pom {
-                    project {
-                        packaging 'aar'
-                        groupId groupID
-                        artifactId ARTIFACT_ANDROID
-
-                        // Add your description here
-                        name ARTIFACT_ANDROID
-                        description 'WebSocket & WAMP for Android'
-                        url siteUrl
-
-                        // Set your license
-                        licenses {
-                            license {
-                                name licenseName
-                                url licenseUrl
-                            }
-                        }
-                        developers {
-                            developer {
-                                id "crossbario"
-                                name "Crossbar.io"
-                                email "support@crossbario.com"
-                            }
-                        }
-                        scm {
-                            url siteUrl
-                        }
-                    }
+    publishing {
+        repositories {
+            maven {
+                name 'central'
+                url 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+                credentials {
+                    username SONATYPE_USER
+                    password SONATYPE_PASS
                 }
             }
         }
     }
-    task javadocJar(type: Jar, dependsOn: javadoc) {
-        classifier = 'javadoc'
-        from javadoc.destinationDir
-    }
 } else {
-    // Create the pom configuration:
-    def pomConfig = {
-        // Set your license
-        licenses {
-            license {
-                name licenseName
-                url licenseUrl
-            }
-        }
-        developers {
-            developer {
-                id "crossbario"
-                name "Crossbar.io"
-                email "support@crossbario.com"
-            }
-        }
-        scm {
-            url siteUrl
-        }
-    }
     task sourcesJar(type: Jar, dependsOn: classes) {
-        classifier = 'sources'
+        archiveClassifier.set("sources")
         from sourceSets.main.allSource
     }
     task javadocJar(type: Jar, dependsOn: javadoc) {
-        classifier = 'javadoc'
+        archiveClassifier.set("javadoc")
         from javadoc.destinationDir
     }
 
-    if (PUBLISH) {
-        apply plugin: 'maven-publish'
-
-        publishing {
-            publications {
-                mavenJava(MavenPublication) {
-                    from components.java
-                    artifact sourcesJar
-                    artifact javadocJar
-
-                    groupId groupID
-                    artifactId IS_NEXT ? ARTIFACT_NEXT: ARTIFACT_JAVA
-                    version relVersion
-                    pom.withXml {
-                        def root = asNode()
-                        root.appendNode('description', 'WebSocket & WAMP for Java8+')
-                        root.appendNode('name', 'Autobahn Java')
-                        root.appendNode('url', siteUrl)
-                        root.children().last() + pomConfig
-                    }
-                }
-            }
-        }
-    }
     if (IS_NEXT) {
         sourceSets {
             main {
@@ -226,7 +180,45 @@ if (IS_ANDROID) {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-artifacts {
-    archives sourcesJar
-    archives javadocJar
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                if (IS_ANDROID) {
+                    from components.release
+                    artifactId ARTIFACT_ANDROID
+                } else {
+                    from components.java
+                    artifactId IS_NEXT ? ARTIFACT_NEXT: ARTIFACT_JAVA
+                }
+
+                artifact sourcesJar
+                artifact javadocJar
+
+                groupId groupID
+                version relVersion
+                pom.withXml {
+                    def root = asNode()
+                    root.appendNode('description', 'WebSocket & WAMP for Java8+')
+                    root.appendNode('name', 'Autobahn Java')
+                    root.appendNode('url', siteUrl)
+                    root.children().last() + pomConfig
+                }
+            }
+        }
+        repositories {
+            maven {
+                name 'central'
+                url 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+                credentials {
+                    username SONATYPE_USER
+                    password SONATYPE_PASS
+                }
+            }
+        }
+        signing {
+            required true
+            sign publishing.publications.release
+        }
+    }
 }
