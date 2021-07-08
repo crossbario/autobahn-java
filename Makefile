@@ -1,7 +1,7 @@
 BUILD_DATE=$(shell date -u +"%Y-%m-%d")
-AUTOBAHN_JAVA_VERSION='21.4.1'
+AUTOBAHN_JAVA_VERSION='21.7.1'
 # git log --pretty=format:'%h' -n 1
-AUTOBAHN_JAVA_VCS_REF='c48c8d1'
+AUTOBAHN_JAVA_VCS_REF='d9a591ca2cbae15dff27a40b4075c48a251c60f3'
 
 default:
 	@echo 'Build targets: clean build publish'
