@@ -11,6 +11,8 @@
 
 package io.crossbar.autobahn.websocket;
 
+import android.net.TrafficStats;
+
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -55,6 +57,8 @@ import io.crossbar.autobahn.websocket.types.WebSocketOptions;
 import static io.crossbar.autobahn.websocket.utils.Platform.selectThreadMessenger;
 
 public class WebSocketConnection implements IWebSocket {
+
+    private static final int THREAD_SOCKET_TAG = 1000;
 
     private static final IABLogger LOGGER = ABLogger.getLogger(WebSocketConnection.class.getName());
 
@@ -120,6 +124,9 @@ public class WebSocketConnection implements IWebSocket {
         public void run() {
             Thread.currentThread().setName("WebSocketConnector");
 
+            // tag the thread for socket traffic monitoring
+            TrafficStats.setThreadStatsTag(THREAD_SOCKET_TAG);
+
 			/*
              * connect TCP socket
 			 */
@@ -143,6 +150,9 @@ public class WebSocketConnection implements IWebSocket {
                 // options
                 mSocket.setSoTimeout(mOptions.getSocketReceiveTimeout());
                 mSocket.setTcpNoDelay(mOptions.getTcpNoDelay());
+
+                // tag socket for monitoring
+                TrafficStats.tagSocket(mSocket);
 
             } catch (IOException e) {
                 mMessenger.notify(new CannotConnect(e.getMessage()));
