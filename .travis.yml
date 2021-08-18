@@ -32,3 +32,8 @@ deploy:
   on:
     tags: true
   api_key: "$GITHUB_OAUTH_TOKEN"
+
+cache:
+  directories:
+  - $HOME/.gradle/caches/
+  - $HOME/.gradle/wrapper/
