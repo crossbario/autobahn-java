@@ -22,14 +22,13 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
 
-      - name: connection check
+      - name: Build android library
         run: ./gradlew :autobahn:build connectedCheck
 
-      - name: Run Crossbar in docker container. Crossbar container used from docker hub
-        run: docker run -d -p 8080:8080 --name crossbar crossbario/crossbar
+      - name: Setup Crossbar
+        run: |
+          docker run -d -p 8080:8080 --name crossbar crossbario/crossbar
+          docker run -d --link crossbar -v ${PWD}/demo-gallery/python:/test crossbario/autobahn-python python -u /test/test_component2.py
 
-      - name: mount test folder in crossbar docker container and run test_component2.py in docker container.
-        run: docker run -d --link crossbar -v ${PWD}/demo-gallery/python:/test crossbario/autobahn-python python -u /test/test_component2.py
-
-      - name: mount workspace directory and run tests on crossbar
+      - name: Run tests
         run: docker run --rm -i --link crossbar -v ${PWD}/workspace crossbario/autobahn-java:netty /bin/bash -c "gradle installDist -PbuildPlatform=netty && /workspace/demo-gallery/build/install/demo-gallery/bin/demo-gallery ws://crossbar:8080/ws"
