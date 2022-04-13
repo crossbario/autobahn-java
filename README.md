@@ -348,7 +348,7 @@ and that will output the jar file in `autobahn/build/libs/`.
 
 ## Get in touch
 
-Get in touch by joining our [forum](https://forum.crossbar.io).
+Get in touch by joining our [forum](https://crossbar.discourse.group/).
 
 ---
 
