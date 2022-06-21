@@ -68,7 +68,7 @@ if (IS_ANDROID) {
         compileSdkVersion 30
         buildToolsVersion '30.0.3'
         defaultConfig {
-            minSdkVersion 24
+            minSdkVersion 26
             targetSdkVersion 30
         }
         buildTypes {
