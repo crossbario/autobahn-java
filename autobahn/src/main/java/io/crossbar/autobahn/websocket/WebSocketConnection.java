@@ -236,7 +236,8 @@ public class WebSocketConnection implements IWebSocket {
 
     private void closeReaderThread(boolean waitForQuit) {
         if (mReader != null) {
-            mReader.quit();
+            Thread cleaner = new Thread(() -> mReader.quit());
+            cleaner.start();
             if (waitForQuit) {
                 try {
                     mReader.join();
