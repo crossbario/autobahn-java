@@ -35,6 +35,7 @@ dependencies {
         implementation 'org.web3j:abi:4.6.0'
         implementation 'org.web3j:utils:4.6.0'
         implementation 'org.json:json:20210307'
+        implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.3'
     }
     if (IS_NETTY) {
         implementation 'io.netty:netty-codec-http:4.1.63.Final'
