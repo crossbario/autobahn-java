@@ -111,4 +111,9 @@ public class RawSocket implements ITransport {
     public void setOptions(TransportOptions options) {
 
     }
+
+    @Override
+    public TransportOptions getOptions() {
+        throw new UnsupportedOperationException("Not available");
+    }
 }

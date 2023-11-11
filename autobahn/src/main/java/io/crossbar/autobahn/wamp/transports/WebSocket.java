@@ -155,6 +155,11 @@ public class WebSocket implements ITransport {
         mConnection.setOptions(webSocketOptions);
     }
 
+    @Override
+    public TransportOptions getOptions() {
+        throw new UnsupportedOperationException("Not available");
+    }
+
     private ISerializer initializeSerializer(String negotiatedSerializer) throws Exception {
         switch (negotiatedSerializer) {
             case CBORSerializer.NAME:

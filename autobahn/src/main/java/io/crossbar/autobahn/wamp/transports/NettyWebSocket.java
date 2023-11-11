@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.crossbar.autobahn.utils.ABLogger;
 import io.crossbar.autobahn.utils.IABLogger;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
@@ -67,6 +68,7 @@ public class NettyWebSocket implements ITransport {
 
     private WebSocketOptions mOptions;
     private String mSerializers;
+    private ObjectMapper mObjectMapper;
 
     public NettyWebSocket(String uri) {
         this(uri, (WebSocketOptions) null);
@@ -140,6 +142,7 @@ public class NettyWebSocket implements ITransport {
                 options.setAutoPingInterval(mOptions.getAutoPingInterval());
                 options.setAutoPingTimeout(mOptions.getAutoPingTimeout());
                 options.setMaxFramePayloadSize(mOptions.getMaxFramePayloadSize());
+                mObjectMapper = mOptions.getObjectMapper();
             }
         }
 
@@ -227,6 +230,11 @@ public class NettyWebSocket implements ITransport {
     public void setOptions(TransportOptions options) {
         throw new UnsupportedOperationException(
                 "Not implemented yet, provide options using connect() instead");
+    }
+
+    @Override
+    public TransportOptions getOptions() {
+        return mOptions;
     }
 
     private ByteBuf toByteBuf(byte[] bytes) {

@@ -39,6 +39,10 @@ public abstract class ISerializer {
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
+    public ISerializer(ObjectMapper objectMapper) {
+        mapper = objectMapper;
+    }
+
     public byte[] serialize(List<Object> message) {
         try {
             return mapper.writeValueAsBytes(message);
