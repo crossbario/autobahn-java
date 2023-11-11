@@ -17,7 +17,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.crossbar.autobahn.utils.ABLogger;
 import io.crossbar.autobahn.utils.IABLogger;
 import io.crossbar.autobahn.wamp.interfaces.ITransport;
