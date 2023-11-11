@@ -68,7 +68,6 @@ public class NettyWebSocket implements ITransport {
 
     private WebSocketOptions mOptions;
     private String mSerializers;
-    private ObjectMapper mObjectMapper;
 
     public NettyWebSocket(String uri) {
         this(uri, (WebSocketOptions) null);
@@ -142,7 +141,6 @@ public class NettyWebSocket implements ITransport {
                 options.setAutoPingInterval(mOptions.getAutoPingInterval());
                 options.setAutoPingTimeout(mOptions.getAutoPingTimeout());
                 options.setMaxFramePayloadSize(mOptions.getMaxFramePayloadSize());
-                mObjectMapper = mOptions.getObjectMapper();
             }
         }
 
