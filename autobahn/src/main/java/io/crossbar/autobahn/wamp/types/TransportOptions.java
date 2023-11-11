@@ -23,7 +23,6 @@ public class TransportOptions {
         mMaxFramePayloadSize = 128 * 1024;
         mAutoPingInterval = 10;
         mAutoPingTimeout = 5;
-        objectMapper = new ObjectMapper();
     }
 
     /**
