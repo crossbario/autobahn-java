@@ -229,6 +229,11 @@ public class NettyWebSocket implements ITransport {
                 "Not implemented yet, provide options using connect() instead");
     }
 
+    @Override
+    public TransportOptions getOptions() {
+        return mOptions;
+    }
+
     private ByteBuf toByteBuf(byte[] bytes) {
         return Unpooled.copiedBuffer(bytes);
     }

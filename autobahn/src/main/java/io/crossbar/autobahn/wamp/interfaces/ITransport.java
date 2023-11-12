@@ -28,4 +28,6 @@ public interface ITransport {
     void abort() throws Exception;
 
     void setOptions(TransportOptions options);
+
+    TransportOptions getOptions();
 }

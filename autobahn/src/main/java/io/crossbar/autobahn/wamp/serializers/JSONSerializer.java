@@ -13,6 +13,7 @@ package io.crossbar.autobahn.wamp.serializers;
 
 import com.fasterxml.jackson.core.JsonFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.crossbar.autobahn.wamp.interfaces.ISerializer;
 
 
@@ -23,6 +24,9 @@ public class JSONSerializer extends ISerializer {
 
     public JSONSerializer() {
         super(new JsonFactory());
+    }
+    public JSONSerializer(ObjectMapper objectMapper) {
+        super(objectMapper);
     }
 
     @Override

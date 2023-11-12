@@ -11,6 +11,7 @@
 
 package io.crossbar.autobahn.wamp.transports;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.crossbar.autobahn.utils.ABLogger;
 import io.crossbar.autobahn.utils.Globals;
 import io.crossbar.autobahn.utils.IABLogger;
@@ -176,7 +177,8 @@ public class NettyWebSocketClientHandler extends SimpleChannelInboundHandler<Obj
             case CBORSerializer.NAME:
                 return new CBORSerializer();
             case JSONSerializer.NAME:
-                return new JSONSerializer();
+                ObjectMapper objectMapper = mTransport.getOptions().getObjectMapper();
+                return objectMapper == null ? new JSONSerializer() : new JSONSerializer(objectMapper);
             case MessagePackSerializer.NAME:
                 return new MessagePackSerializer();
             default:

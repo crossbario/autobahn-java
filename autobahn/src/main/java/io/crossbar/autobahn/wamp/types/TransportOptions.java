@@ -11,10 +11,13 @@
 
 package io.crossbar.autobahn.wamp.types;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class TransportOptions {
     private int mMaxFramePayloadSize;
     private int mAutoPingInterval;
     private int mAutoPingTimeout;
+    private ObjectMapper objectMapper;
 
     public TransportOptions() {
         mMaxFramePayloadSize = 128 * 1024;
@@ -52,6 +55,12 @@ public class TransportOptions {
 
     public int getAutoPingInterval() {
         return mAutoPingInterval;
+    }
+
+    public ObjectMapper getObjectMapper() {return objectMapper;}
+
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
     }
 
     public void setAutoPingTimeout(int seconds) {
