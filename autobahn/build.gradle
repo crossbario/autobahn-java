@@ -20,9 +20,9 @@ def SONATYPE_USER = System.getenv().containsKey('SONATYPE_USER') ? System.getenv
 def SONATYPE_PASS = System.getenv().containsKey('SONATYPE_PASS') ? System.getenv('SONATYPE_PASS'): ''
 
 dependencies {
-    api 'com.fasterxml.jackson.core:jackson-core:2.12.3'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.3'
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.3'
+    api 'com.fasterxml.jackson.core:jackson-core:2.12.5'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.5'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.5'
     implementation 'org.msgpack:jackson-dataformat-msgpack:0.8.22'
     if (IS_ANDROID) {
         implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.2'
@@ -66,11 +66,11 @@ def pomConfig = {
 
 if (IS_ANDROID) {
     android {
-        compileSdkVersion 30
-        buildToolsVersion '30.0.3'
+        namespace "io.crossbar.autobahn"
         defaultConfig {
+            compileSdk 34
             minSdkVersion 26
-            targetSdkVersion 30
+            targetSdkVersion 34
         }
         buildTypes {
             release {
@@ -111,7 +111,7 @@ if (IS_ANDROID) {
         failOnError false
         source = android.sourceSets.main.java.sourceFiles
         classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-        classpath += configurations.compile
+        classpath += configurations.implementation
     }
 
     task javadocJar(type: Jar, dependsOn: javadoc) {
@@ -125,7 +125,7 @@ if (IS_ANDROID) {
 
     afterEvaluate {
         javadoc.classpath += files(android.libraryVariants.collect { variant ->
-            variant.javaCompile.classpath.files
+            variant.javaCompileProvider.get().classpath.files
         })
     }
 
@@ -186,7 +186,7 @@ afterEvaluate {
         publications {
             release(MavenPublication) {
                 if (IS_ANDROID) {
-                    from components.release
+                    from components.findByName('release')
                     artifactId ARTIFACT_ANDROID
                 } else {
                     from components.java

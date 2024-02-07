@@ -27,7 +27,7 @@ buildscript {
     // Android specific dependencies.
     if (project.properties.get('buildPlatform', 'android') == 'android') {
         dependencies {
-            classpath 'com.android.tools.build:gradle:4.1.3'
+            classpath 'com.android.tools.build:gradle:8.2.2'
         }
     }
 }
