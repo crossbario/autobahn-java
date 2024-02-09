@@ -20,9 +20,9 @@ def SONATYPE_USER = System.getenv().containsKey('SONATYPE_USER') ? System.getenv
 def SONATYPE_PASS = System.getenv().containsKey('SONATYPE_PASS') ? System.getenv('SONATYPE_PASS'): ''
 
 dependencies {
-    api 'com.fasterxml.jackson.core:jackson-core:2.12.5'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.5'
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.5'
+    api 'com.fasterxml.jackson.core:jackson-core:2.12.3'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.3'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.3'
     implementation 'org.msgpack:jackson-dataformat-msgpack:0.8.22'
     if (IS_ANDROID) {
         implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.2'
