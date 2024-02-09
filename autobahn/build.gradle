@@ -66,11 +66,11 @@ def pomConfig = {
 
 if (IS_ANDROID) {
     android {
-        compileSdkVersion 30
-        buildToolsVersion '30.0.3'
+        namespace "io.crossbar.autobahn"
         defaultConfig {
+            compileSdk 34
             minSdkVersion 26
-            targetSdkVersion 30
+            targetSdkVersion 34
         }
         buildTypes {
             release {
@@ -111,7 +111,7 @@ if (IS_ANDROID) {
         failOnError false
         source = android.sourceSets.main.java.sourceFiles
         classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-        classpath += configurations.compile
+        classpath += configurations.implementation
     }
 
     task javadocJar(type: Jar, dependsOn: javadoc) {
@@ -125,7 +125,7 @@ if (IS_ANDROID) {
 
     afterEvaluate {
         javadoc.classpath += files(android.libraryVariants.collect { variant ->
-            variant.javaCompile.classpath.files
+            variant.javaCompileProvider.get().classpath.files
         })
     }
 
@@ -186,7 +186,7 @@ afterEvaluate {
         publications {
             release(MavenPublication) {
                 if (IS_ANDROID) {
-                    from components.release
+                    from components.findByName('release')
                     artifactId ARTIFACT_ANDROID
                 } else {
                     from components.java
