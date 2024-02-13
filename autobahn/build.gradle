@@ -20,26 +20,23 @@ def SONATYPE_USER = System.getenv().containsKey('SONATYPE_USER') ? System.getenv
 def SONATYPE_PASS = System.getenv().containsKey('SONATYPE_PASS') ? System.getenv('SONATYPE_PASS'): ''
 
 dependencies {
-    api 'com.fasterxml.jackson.core:jackson-core:2.12.3'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.3'
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.3'
-    implementation 'org.msgpack:jackson-dataformat-msgpack:0.8.22'
+    api 'com.fasterxml.jackson.core:jackson-core:2.16.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.16.1'
+    implementation 'org.msgpack:jackson-dataformat-msgpack:0.9.8'
+    implementation 'org.web3j:core:5.0.0'
+    implementation 'org.web3j:abi:5.0.0'
+    implementation 'org.web3j:utils:5.0.0'
     if (IS_ANDROID) {
         implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.2'
-        implementation 'org.web3j:core:4.6.0-android'
-        implementation 'org.web3j:abi:4.6.0-android'
-        implementation 'org.web3j:utils:4.6.0-android'
     } else {
         implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni:2.0.2'
-        implementation 'org.web3j:core:4.6.0'
-        implementation 'org.web3j:abi:4.6.0'
-        implementation 'org.web3j:utils:4.6.0'
-        implementation 'org.json:json:20210307'
-        implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.3'
+        implementation 'org.json:json:20240205'
+        implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.5'
     }
     if (IS_NETTY) {
-        implementation 'io.netty:netty-codec-http:4.1.63.Final'
-        implementation 'io.netty:netty-handler:4.1.63.Final'
+        implementation 'io.netty:netty-codec-http:4.1.106.Final'
+        implementation 'io.netty:netty-handler:4.1.106.Final'
     }
 }
 
