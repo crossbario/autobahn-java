@@ -47,7 +47,7 @@ if (plugins.hasPlugin(project.PLUGIN_ANDROID_APP)) {
         implementation "com.google.android.material:material:1.11.0"
 
         implementation 'com.basgeekball:awesome-validation:4.2'
-        implementation 'org.web3j:crypto:4.6.0-android'
+        implementation 'org.web3j:crypto:5.0.0'
         implementation 'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
     }
 } else if (project.IS_NEXT) {
