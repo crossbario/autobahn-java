@@ -99,7 +99,7 @@ public class CryptosignAuth implements IAuthenticator {
         Ed25519Signer signer = new Ed25519Signer();
         signer.init(true, privateKey);
         signer.update(rawChallenge, 0, rawChallenge.length);
-        byte[] signed =signer.generateSignature();
+        byte[] signed = signer.generateSignature();
 
         String signatureHex = AuthUtil.toHexString(signed);
         String res = signatureHex + hexChallenge;
