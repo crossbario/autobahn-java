@@ -38,6 +38,7 @@ dependencies {
         implementation 'io.netty:netty-codec-http:4.1.106.Final'
         implementation 'io.netty:netty-handler:4.1.106.Final'
     }
+    testImplementation 'junit:junit:4.13.2'
 }
 
 // Create the pom configuration:
