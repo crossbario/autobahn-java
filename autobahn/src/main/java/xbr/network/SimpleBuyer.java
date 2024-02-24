@@ -15,7 +15,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 
-import org.libsodium.jni.SodiumConstants;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.utils.Numeric;
@@ -29,14 +28,13 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import io.crossbar.autobahn.utils.ABLogger;
 import io.crossbar.autobahn.utils.IABLogger;
+import io.crossbar.autobahn.utils.Pair;
 import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import xbr.network.crypto.SealedBox;
 import xbr.network.crypto.SecretBox;
 import xbr.network.pojo.Quote;
 import xbr.network.pojo.Receipt;
-
-import static org.libsodium.jni.NaCl.sodium;
 
 public class SimpleBuyer {
 
@@ -69,9 +67,9 @@ public class SimpleBuyer {
         mEthPublicKey = mECKey.getPublicKey().toByteArray();
         mEthAddr = Numeric.hexStringToByteArray(Credentials.create(mECKey).getAddress());
 
-        mPrivateKey = new byte[SodiumConstants.SECRETKEY_BYTES];
-        mPublicKey = new byte[SodiumConstants.PUBLICKEY_BYTES];
-        sodium().crypto_box_keypair(mPublicKey, mPrivateKey);
+        Pair<byte[], byte[]> pubPriKeyPair = Util.generateX25519KeyPair();
+        mPublicKey = pubPriKeyPair.first;
+        mPrivateKey = pubPriKeyPair.second;
 
         mMaxPrice = maxPrice;
         mKeys = new HashMap<>();
