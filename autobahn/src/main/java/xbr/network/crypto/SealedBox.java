@@ -9,11 +9,9 @@ import org.bouncycastle.math.ec.rfc7748.X25519;
 import org.bouncycastle.util.Arrays;
 import org.libsodium.jni.encoders.Encoder;
 
-import static org.libsodium.jni.NaCl.sodium;
 import static org.libsodium.jni.SodiumConstants.NONCE_BYTES;
 import static org.libsodium.jni.SodiumConstants.PUBLICKEY_BYTES;
 import static org.libsodium.jni.SodiumConstants.SECRETKEY_BYTES;
-import static org.libsodium.jni.crypto.Util.isValid;
 
 import io.crossbar.autobahn.utils.Pair;
 import xbr.network.Util;
@@ -54,17 +52,9 @@ public class SealedBox {
     }
 
     public byte[] encrypt(byte[] message) {
-        byte[] ct = new byte[message.length + SEAL_BYTES];
-        isValid(sodium().crypto_box_seal(
-                        ct, message, message.length, publicKey),
-                "Encryption failed");
-        return ct;
-    }
-
-    public byte[] encrypt(byte[] message, byte[] recipientPublicKey) {
         Pair<byte[], byte[]> keyPair = Util.generateX25519KeyPair();
-        byte[] nonce = createNonce(keyPair.first, recipientPublicKey);
-        byte[] sharedSecret = computeSharedSecret(recipientPublicKey, keyPair.second);
+        byte[] nonce = createNonce(keyPair.first, publicKey);
+        byte[] sharedSecret = computeSharedSecret(publicKey, keyPair.second);
 
         XSalsa20Engine cipher = new XSalsa20Engine();
         ParametersWithIV params = new ParametersWithIV(new KeyParameter(sharedSecret), nonce);
