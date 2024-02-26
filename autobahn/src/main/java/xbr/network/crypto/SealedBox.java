@@ -1,8 +1,10 @@
 package xbr.network.crypto;
 
+import org.bouncycastle.crypto.digests.Blake2bDigest;
 import org.libsodium.jni.encoders.Encoder;
 
 import static org.libsodium.jni.NaCl.sodium;
+import static org.libsodium.jni.SodiumConstants.NONCE_BYTES;
 import static org.libsodium.jni.SodiumConstants.PUBLICKEY_BYTES;
 import static org.libsodium.jni.crypto.Util.isValid;
 
@@ -44,15 +46,27 @@ public class SealedBox {
     public byte[] encrypt(byte[] message) {
         byte[] ct = new byte[message.length + SEAL_BYTES];
         isValid(sodium().crypto_box_seal(
-                ct, message, message.length, publicKey),
+                        ct, message, message.length, publicKey),
                 "Encryption failed");
         return ct;
+    }
+
+    private byte[] createNonce(byte[] ephemeralPublicKey, byte[] recipientPublicKey) {
+        Blake2bDigest blake2b = new Blake2bDigest(NONCE_BYTES * 8);
+        byte[] nonce = new byte[blake2b.getDigestSize()];
+
+        blake2b.update(ephemeralPublicKey, 0, ephemeralPublicKey.length);
+        blake2b.update(recipientPublicKey, 0, recipientPublicKey.length);
+
+        blake2b.doFinal(nonce, 0);
+
+        return nonce;
     }
 
     public byte[] decrypt(byte[] ciphertext) {
         byte[] message = new byte[ciphertext.length - SEAL_BYTES];
         isValid(sodium().crypto_box_seal_open(
-                message, ciphertext, ciphertext.length, publicKey, privateKey),
+                        message, ciphertext, ciphertext.length, publicKey, privateKey),
                 "Decryption failed. Ciphertext failed verification");
         return message;
     }
