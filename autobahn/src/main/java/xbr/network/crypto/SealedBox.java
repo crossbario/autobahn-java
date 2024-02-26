@@ -102,17 +102,19 @@ public class SealedBox {
     public byte[] computeSharedSecret(byte[] publicKey, byte[] privateKey) {
         byte[] sharedSecret = new byte[32];
         // compute the raw shared secret
-        X25519.scalarMult(publicKey, 0, privateKey, 0, sharedSecret, 0);
+        X25519.scalarMult(privateKey, 0, publicKey, 0, sharedSecret, 0);
         // encrypt the shared secret
         byte[] nonce = new byte[32];
         return Salsa.HSalsa20(nonce, sharedSecret, Salsa.SIGMA);
     }
 
-    public byte[] decrypt(byte[] ciphertext) {
-        byte[] message = new byte[ciphertext.length - SEAL_BYTES];
-        isValid(sodium().crypto_box_seal_open(
-                        message, ciphertext, ciphertext.length, publicKey, privateKey),
-                "Decryption failed. Ciphertext failed verification");
-        return message;
+    public byte[] decrypt(byte[] message) {
+        byte[] ephemeralPublicKey = Arrays.copyOf(message, PUBLICKEY_BYTES);
+        byte[] ciphertext = Arrays.copyOfRange(message, PUBLICKEY_BYTES, message.length);
+        byte[] nonce = createNonce(ephemeralPublicKey, publicKey);
+        byte[] sharedSecret = computeSharedSecret(ephemeralPublicKey, privateKey);
+
+        SecretBox box = new SecretBox(sharedSecret);
+        return box.decrypt(nonce, ciphertext);
     }
 }
