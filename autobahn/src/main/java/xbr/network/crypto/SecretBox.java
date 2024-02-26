@@ -57,8 +57,7 @@ public class SecretBox {
         return decrypt(nonce, message);
     }
 
-
-    private byte[] decrypt(byte[] nonce, byte[] ciphertext) {
+    public byte[] decrypt(byte[] nonce, byte[] ciphertext) {
         checkLength(nonce, NONCE_SIZE);
 
         XSalsa20Engine xsalsa20 = new XSalsa20Engine();
