@@ -1,6 +1,7 @@
 package xbr.network.crypto;
 
 import org.bouncycastle.crypto.digests.Blake2bDigest;
+import org.bouncycastle.math.ec.rfc7748.X25519;
 import org.libsodium.jni.encoders.Encoder;
 
 import static org.libsodium.jni.NaCl.sodium;
@@ -61,6 +62,15 @@ public class SealedBox {
         blake2b.doFinal(nonce, 0);
 
         return nonce;
+    }
+
+    public byte[] computeSharedSecret(byte[] publicKey, byte[] privateKey) {
+        byte[] sharedSecret = new byte[32];
+        // compute the raw shared secret
+        X25519.scalarMult(publicKey, 0, privateKey, 0, sharedSecret, 0);
+        // encrypt the shared secret
+        byte[] nonce = new byte[32];
+        return Salsa.HSalsa20(nonce, sharedSecret, Salsa.SIGMA);
     }
 
     public byte[] decrypt(byte[] ciphertext) {
