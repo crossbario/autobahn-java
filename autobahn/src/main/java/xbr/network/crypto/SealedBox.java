@@ -17,6 +17,7 @@ public class SealedBox {
     private static int PUBLICKEY_BYTES = 32;
     private static final int SEAL_BYTES = PUBLICKEY_BYTES + MAC_BYTES;
 
+    private static final byte[] HSALSA20_SEED = new byte[16];
     private byte[] publicKey;
     private byte[] privateKey;
 
@@ -84,7 +85,6 @@ public class SealedBox {
         X25519.scalarMult(privateKey, 0, publicKey, 0, sharedSecret, 0);
         // encrypt the shared secret
         byte[] key = new byte[32];
-        byte[] HSALSA20_SEED = new byte[16];
         HSalsa20.hsalsa20(key, HSALSA20_SEED, sharedSecret);
         return key;
     }
