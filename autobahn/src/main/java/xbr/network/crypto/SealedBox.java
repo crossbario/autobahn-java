@@ -83,8 +83,10 @@ public class SealedBox {
         // compute the raw shared secret
         X25519.scalarMult(privateKey, 0, publicKey, 0, sharedSecret, 0);
         // encrypt the shared secret
-        byte[] nonce = new byte[32];
-        return Salsa.HSalsa20(nonce, sharedSecret, Salsa.SIGMA);
+        byte[] key = new byte[32];
+        byte[] HSALSA20_SEED = new byte[16];
+        HSalsa20.hsalsa20(key, HSALSA20_SEED, sharedSecret);
+        return key;
     }
 
     public byte[] decrypt(byte[] message) {
