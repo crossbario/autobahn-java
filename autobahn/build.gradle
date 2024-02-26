@@ -27,10 +27,7 @@ dependencies {
     implementation 'org.web3j:core:5.0.0'
     implementation 'org.web3j:abi:5.0.0'
     implementation 'org.web3j:utils:5.0.0'
-    if (IS_ANDROID) {
-        implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.2'
-    } else {
-        implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni:2.0.2'
+    if (!IS_ANDROID) {
         implementation 'org.json:json:20240205'
         implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.5'
     }
@@ -188,7 +185,7 @@ afterEvaluate {
                     artifactId ARTIFACT_ANDROID
                 } else {
                     from components.java
-                    artifactId IS_NEXT ? ARTIFACT_NEXT: ARTIFACT_JAVA
+                    artifactId IS_NEXT ? ARTIFACT_NEXT : ARTIFACT_JAVA
                 }
 
                 artifact sourcesJar

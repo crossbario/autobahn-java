@@ -7,11 +7,6 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.math.ec.rfc7748.X25519;
 import org.bouncycastle.util.Arrays;
-import org.libsodium.jni.encoders.Encoder;
-
-import static org.libsodium.jni.SodiumConstants.NONCE_BYTES;
-import static org.libsodium.jni.SodiumConstants.PUBLICKEY_BYTES;
-import static org.libsodium.jni.SodiumConstants.SECRETKEY_BYTES;
 
 import io.crossbar.autobahn.utils.Pair;
 import xbr.network.Util;
@@ -19,6 +14,7 @@ import xbr.network.Util;
 public class SealedBox {
 
     private static final int MAC_BYTES = 16;
+    private static int PUBLICKEY_BYTES = 32;
     private static final int SEAL_BYTES = PUBLICKEY_BYTES + MAC_BYTES;
 
     private byte[] publicKey;
@@ -32,9 +28,6 @@ public class SealedBox {
         this.privateKey = null;
     }
 
-    public SealedBox(String publicKey, Encoder encoder) {
-        this(encoder.decode(publicKey));
-    }
 
     public SealedBox(byte[] publicKey, byte[] privateKey) {
         if (publicKey == null) {
@@ -47,10 +40,6 @@ public class SealedBox {
         this.privateKey = privateKey;
     }
 
-    public SealedBox(String publicKey, String privateKey, Encoder encoder) {
-        this(encoder.decode(publicKey), encoder.decode(privateKey));
-    }
-
     public byte[] encrypt(byte[] message) {
         Pair<byte[], byte[]> keyPair = Util.generateX25519KeyPair();
         byte[] nonce = createNonce(keyPair.first, publicKey);
@@ -60,7 +49,7 @@ public class SealedBox {
         ParametersWithIV params = new ParametersWithIV(new KeyParameter(sharedSecret), nonce);
         cipher.init(true, params);
 
-        byte[] sk = new byte[SECRETKEY_BYTES];
+        byte[] sk = new byte[Util.SECRET_KEY_LEN];
         cipher.processBytes(sk, 0, sk.length, sk, 0);
 
         // encrypt the message
@@ -78,7 +67,7 @@ public class SealedBox {
     }
 
     private byte[] createNonce(byte[] ephemeralPublicKey, byte[] recipientPublicKey) {
-        Blake2bDigest blake2b = new Blake2bDigest(NONCE_BYTES * 8);
+        Blake2bDigest blake2b = new Blake2bDigest(Util.NONCE_SIZE * 8);
         byte[] nonce = new byte[blake2b.getDigestSize()];
 
         blake2b.update(ephemeralPublicKey, 0, ephemeralPublicKey.length);
