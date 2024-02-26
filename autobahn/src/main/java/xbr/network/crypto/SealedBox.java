@@ -1,13 +1,22 @@
 package xbr.network.crypto;
 
 import org.bouncycastle.crypto.digests.Blake2bDigest;
+import org.bouncycastle.crypto.engines.XSalsa20Engine;
+import org.bouncycastle.crypto.macs.Poly1305;
+import org.bouncycastle.crypto.params.KeyParameter;
+import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.math.ec.rfc7748.X25519;
+import org.bouncycastle.util.Arrays;
 import org.libsodium.jni.encoders.Encoder;
 
 import static org.libsodium.jni.NaCl.sodium;
 import static org.libsodium.jni.SodiumConstants.NONCE_BYTES;
 import static org.libsodium.jni.SodiumConstants.PUBLICKEY_BYTES;
+import static org.libsodium.jni.SodiumConstants.SECRETKEY_BYTES;
 import static org.libsodium.jni.crypto.Util.isValid;
+
+import io.crossbar.autobahn.utils.Pair;
+import xbr.network.Util;
 
 public class SealedBox {
 
@@ -50,6 +59,32 @@ public class SealedBox {
                         ct, message, message.length, publicKey),
                 "Encryption failed");
         return ct;
+    }
+
+    public byte[] encrypt(byte[] message, byte[] recipientPublicKey) {
+        Pair<byte[], byte[]> keyPair = Util.generateX25519KeyPair();
+        byte[] nonce = createNonce(keyPair.first, recipientPublicKey);
+        byte[] sharedSecret = computeSharedSecret(recipientPublicKey, keyPair.second);
+
+        XSalsa20Engine cipher = new XSalsa20Engine();
+        ParametersWithIV params = new ParametersWithIV(new KeyParameter(sharedSecret), nonce);
+        cipher.init(true, params);
+
+        byte[] sk = new byte[SECRETKEY_BYTES];
+        cipher.processBytes(sk, 0, sk.length, sk, 0);
+
+        // encrypt the message
+        byte[] ciphertext = new byte[message.length];
+        cipher.processBytes(message, 0, message.length, ciphertext, 0);
+
+        // create the MAC
+        Poly1305 mac = new Poly1305();
+        byte[] macBuf = new byte[mac.getMacSize()];
+        mac.init(new KeyParameter(sk));
+        mac.update(ciphertext, 0, ciphertext.length);
+        mac.doFinal(macBuf, 0);
+
+        return Arrays.concatenate(keyPair.first, macBuf, ciphertext);
     }
 
     private byte[] createNonce(byte[] ephemeralPublicKey, byte[] recipientPublicKey) {
