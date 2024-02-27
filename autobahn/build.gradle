@@ -25,9 +25,9 @@ dependencies {
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.16.1'
     implementation 'org.msgpack:jackson-dataformat-msgpack:0.9.8'
     if (IS_ANDROID) {
-        implementation 'org.web3j:core:4.8.7-android'
-        implementation 'org.web3j:abi:4.8.7-android'
-        implementation 'org.web3j:utils:4.8.7-android'
+        implementation 'org.web3j:core:4.8.8-android'
+        implementation 'org.web3j:abi:4.8.8-android'
+        implementation 'org.web3j:utils:4.8.8-android'
     } else{
         implementation 'org.web3j:core:4.11.0'
         implementation 'org.web3j:abi:4.11.0'
@@ -176,8 +176,8 @@ if (IS_ANDROID) {
     jar {
         version = relVersion
     }
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 afterEvaluate {

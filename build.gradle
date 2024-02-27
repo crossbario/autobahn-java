@@ -38,5 +38,6 @@ allprojects {
         google()
         mavenCentral()
         maven { url "https://dl.bintray.com/ethereum/maven/" }
+        maven { url "https://artifacts.consensys.net/public/maven/maven/" }
     }
 }
