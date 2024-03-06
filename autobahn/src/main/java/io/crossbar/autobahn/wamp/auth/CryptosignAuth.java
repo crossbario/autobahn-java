@@ -1,17 +1,14 @@
 package io.crossbar.autobahn.wamp.auth;
 
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
-import org.bouncycastle.crypto.generators.Ed25519KeyPairGenerator;
-import org.bouncycastle.crypto.params.Ed25519KeyGenerationParameters;
-import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
-import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
-import org.bouncycastle.crypto.signers.Ed25519Signer;
-
 import java.io.File;
-import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+
+import org.bouncycastle.util.encoders.Hex;
+
+import io.xconn.cryptology.CryptoSign;
+import io.xconn.cryptology.KeyPair;
 
 import io.crossbar.autobahn.utils.AuthUtil;
 import io.crossbar.autobahn.utils.Pair;
@@ -31,16 +28,10 @@ public class CryptosignAuth implements IAuthenticator {
     private final byte[] privateKeyRaw;
 
     public static Pair<String, String> generateSigningKeyPair() {
-        Ed25519KeyPairGenerator keyPairGenerator = new Ed25519KeyPairGenerator();
-        keyPairGenerator.init(new Ed25519KeyGenerationParameters(new SecureRandom()));
+        KeyPair keyPair = CryptoSign.generateKeyPair();
 
-        AsymmetricCipherKeyPair keyPair = keyPairGenerator.generateKeyPair();
-
-        Ed25519PrivateKeyParameters privateKey = (Ed25519PrivateKeyParameters) keyPair.getPrivate();
-        Ed25519PublicKeyParameters publicKey = (Ed25519PublicKeyParameters) keyPair.getPublic();
-
-        String privateKeyHex = AuthUtil.toHexString(privateKey.getEncoded());
-        String publicKeyHex = AuthUtil.toHexString(publicKey.getEncoded());
+        String publicKeyHex = Hex.toHexString(keyPair.getPublicKey());
+        String privateKeyHex = Hex.toHexString(keyPair.getPrivateKey());
 
         return new Pair<>(publicKeyHex, privateKeyHex);
     }
@@ -50,9 +41,7 @@ public class CryptosignAuth implements IAuthenticator {
     }
 
     public static String getPublicKey(byte[] privateKeyRaw) {
-        Ed25519PrivateKeyParameters privateKey = new Ed25519PrivateKeyParameters(privateKeyRaw, 0);
-
-        byte[] publicKeyBytes = privateKey.generatePublicKey().getEncoded();
+        byte[] publicKeyBytes = CryptoSign.getPublicKey(privateKeyRaw);
         return AuthUtil.toHexString(publicKeyBytes);
     }
 
@@ -78,8 +67,7 @@ public class CryptosignAuth implements IAuthenticator {
         }
     }
 
-    public CryptosignAuth(String authid, String authrole, String privkey,
-                          Map<String, Object> authextra) {
+    public CryptosignAuth(String authid, String authrole, String privkey, Map<String, Object> authextra) {
         this.authid = authid;
         this.authrole = authrole;
         this.authextra = authextra;
@@ -95,11 +83,7 @@ public class CryptosignAuth implements IAuthenticator {
         String hexChallenge = (String) challenge.extra.get("challenge");
         byte[] rawChallenge = AuthUtil.toBinary(hexChallenge);
 
-        Ed25519PrivateKeyParameters privateKey = new Ed25519PrivateKeyParameters(privateKeyRaw, 0);
-        Ed25519Signer signer = new Ed25519Signer();
-        signer.init(true, privateKey);
-        signer.update(rawChallenge, 0, rawChallenge.length);
-        byte[] signed = signer.generateSignature();
+        byte[] signed = CryptoSign.sign(privateKeyRaw, rawChallenge);
 
         String signatureHex = AuthUtil.toHexString(signed);
         String res = signatureHex + hexChallenge;

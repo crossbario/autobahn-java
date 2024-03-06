@@ -26,9 +26,10 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.xconn.cryptology.KeyPair;
+
 import io.crossbar.autobahn.utils.ABLogger;
 import io.crossbar.autobahn.utils.IABLogger;
-import io.crossbar.autobahn.utils.Pair;
 import io.crossbar.autobahn.wamp.Session;
 import io.crossbar.autobahn.wamp.exceptions.ApplicationError;
 import xbr.network.crypto.SealedBox;
@@ -67,9 +68,9 @@ public class SimpleBuyer {
         mEthPublicKey = mECKey.getPublicKey().toByteArray();
         mEthAddr = Numeric.hexStringToByteArray(Credentials.create(mECKey).getAddress());
 
-        Pair<byte[], byte[]> pubPriKeyPair = Util.generateX25519KeyPair();
-        mPublicKey = pubPriKeyPair.first;
-        mPrivateKey = pubPriKeyPair.second;
+        KeyPair pubPriKeyPair = io.xconn.cryptology.SealedBox.generateKeyPair();
+        mPublicKey = pubPriKeyPair.getPublicKey();
+        mPrivateKey = pubPriKeyPair.getPrivateKey();
 
         mMaxPrice = maxPrice;
         mKeys = new HashMap<>();

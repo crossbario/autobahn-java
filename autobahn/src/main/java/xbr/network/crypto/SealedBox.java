@@ -1,15 +1,7 @@
 package xbr.network.crypto;
 
-import org.bouncycastle.crypto.digests.Blake2bDigest;
-import org.bouncycastle.crypto.engines.XSalsa20Engine;
-import org.bouncycastle.crypto.macs.Poly1305;
-import org.bouncycastle.crypto.params.KeyParameter;
-import org.bouncycastle.crypto.params.ParametersWithIV;
-import org.bouncycastle.math.ec.rfc7748.X25519;
-import org.bouncycastle.util.Arrays;
-
-import io.crossbar.autobahn.utils.Pair;
-import xbr.network.Util;
+import static io.xconn.cryptology.SealedBox.seal;
+import static io.xconn.cryptology.SealedBox.sealOpen;
 
 public class SealedBox {
 
@@ -42,60 +34,10 @@ public class SealedBox {
     }
 
     public byte[] encrypt(byte[] message) {
-        Pair<byte[], byte[]> keyPair = Util.generateX25519KeyPair();
-        byte[] nonce = createNonce(keyPair.first, publicKey);
-        byte[] sharedSecret = computeSharedSecret(publicKey, keyPair.second);
-
-        XSalsa20Engine cipher = new XSalsa20Engine();
-        ParametersWithIV params = new ParametersWithIV(new KeyParameter(sharedSecret), nonce);
-        cipher.init(true, params);
-
-        byte[] sk = new byte[Util.SECRET_KEY_LEN];
-        cipher.processBytes(sk, 0, sk.length, sk, 0);
-
-        // encrypt the message
-        byte[] ciphertext = new byte[message.length];
-        cipher.processBytes(message, 0, message.length, ciphertext, 0);
-
-        // create the MAC
-        Poly1305 mac = new Poly1305();
-        byte[] macBuf = new byte[mac.getMacSize()];
-        mac.init(new KeyParameter(sk));
-        mac.update(ciphertext, 0, ciphertext.length);
-        mac.doFinal(macBuf, 0);
-
-        return Arrays.concatenate(keyPair.first, macBuf, ciphertext);
-    }
-
-    private byte[] createNonce(byte[] ephemeralPublicKey, byte[] recipientPublicKey) {
-        Blake2bDigest blake2b = new Blake2bDigest(Util.NONCE_SIZE * 8);
-        byte[] nonce = new byte[blake2b.getDigestSize()];
-
-        blake2b.update(ephemeralPublicKey, 0, ephemeralPublicKey.length);
-        blake2b.update(recipientPublicKey, 0, recipientPublicKey.length);
-
-        blake2b.doFinal(nonce, 0);
-
-        return nonce;
-    }
-
-    public byte[] computeSharedSecret(byte[] publicKey, byte[] privateKey) {
-        byte[] sharedSecret = new byte[32];
-        // compute the raw shared secret
-        X25519.scalarMult(privateKey, 0, publicKey, 0, sharedSecret, 0);
-        // encrypt the shared secret
-        byte[] key = new byte[32];
-        HSalsa20.hsalsa20(key, HSALSA20_SEED, sharedSecret);
-        return key;
+        return seal(message, publicKey);
     }
 
     public byte[] decrypt(byte[] message) {
-        byte[] ephemeralPublicKey = Arrays.copyOf(message, PUBLICKEY_BYTES);
-        byte[] ciphertext = Arrays.copyOfRange(message, PUBLICKEY_BYTES, message.length);
-        byte[] nonce = createNonce(ephemeralPublicKey, publicKey);
-        byte[] sharedSecret = computeSharedSecret(ephemeralPublicKey, privateKey);
-
-        SecretBox box = new SecretBox(sharedSecret);
-        return box.decrypt(nonce, ciphertext);
+        return sealOpen(message, privateKey);
     }
 }

@@ -11,11 +11,6 @@
 
 package xbr.network;
 
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
-import org.bouncycastle.crypto.generators.X25519KeyPairGenerator;
-import org.bouncycastle.crypto.params.X25519KeyGenerationParameters;
-import org.bouncycastle.crypto.params.X25519PrivateKeyParameters;
-import org.bouncycastle.crypto.params.X25519PublicKeyParameters;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -27,11 +22,8 @@ import org.web3j.crypto.StructuredDataEncoder;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
-
-import io.crossbar.autobahn.utils.Pair;
 
 public class Util {
 
@@ -179,26 +171,5 @@ public class Util {
         }
 
         return future;
-    }
-
-    public static byte[] generateRandomBytesArray(int size) {
-        byte[] randomBytes = new byte[size];
-        SecureRandom random = new SecureRandom();
-        random.nextBytes(randomBytes);
-        return randomBytes;
-    }
-
-    public static Pair<byte[], byte[]> generateX25519KeyPair() {
-        SecureRandom random = new SecureRandom();
-        X25519KeyGenerationParameters params = new X25519KeyGenerationParameters(random);
-        X25519KeyPairGenerator generator = new X25519KeyPairGenerator();
-        generator.init(params);
-
-        AsymmetricCipherKeyPair keyPair = generator.generateKeyPair();
-
-        X25519PrivateKeyParameters privateKeyParams = (X25519PrivateKeyParameters) keyPair.getPrivate();
-        X25519PublicKeyParameters publicKeyParams = (X25519PublicKeyParameters) keyPair.getPublic();
-
-        return new Pair<>(publicKeyParams.getEncoded(), privateKeyParams.getEncoded());
     }
 }

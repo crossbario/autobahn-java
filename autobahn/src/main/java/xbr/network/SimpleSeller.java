@@ -11,6 +11,8 @@
 
 package xbr.network;
 
+import static io.xconn.cryptology.Util.generateRandomBytesArray;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 
@@ -92,7 +94,7 @@ public class SimpleSeller {
     private void onRotate(KeySeries series) {
         mKeysMap.put(Numeric.toHexString(series.getID()), series);
         long validFrom = Math.round(System.nanoTime() - 10 * Math.pow(10, 9));
-        byte[] signature = Util.generateRandomBytesArray(65);
+        byte[] signature = generateRandomBytesArray(65);
 
         List<Object> args = new ArrayList<>();
         args.add(series.getID());

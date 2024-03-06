@@ -2,8 +2,9 @@ package xbr.network.crypto;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertThrows;
+import static io.xconn.cryptology.Util.generateRandomBytesArray;
+
 import static xbr.network.Util.NONCE_SIZE;
-import static xbr.network.Util.generateRandomBytesArray;
 
 import org.junit.Test;
 
