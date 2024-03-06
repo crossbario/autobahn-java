@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import static io.xconn.cryptology.SecretBox.box;
 import static io.xconn.cryptology.SecretBox.boxOpen;
+import static io.xconn.cryptology.Util.checkLength;
 import static io.xconn.cryptology.Util.generateRandomBytesArray;
 
 import static xbr.network.Util.NONCE_SIZE;
@@ -34,10 +35,5 @@ public class SecretBox {
         byte[] nonce = Arrays.copyOfRange(ciphertext, 0, NONCE_SIZE);
         byte[] message = Arrays.copyOfRange(ciphertext, NONCE_SIZE, ciphertext.length);
         return boxOpen(nonce, message, mKey);
-    }
-
-    private void checkLength(byte[] data, int size) {
-        if (data == null || data.length != size)
-            throw new IllegalArgumentException("Invalid size: " + data.length);
     }
 }
