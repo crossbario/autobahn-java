@@ -24,7 +24,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.16.1'
     implementation 'org.msgpack:jackson-dataformat-msgpack:0.9.8'
-    implementation('io.xconn:cryptology:0.1.0') {
+    implementation('io.xconn:cryptology:1.0.1') {
         exclude group: "org.bouncycastle", module: "bcprov-jdk18on"
     }
     if (IS_ANDROID) {
