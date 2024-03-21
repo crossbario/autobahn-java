@@ -322,7 +322,6 @@ public class Session implements ISession, ITransportHandler {
     private void onMessage(IMessage message) throws Exception {
         if (message instanceof Result) {
             Result msg = (Result) message;
-
             CallRequest request = getOrDefault(mCallRequests, msg.request, null);
             if (request == null) {
                 throw new ProtocolError(String.format(
