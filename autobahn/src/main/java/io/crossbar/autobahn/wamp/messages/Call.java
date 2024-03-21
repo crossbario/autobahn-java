@@ -34,8 +34,10 @@ public class Call implements IMessage {
     public final List<Object> args;
     public final Map<String, Object> kwargs;
     public final int timeout;
+    public final boolean receiveProgress;
 
-    public Call(long request, String procedure, List<Object> args, Map<String, Object> kwargs, int timeout) {
+    public Call(long request, String procedure, List<Object> args, Map<String, Object> kwargs,
+                int timeout, boolean receiveProgress) {
         this.request = request;
         this.procedure = procedure;
         this.args = args;
@@ -45,6 +47,7 @@ public class Call implements IMessage {
         } else {
             this.timeout = timeout;
         }
+        this.receiveProgress = receiveProgress;
     }
 
     public static Call parse(List<Object> wmsg) {
@@ -69,7 +72,9 @@ public class Call implements IMessage {
 
         int timeout = getOrDefault(options, "timeout", TIMEOUT_DEFAULT);
 
-        return new Call(request, procedure, args, kwargs, timeout);
+        boolean receiveProgress = getOrDefault(options, "receive_progress", false);
+
+        return new Call(request, procedure, args, kwargs, timeout, receiveProgress);
     }
 
     @Override
@@ -78,6 +83,7 @@ public class Call implements IMessage {
         marshaled.add(MESSAGE_TYPE);
         marshaled.add(request);
         Map<String, Object> options = new HashMap<>();
+        options.put("receive_progress", receiveProgress);
         if (timeout > TIMEOUT_DEFAULT) {
             options.put("timeout", timeout);
         }

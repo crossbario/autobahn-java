@@ -322,23 +322,32 @@ public class Session implements ISession, ITransportHandler {
     private void onMessage(IMessage message) throws Exception {
         if (message instanceof Result) {
             Result msg = (Result) message;
+
             CallRequest request = getOrDefault(mCallRequests, msg.request, null);
             if (request == null) {
                 throw new ProtocolError(String.format(
                         "RESULT received for non-pending request ID %s", msg.request));
             }
 
-            mCallRequests.remove(msg.request);
-            if (request.resultTypeRef != null) {
-                // FIXME: check args length > 1 and == 0, and kwargs != null
-                // we cannot currently POJO automap these cases!
-                request.onReply.complete(mSerializer.convertValue(
-                        msg.args.get(0), request.resultTypeRef));
-            } else if (request.resultTypeClass != null) {
-                request.onReply.complete(mSerializer.convertValue(
-                        msg.args.get(0), request.resultTypeClass));
+            if (msg.options.containsKey("progress") && (Boolean) msg.options.get("progress")) {
+                if (request.options.progressHandler == null) {
+                    throw new ProtocolError("Caller not accepting progressive call result");
+                }
+
+                request.options.progressHandler.onProgress(new CallResult(msg.args, msg.kwargs));
             } else {
-                request.onReply.complete(new CallResult(msg.args, msg.kwargs));
+                mCallRequests.remove(msg.request);
+                if (request.resultTypeRef != null) {
+                    // FIXME: check args length > 1 and == 0, and kwargs != null
+                    // we cannot currently POJO automap these cases!
+                    request.onReply.complete(mSerializer.convertValue(
+                            msg.args.get(0), request.resultTypeRef));
+                } else if (request.resultTypeClass != null) {
+                    request.onReply.complete(mSerializer.convertValue(
+                            msg.args.get(0), request.resultTypeClass));
+                } else {
+                    request.onReply.complete(new CallResult(msg.args, msg.kwargs));
+                }
             }
         } else if (message instanceof Subscribed) {
             Subscribed msg = (Subscribed) message;
@@ -452,10 +461,21 @@ public class Session implements ISession, ITransportHandler {
             long callerSessionID = getOrDefault(msg.details, "caller", -1L);
             String callerAuthID = getOrDefault(msg.details, "caller_authid", null);
             String callerAuthRole = getOrDefault(msg.details, "caller_authrole", null);
-            
-            InvocationDetails details = new InvocationDetails(
-                    registration, registration.procedure, callerSessionID, callerAuthID, callerAuthRole, this);
 
+            Boolean progress = getOrDefault(msg.details, "receive_progress", false);
+            InvocationDetails details;
+            if (progress) {
+                details = new InvocationDetails(
+                        registration, registration.procedure, callerSessionID, callerAuthID, callerAuthRole, this,
+                        (args, kwargs) -> {
+                            HashMap<String, Object> options = new HashMap<>();
+                            options.put("progress", true);
+                            send(new Yield(msg.request, args, kwargs, options));
+                        });
+            } else {
+                details = new InvocationDetails(
+                        registration, registration.procedure, callerSessionID, callerAuthID, callerAuthRole, this, null);
+            }
             runAsync(() -> {
                 Object result;
                 if (registration.endpoint instanceof Supplier) {
@@ -494,22 +514,22 @@ public class Session implements ISession, ITransportHandler {
                             }
 
                         } else {
-                            send(new Yield(msg.request, invocRes.results, invocRes.kwresults));
+                            send(new Yield(msg.request, invocRes.results, invocRes.kwresults, null));
                         }
                     }, mExecutor);
                 } else if (result instanceof InvocationResult) {
                     InvocationResult res = (InvocationResult) result;
-                    send(new Yield(msg.request, res.results, res.kwresults));
+                    send(new Yield(msg.request, res.results, res.kwresults, null));
                 } else if (result instanceof List) {
-                    send(new Yield(msg.request, (List) result, null));
+                    send(new Yield(msg.request, (List) result, null, null));
                 } else if (result instanceof Map) {
-                    send(new Yield(msg.request, null, (Map) result));
+                    send(new Yield(msg.request, null, (Map) result, null));
                 } else if (result instanceof Void) {
-                    send(new Yield(msg.request, null, null));
+                    send(new Yield(msg.request, null, null, null));
                 } else {
                     List<Object> item = new ArrayList<>();
                     item.add(result);
-                    send(new Yield(msg.request, item, null));
+                    send(new Yield(msg.request, item, null, null));
                 }
             }, mExecutor).whenCompleteAsync((aVoid, throwable) -> {
                 // FIXME: implement better errors
@@ -1082,9 +1102,10 @@ public class Session implements ISession, ITransportHandler {
                 resultTypeReference, resultTypeClass));
 
         if (options == null) {
-            send(new Call(requestID, procedure, args, kwargs, 0));
+            send(new Call(requestID, procedure, args, kwargs, 0, false));
         } else {
-            send(new Call(requestID, procedure, args, kwargs, options.timeout));
+            boolean receiveProgress = options.progressHandler != null;
+            send(new Call(requestID, procedure, args, kwargs, options.timeout, receiveProgress));
         }
         return future;
     }
@@ -1286,7 +1307,15 @@ public class Session implements ISession, ITransportHandler {
         roles.put("publisher", new HashMap<>());
         roles.put("subscriber", new HashMap<>());
         roles.put("caller", new HashMap<>());
-        roles.put("callee", new HashMap<>());
+
+        Map<String, Object> calleeFeatures = new HashMap<>();
+        calleeFeatures.put("progressive_call_results", true);
+        calleeFeatures.put("call_canceling", true);
+
+        Map<String, Object> callee = new HashMap<>();
+        callee.put("features", calleeFeatures);
+        roles.put("callee", callee);
+
         if (mAuthenticators == null) {
             send(new Hello(realm, roles));
         } else {
