@@ -11,10 +11,11 @@
 
 package xbr.network;
 
+import static io.xconn.cryptology.Util.generateRandomBytesArray;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 
-import org.libsodium.jni.crypto.Random;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;
 import org.web3j.utils.Numeric;
@@ -93,7 +94,7 @@ public class SimpleSeller {
     private void onRotate(KeySeries series) {
         mKeysMap.put(Numeric.toHexString(series.getID()), series);
         long validFrom = Math.round(System.nanoTime() - 10 * Math.pow(10, 9));
-        byte[] signature = new Random().randomBytes(65);
+        byte[] signature = generateRandomBytesArray(65);
 
         List<Object> args = new ArrayList<>();
         args.add(series.getID());

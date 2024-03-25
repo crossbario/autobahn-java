@@ -27,6 +27,9 @@ import java.util.concurrent.CompletableFuture;
 
 public class Util {
 
+    public static final int NONCE_SIZE = 24;
+    public static final int SECRET_KEY_LEN = 32;
+
     public static BigInteger toXBR(int xbr) {
         return BigInteger.valueOf(xbr).multiply(BigInteger.valueOf(10).pow(18));
     }

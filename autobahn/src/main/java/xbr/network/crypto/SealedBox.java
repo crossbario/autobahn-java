@@ -1,16 +1,15 @@
 package xbr.network.crypto;
 
-import org.libsodium.jni.encoders.Encoder;
-
-import static org.libsodium.jni.NaCl.sodium;
-import static org.libsodium.jni.SodiumConstants.PUBLICKEY_BYTES;
-import static org.libsodium.jni.crypto.Util.isValid;
+import static io.xconn.cryptology.SealedBox.seal;
+import static io.xconn.cryptology.SealedBox.sealOpen;
 
 public class SealedBox {
 
     private static final int MAC_BYTES = 16;
+    private static int PUBLICKEY_BYTES = 32;
     private static final int SEAL_BYTES = PUBLICKEY_BYTES + MAC_BYTES;
 
+    private static final byte[] HSALSA20_SEED = new byte[16];
     private byte[] publicKey;
     private byte[] privateKey;
 
@@ -22,9 +21,6 @@ public class SealedBox {
         this.privateKey = null;
     }
 
-    public SealedBox(String publicKey, Encoder encoder) {
-        this(encoder.decode(publicKey));
-    }
 
     public SealedBox(byte[] publicKey, byte[] privateKey) {
         if (publicKey == null) {
@@ -37,23 +33,11 @@ public class SealedBox {
         this.privateKey = privateKey;
     }
 
-    public SealedBox(String publicKey, String privateKey, Encoder encoder) {
-        this(encoder.decode(publicKey), encoder.decode(privateKey));
-    }
-
     public byte[] encrypt(byte[] message) {
-        byte[] ct = new byte[message.length + SEAL_BYTES];
-        isValid(sodium().crypto_box_seal(
-                ct, message, message.length, publicKey),
-                "Encryption failed");
-        return ct;
+        return seal(message, publicKey);
     }
 
-    public byte[] decrypt(byte[] ciphertext) {
-        byte[] message = new byte[ciphertext.length - SEAL_BYTES];
-        isValid(sodium().crypto_box_seal_open(
-                message, ciphertext, ciphertext.length, publicKey, privateKey),
-                "Decryption failed. Ciphertext failed verification");
-        return message;
+    public byte[] decrypt(byte[] message) {
+        return sealOpen(message, privateKey);
     }
 }

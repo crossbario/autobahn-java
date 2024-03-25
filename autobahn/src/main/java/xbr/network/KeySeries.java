@@ -11,20 +11,20 @@
 
 package xbr.network;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
-
-import org.libsodium.jni.SodiumConstants;
-import org.libsodium.jni.crypto.Random;
-import org.web3j.utils.Numeric;
-
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Consumer;
+
+import static io.xconn.cryptology.Util.generateRandomBytesArray;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
+
+import org.web3j.utils.Numeric;
 
 import xbr.network.crypto.SealedBox;
 import xbr.network.crypto.SecretBox;
@@ -94,8 +94,7 @@ public class KeySeries {
     }
 
     Map<String, Object> encrypt(Object payload) throws JsonProcessingException {
-        byte[] nonce = new Random().randomBytes(
-                SodiumConstants.XSALSA20_POLY1305_SECRETBOX_NONCEBYTES);
+        byte[] nonce = generateRandomBytesArray(Util.NONCE_SIZE);
 
         Map<String, Object> data = new HashMap<>();
         data.put("id", mID);
@@ -112,8 +111,8 @@ public class KeySeries {
     }
 
     private void onRotate() {
-        mID = new Random().randomBytes(16);
-        mKey = new Random().randomBytes(SodiumConstants.XSALSA20_POLY1305_SECRETBOX_KEYBYTES);
+        mID = generateRandomBytesArray(16);
+        mKey = generateRandomBytesArray(Util.SECRET_KEY_LEN);
         mBox = new SecretBox(mKey);
 
         Map<String, Object> data = new HashMap<>();

@@ -24,13 +24,17 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.16.1'
     implementation 'org.msgpack:jackson-dataformat-msgpack:0.9.8'
-    implementation 'org.web3j:core:5.0.0'
-    implementation 'org.web3j:abi:5.0.0'
-    implementation 'org.web3j:utils:5.0.0'
+    implementation('io.xconn:cryptology:1.0.1') {
+        exclude group: "org.bouncycastle", module: "bcprov-jdk18on"
+    }
     if (IS_ANDROID) {
-        implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.2'
-    } else {
-        implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni:2.0.2'
+        implementation 'org.web3j:core:4.8.8-android'
+        implementation 'org.web3j:abi:4.8.8-android'
+        implementation 'org.web3j:utils:4.8.8-android'
+    } else{
+        implementation 'org.web3j:core:4.11.0'
+        implementation 'org.web3j:abi:4.11.0'
+        implementation 'org.web3j:utils:4.11.0'
         implementation 'org.json:json:20240205'
         implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.5'
     }
@@ -38,6 +42,7 @@ dependencies {
         implementation 'io.netty:netty-codec-http:4.1.106.Final'
         implementation 'io.netty:netty-handler:4.1.106.Final'
     }
+    testImplementation 'junit:junit:4.13.2'
 }
 
 // Create the pom configuration:
@@ -174,8 +179,8 @@ if (IS_ANDROID) {
     jar {
         version = relVersion
     }
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 afterEvaluate {
@@ -187,7 +192,7 @@ afterEvaluate {
                     artifactId ARTIFACT_ANDROID
                 } else {
                     from components.java
-                    artifactId IS_NEXT ? ARTIFACT_NEXT: ARTIFACT_JAVA
+                    artifactId IS_NEXT ? ARTIFACT_NEXT : ARTIFACT_JAVA
                 }
 
                 artifact sourcesJar
