@@ -12,6 +12,7 @@
 package io.crossbar.autobahn.wamp.types;
 
 import io.crossbar.autobahn.wamp.Session;
+import io.crossbar.autobahn.wamp.interfaces.Progress;
 
 public class InvocationDetails {
 
@@ -33,18 +34,18 @@ public class InvocationDetails {
     // The WAMP session on which this event is delivered.
     public final Session session;
 
-    // FIXME
-    // we need a progress() callback here to allow
-    // the user to produce progressive results.
+    // callback produce progressive results.
+    public final Progress progress;
 
     // XXXX - Tentative, the constructor parameter order may change.
     public InvocationDetails(Registration registration, String procedure, long callerSessionID,
-                             String callerAuthID, String callerAuthRole, Session session) {
+                             String callerAuthID, String callerAuthRole, Session session, Progress progress) {
         this.registration = registration;
         this.procedure = procedure;
         this.callerSessionID = callerSessionID;
         this.callerAuthID = callerAuthID;
         this.callerAuthRole = callerAuthRole;
         this.session = session;
+        this.progress = progress;
     }
 }

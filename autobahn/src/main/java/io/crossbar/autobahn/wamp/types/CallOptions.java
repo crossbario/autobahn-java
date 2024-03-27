@@ -11,10 +11,22 @@
 
 package io.crossbar.autobahn.wamp.types;
 
+import io.crossbar.autobahn.wamp.interfaces.ProgressHandler;
+
 public class CallOptions {
-    public final int timeout;
+    public int timeout;
+    public ProgressHandler progressHandler;
 
     public CallOptions(int timeout) {
         this.timeout = timeout;
+    }
+
+    public CallOptions(ProgressHandler progressHandler) {
+        this.progressHandler = progressHandler;
+    }
+
+    public CallOptions(int timeout, ProgressHandler progressHandler) {
+        this.timeout = timeout;
+        this.progressHandler = progressHandler;
     }
 }

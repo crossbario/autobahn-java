@@ -28,11 +28,13 @@ public class Yield implements IMessage {
     public final long request;
     public final List<Object> args;
     public final Map<String, Object> kwargs;
+    public final Map<String, Object> options;
 
-    public Yield(long request, List<Object> args, Map<String, Object> kwargs) {
+    public Yield(long request, List<Object> args, Map<String, Object> kwargs, Map<String, Object> options) {
         this.request = request;
         this.args = args;
         this.kwargs = kwargs;
+        this.options = options;
     }
 
     public static Yield parse(List<Object> wmsg) {
@@ -50,7 +52,7 @@ public class Yield implements IMessage {
         if (wmsg.size() > 4) {
             kwargs = (Map<String, Object>) wmsg.get(4);
         }
-        return new Yield(MessageUtil.parseLong(wmsg.get(1)), args, kwargs);
+        return new Yield(MessageUtil.parseLong(wmsg.get(1)), args, kwargs, options);
     }
 
     @Override
@@ -58,8 +60,11 @@ public class Yield implements IMessage {
         List<Object> marshaled = new ArrayList<>();
         marshaled.add(MESSAGE_TYPE);
         marshaled.add(request);
-        // Empty options.
-        marshaled.add(Collections.emptyMap());
+        if (options == null) {
+            marshaled.add(Collections.emptyMap());
+        } else {
+            marshaled.add(options);
+        }
         if (kwargs != null) {
             if (args == null) {
                 // Empty args.

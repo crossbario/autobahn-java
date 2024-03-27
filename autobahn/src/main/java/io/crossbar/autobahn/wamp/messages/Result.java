@@ -26,17 +26,20 @@ public class Result implements IMessage {
     public final long request;
     public final List<Object> args;
     public final Map<String, Object> kwargs;
+    public final Map<String, Object> options;
 
-    public Result(long request, List<Object> args, Map<String, Object> kwargs) {
+    public Result(long request, List<Object> args, Map<String, Object> kwargs, Map<String, Object> options) {
         this.request = request;
         this.args = args;
         this.kwargs = kwargs;
+        this.options = options;
     }
 
     public static Result parse(List<Object> wmsg) {
         MessageUtil.validateMessage(wmsg, MESSAGE_TYPE, "RESULT", 3, 5);
 
         long request = MessageUtil.parseLong(wmsg.get(1));
+        Map<String, Object> options = (Map<String, Object>) wmsg.get(2);
         List<Object> args = null;
         if (wmsg.size() > 3) {
             if (wmsg.get(3) instanceof byte[]) {
@@ -48,7 +51,7 @@ public class Result implements IMessage {
         if (wmsg.size() > 4) {
             kwargs = (Map<String, Object>) wmsg.get(4);
         }
-        return new Result(request, args, kwargs);
+        return new Result(request, args, kwargs, options);
     }
 
     @Override
@@ -56,7 +59,11 @@ public class Result implements IMessage {
         List<Object> marshaled = new ArrayList<>();
         marshaled.add(MESSAGE_TYPE);
         marshaled.add(request);
-        marshaled.add(Collections.emptyMap());
+        if (options == null) {
+            marshaled.add(Collections.emptyMap());
+        } else {
+            marshaled.add(options);
+        }
         if (kwargs != null) {
             if (args == null) {
                 // Empty args.
