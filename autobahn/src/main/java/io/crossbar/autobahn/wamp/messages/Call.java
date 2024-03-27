@@ -83,9 +83,11 @@ public class Call implements IMessage {
         marshaled.add(MESSAGE_TYPE);
         marshaled.add(request);
         Map<String, Object> options = new HashMap<>();
-        options.put("receive_progress", receiveProgress);
         if (timeout > TIMEOUT_DEFAULT) {
             options.put("timeout", timeout);
+        }
+        if (receiveProgress) {
+            options.put("receive_progress", true);
         }
         marshaled.add(options);
         marshaled.add(procedure);
