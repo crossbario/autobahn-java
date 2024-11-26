@@ -1304,6 +1304,7 @@ public class Session implements ISession, ITransportHandler {
                     ChallengeResponseAuth auth = (ChallengeResponseAuth) authenticator;
                     authID = auth.authid;
                     authrole = auth.authrole;
+                    authextra = auth.authextra;
                 } else if (authenticator.getAuthMethod().equals(CryptosignAuth.authmethod)) {
                     CryptosignAuth auth = (CryptosignAuth) authenticator;
                     authID = auth.authid;
