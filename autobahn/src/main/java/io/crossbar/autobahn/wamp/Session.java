@@ -1299,10 +1299,12 @@ public class Session implements ISession, ITransportHandler {
                 if (authenticator.getAuthMethod().equals(TicketAuth.authmethod)) {
                     TicketAuth auth = (TicketAuth) authenticator;
                     authID = auth.authid;
+                    authextra = auth.authextra;
                 } else if (authenticator.getAuthMethod().equals(ChallengeResponseAuth.authmethod)) {
                     ChallengeResponseAuth auth = (ChallengeResponseAuth) authenticator;
                     authID = auth.authid;
                     authrole = auth.authrole;
+                    authextra = auth.authextra;
                 } else if (authenticator.getAuthMethod().equals(CryptosignAuth.authmethod)) {
                     CryptosignAuth auth = (CryptosignAuth) authenticator;
                     authID = auth.authid;
